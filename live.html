@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Trip — live</title>
+<meta name="theme-color" content="#0d1117">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #0d1117; color: #e6edf3; min-height: 100vh; }
+.wrap { max-width: 640px; margin: 0 auto; padding: 20px 16px 60px; }
+.card { background: #161b22; border: 1px solid #30363d; border-radius: 12px; padding: 16px; margin-bottom: 14px; }
+h1 { font-size: 22px; font-weight: 800; }
+.muted { color: #8b949e; font-size: 13px; }
+.dayrow { display: flex; gap: 12px; padding: 10px 0; border-top: 1px solid #21262d; }
+.dayrow:first-child { border-top: none; }
+.daynum { width: 32px; text-align: center; font-weight: 800; color: #56d364; flex-shrink: 0; }
+.pbar { height: 6px; background: #21262d; border-radius: 3px; overflow: hidden; margin-top: 6px; }
+.pbar > div { height: 100%; background: #56d364; }
+.badge { display: inline-flex; padding: 2px 8px; border-radius: 10px; font-size: 11px; background: #21262d; border: 1px solid #30363d; color: #79c0ff; }
+a { color: #58a6ff; }
+.gallery { display: grid; grid-template-columns: repeat(auto-fill, minmax(110px, 1fr)); gap: 8px; }
+.gallery img { width: 100%; height: 100px; object-fit: cover; border-radius: 8px; }
+</style>
+</head>
+<body>
+<div class="wrap" id="app">Loading…</div>
+<script>
+const SB_URL = 'https://evlmgtoysvcumluwmusa.supabase.co';
+const SB_KEY = 'sb_publishable_EBGf9roabpx5-brXuia6ug_YWkOVc4K';
+const sb = supabase.createClient(SB_URL, SB_KEY);
+
+function esc(s) { return (s==null?'':String(s)).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+async function load(passcode) {
+  const params = new URLSearchParams(location.search);
+  const token = params.get('t');
+  const app = document.getElementById('app');
+  if (!token) { app.innerHTML = '<p>No trip link given.</p>'; return; }
+  const { data, error } = await sb.schema('app').rpc('public_trip_view', { p_token: token, p_passcode: passcode || null });
+  if (error) { app.innerHTML = '<p>Could not load this trip.</p>'; return; }
+  if (data.error === 'not_found') { app.innerHTML = '<p>This link is not active.</p>'; return; }
+  if (data.error === 'passcode_required') {
+    app.innerHTML = `<div class="card"><h2>This trip is passcode-protected</h2>
+      <input type="password" id="pcInput" placeholder="Passcode" style="margin:10px 0;padding:8px;width:100%;background:#21262d;border:1px solid #30363d;border-radius:6px;color:#e6edf3;">
+      <button onclick="load(document.getElementById('pcInput').value)" style="padding:8px 14px;background:#238636;border:none;border-radius:6px;color:#fff;cursor:pointer;">Unlock</button></div>`;
+    return;
+  }
+  render(data);
+}
+
+function render(data) {
+  const t = data.trip;
+  const days = data.days || [];
+  const doneKm = days.reduce((s,d) => s + (Number(d.riddenKm)||0), 0);
+  const totalKm = days.reduce((s,d) => s + (Number(d.distanceKm)||0), 0);
+  document.getElementById('app').innerHTML = `
+    <div class="card">
+      <h1>${esc(t.name)}</h1>
+      <div class="muted">${t.startDate||''} ${t.endDate ? '– ' + t.endDate : ''}</div>
+      ${totalKm ? `<div style="margin-top:10px;"><strong>${doneKm.toFixed(0)} / ${totalKm.toFixed(0)} km</strong>
+        <div class="pbar"><div style="width:${Math.min(100, totalKm ? doneKm/totalKm*100 : 0)}%;"></div></div></div>` : ''}
+    </div>
+
+    ${(data.trackingLinks||[]).length ? `<div class="card">
+      <strong style="font-size:13px;">🔴 Live tracking</strong>
+      <div style="margin-top:8px;display:flex;flex-direction:column;gap:6px;">
+        ${data.trackingLinks.map(l => `<a href="${esc(l.url)}" target="_blank" rel="noopener">${esc(l.label)} ↗</a>`).join('')}
+      </div>
+    </div>` : ''}
+
+    <div class="card">
+      <strong style="font-size:13px;">Route</strong>
+      ${days.map(d => `
+        <div class="dayrow">
+          <div class="daynum">${d.dayNumber}</div>
+          <div style="flex:1;">
+            <div style="font-weight:700;">${esc(d.titleEn || d.title || 'Day ' + d.dayNumber)}</div>
+            <div class="muted">${d.date||''} ${d.distanceKm ? '· ' + d.distanceKm + ' km' : ''} ${d.ascentM ? '· ' + d.ascentM + ' m ⛰️' : ''}</div>
+            ${d.accommodationName ? `<div style="font-size:12px;margin-top:2px;">🏠 ${esc(d.accommodationName)}${d.accommodationAddress ? ' — ' + esc(d.accommodationAddress) : ''}</div>` : ''}
+          </div>
+        </div>
+      `).join('')}
+    </div>
+
+    ${(data.photos||[]).length ? `<div class="card">
+      <strong style="font-size:13px;">Photos</strong>
+      <div class="gallery" style="margin-top:10px;">
+        ${data.photos.map(p => `<img src="${esc(p.photoUrl)}" alt="${esc(p.caption||'')}" loading="lazy">`).join('')}
+      </div>
+    </div>` : ''}
+  `;
+}
+load();
+</script>
+</body>
+</html>

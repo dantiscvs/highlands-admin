@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Trip Admin</title>
+<meta name="theme-color" content="#0d1117">
+<link rel="stylesheet" href="css/app.css">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body>
+
+<div id="authGate" style="min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px;"></div>
+
+<div id="appShell" style="display:none;">
+  <nav id="sidebar"></nav>
+  <main id="main"></main>
+</div>
+
+<div id="drawerOverlay" onclick="closeDayDrawer()"></div>
+<div id="drawer"></div>
+
+<script src="js/client.js"></script>
+<script src="js/auth.js"></script>
+<script src="js/router.js"></script>
+<script src="js/trips-list.js"></script>
+<script src="js/trip-shell.js"></script>
+<script src="js/trip-grid.js"></script>
+<script src="js/trip-modules.js"></script>
+<script src="js/trip-pace.js"></script>
+<script src="js/trip-share.js"></script>
+<script src="js/trip-imports.js"></script>
+<script>
+renderAuthForm();
+initAuth();
+</script>
+</body>
+</html>
