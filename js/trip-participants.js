@@ -67,7 +67,7 @@ function memberRowHtml(m) {
   const isMe = currentUser && m.user_id === currentUser.id;
   const canManage = isEditor() && m.role !== 'owner';
   return `<tr>
-    <td>${esc(m.display_name)}${isMe ? ' <span class="muted" style="font-size:11px;">(you)</span>' : ''}</td>
+    <td style="display:flex;align-items:center;gap:10px;">${avatarChip(m.display_name)}${esc(m.display_name)}${isMe ? ' <span class="muted" style="font-size:11px;">(you)</span>' : ''}</td>
     <td>${m.role === 'owner'
       ? '<span class="badge badge-blue">Owner</span>'
       : (canManage

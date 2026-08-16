@@ -8,6 +8,24 @@ const MODULE_LABELS = {
   sightseeing: 'Sightseeing', transport: '✈️ Logistics', live: '🔴 Live', overlays: 'Overlays',
 };
 
+// Minimal geometric line icons (18x18, 1.5-1.6px stroke, currentColor) per the
+// Trip Tracker design system — replaces emoji in the primary sidebar nav.
+const NAV_ICONS = {
+  overview: '<svg viewBox="0 0 18 18"><circle cx="9" cy="9" r="5.5" fill="none" stroke="currentColor" stroke-width="1.6"/></svg>',
+  grid: '<svg viewBox="0 0 18 18"><rect x="3" y="3" width="5" height="5" fill="none" stroke="currentColor" stroke-width="1.6"/><rect x="10" y="3" width="5" height="5" fill="none" stroke="currentColor" stroke-width="1.6"/><rect x="3" y="10" width="5" height="5" fill="none" stroke="currentColor" stroke-width="1.6"/><rect x="10" y="10" width="5" height="5" fill="none" stroke="currentColor" stroke-width="1.6"/></svg>',
+  home: '<svg viewBox="0 0 18 18"><polygon points="9,3 15,8 15,15 3,15 3,8" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></svg>',
+  route: '<svg viewBox="0 0 18 18"><circle cx="4" cy="14" r="1.8" fill="currentColor"/><circle cx="14" cy="4" r="1.8" fill="currentColor"/><path d="M4 14 C10 14, 8 4, 14 4" fill="none" stroke="currentColor" stroke-width="1.5"/></svg>',
+  bag: '<svg viewBox="0 0 18 18"><rect x="3" y="6" width="12" height="9" rx="1.5" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M6.5 6 V4.5 a2.5 2.5 0 0 1 5 0 V6" fill="none" stroke="currentColor" stroke-width="1.6"/></svg>',
+  wallet: '<svg viewBox="0 0 18 18"><rect x="2.5" y="5" width="13" height="9.5" rx="1.5" fill="none" stroke="currentColor" stroke-width="1.6"/><circle cx="12" cy="9.7" r="1.1" fill="currentColor"/></svg>',
+  pin: '<svg viewBox="0 0 18 18"><path d="M9 15 C9 15, 4 10.2, 4 6.8 A5 5 0 0 1 14 6.8 C14 10.2, 9 15, 9 15Z" fill="none" stroke="currentColor" stroke-width="1.5"/><circle cx="9" cy="6.8" r="1.6" fill="currentColor"/></svg>',
+  check: '<svg viewBox="0 0 18 18"><rect x="3" y="3" width="12" height="12" rx="2" fill="none" stroke="currentColor" stroke-width="1.6"/><polyline points="6,9.5 8.3,12 12.5,6.5" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+  share: '<svg viewBox="0 0 18 18"><circle cx="5" cy="9" r="2" fill="none" stroke="currentColor" stroke-width="1.6"/><circle cx="13" cy="4.5" r="2" fill="none" stroke="currentColor" stroke-width="1.6"/><circle cx="13" cy="13.5" r="2" fill="none" stroke="currentColor" stroke-width="1.6"/><line x1="6.7" y1="8" x2="11.3" y2="5.3" stroke="currentColor" stroke-width="1.4"/><line x1="6.7" y1="10" x2="11.3" y2="12.7" stroke="currentColor" stroke-width="1.4"/></svg>',
+  upload: '<svg viewBox="0 0 18 18"><line x1="9" y1="13" x2="9" y2="4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/><polyline points="5,7.5 9,3.5 13,7.5" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/><line x1="3.5" y1="15" x2="14.5" y2="15" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>',
+  people: '<svg viewBox="0 0 18 18"><circle cx="6.5" cy="6" r="2.5" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M2.5 14.5c0-2.2 1.8-3.8 4-3.8s4 1.6 4 3.8" fill="none" stroke="currentColor" stroke-width="1.6"/><circle cx="12.7" cy="6.5" r="2" fill="none" stroke="currentColor" stroke-width="1.4"/><path d="M10.9 11c.5-.2 1.1-.3 1.7-.3 1.9 0 3.5 1.4 3.5 3.3" fill="none" stroke="currentColor" stroke-width="1.4"/></svg>',
+  gear: '<svg viewBox="0 0 18 18"><circle cx="9" cy="9" r="2.3" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M9 2.8v1.8M9 13.4v1.8M15.2 9h-1.8M4.6 9H2.8M13.1 4.9l-1.3 1.3M6.2 11.9l-1.3 1.3M13.1 13.1l-1.3-1.3M6.2 6.1L4.9 4.8" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>',
+  logout: '<svg viewBox="0 0 18 18"><path d="M8 3H4a1 1 0 0 0-1 1v10a1 1 0 0 0 1 1h4" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/><path d="M7 9h8m0 0-2.5-2.5M15 9l-2.5 2.5" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+};
+
 async function loadTrip(tripId) {
   const { data: trip, error } = await db().from('trips').select('*').eq('id', tripId).single();
   if (error) return null;
@@ -46,40 +64,47 @@ async function renderTripShell(tripId, section) {
   await fn();
 }
 
-function navRow(key, label, section, currentSection) {
-  return `<div class="navitem ${section === currentSection ? 'on' : ''}" onclick="goTrip('${activeTrip.id}','${section}')">${label}</div>`;
+function navRow(iconKey, label, section, currentSection, count) {
+  return `<div class="navitem ${section === currentSection ? 'on' : ''}" onclick="goTrip('${activeTrip.id}','${section}')">
+    <span class="navicon">${NAV_ICONS[iconKey] || ''}</span><span>${label}</span>
+    ${count != null ? `<span style="margin-left:auto;font-size:var(--text-xs);color:var(--text-tertiary);">${count}</span>` : ''}
+  </div>`;
 }
 
 function renderTripSidebar(section) {
   const modules = activeTrip.enabled_modules || [];
   document.getElementById('sidebar').innerHTML = `
     <div class="backlink"><a href="#/trips" onclick="event.preventDefault();goTrips();" class="muted" style="font-size:12px;">← All trips</a></div>
-    <div class="brand" style="font-size:14px;flex-wrap:wrap;">${esc(activeTrip.name)}</div>
-    <div style="padding:0 16px 12px;"><span class="badge ${activeTrip.status==='active'?'badge-green':activeTrip.status==='archived'?'badge-gray':'badge-blue'}">${activeTrip.status}</span></div>
+    <div style="padding:8px 8px 12px;">
+      <div style="padding:8px 12px;background:var(--bg-card);border:1px solid var(--border-hairline);border-radius:var(--radius-md);font-size:var(--text-sm);font-weight:600;color:var(--text-primary);word-break:break-word;">${esc(activeTrip.name)}</div>
+      <span class="badge ${activeTrip.status==='active'?'badge-green':activeTrip.status==='archived'?'badge-gray':'badge-blue'}" style="margin-top:8px;">${activeTrip.status}</span>
+    </div>
 
     <div class="navgroup">Plan</div>
-    ${navRow('overview','🏠 Overview','overview',section)}
-    ${moduleOn('route') ? navRow('grid','📅 Route & Days','grid',section) : ''}
-    ${moduleOn('transport') ? navRow('logistics','✈️ Logistics','logistics',section) : ''}
+    ${navRow('overview','Overview','overview',section)}
+    ${moduleOn('route') ? navRow('grid','Route & Days','grid',section) : ''}
+    ${moduleOn('transport') ? navRow('route','Logistics','logistics',section) : ''}
 
     <div class="navgroup">Modules</div>
-    ${moduleOn('accommodation') ? navRow('accommodation','🏠 Accommodation','accommodation',section) : ''}
-    ${moduleOn('poi') ? navRow('poi','🏰 Sights & resupply','poi',section) : ''}
-    ${moduleOn('packing') ? navRow('packing','🎒 Packing','packing',section) : ''}
-    ${moduleOn('tasks') ? navRow('tasks','✅ Tasks','tasks',section) : ''}
-    ${moduleOn('expenses') ? navRow('expenses','💸 Expenses','expenses',section) : ''}
+    ${moduleOn('accommodation') ? navRow('home','Accommodation','accommodation',section) : ''}
+    ${moduleOn('poi') ? navRow('pin','Sights & resupply','poi',section) : ''}
+    ${moduleOn('packing') ? navRow('bag','Packing','packing',section) : ''}
+    ${moduleOn('tasks') ? navRow('check','Tasks','tasks',section) : ''}
+    ${moduleOn('expenses') ? navRow('wallet','Expenses','expenses',section) : ''}
 
     <div class="navgroup">People</div>
-    ${navRow('participants','👥 Participants','participants',section)}
+    ${navRow('people','Participants','participants',section)}
 
     <div class="navgroup">Trip health</div>
-    ${navRow('readiness','☑️ Readiness','readiness',section)}
-    ${navRow('share','🔗 Share & live','share',section)}
-    ${navRow('imports','📥 Imports','imports',section)}
-    ${isEditor() ? navRow('settings','⚙️ Settings','settings',section) : ''}
+    ${navRow('check','Readiness','readiness',section)}
+    ${navRow('share','Share & live','share',section)}
+    ${navRow('upload','Imports','imports',section)}
+    ${isEditor() ? navRow('gear','Settings','settings',section) : ''}
 
-    <div style="flex:1;"></div>
-    <div class="navitem" onclick="signOut()">↩️ Sign out</div>
+    <div class="sidebar-foot">
+      ${themeToggleHtml()}
+      <div class="navitem" onclick="signOut()"><span class="navicon">${NAV_ICONS.logout}</span><span>Sign out</span></div>
+    </div>
   `;
 }
 

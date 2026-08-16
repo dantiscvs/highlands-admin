@@ -59,7 +59,7 @@ function selectCell(id, field, val, options, table) {
 async function quickSave(table, id, field, value, el) {
   if (field === 'cost' || field === 'distance_km' || field === 'ascent_m') value = value === '' ? null : Number(value);
   const { error } = await db().from(table).update({ [field]: value }).eq('id', id);
-  if (error && el) { el.style.boxShadow = 'inset 0 0 0 1px var(--red)'; alert(error.message); }
+  if (error && el) { el.style.boxShadow = 'inset 0 0 0 1px var(--color-danger)'; alert(error.message); }
 }
 async function deleteRow(table, id, refresh) {
   if (!confirm('Delete this?')) return;
@@ -143,7 +143,7 @@ async function renderPoiModule() {
           ${isEditor() ? `<button class="btn btn-sm" onclick="addPoiForDay('${d.id}')">+ Add</button>` : ''}
         </div>
         ${(byDay[d.id]||[]).map(p => `
-          <div style="display:flex;gap:8px;align-items:center;padding:6px 0;border-top:1px solid var(--bg3);">
+          <div style="display:flex;gap:8px;align-items:center;padding:6px 0;border-top:1px solid var(--border-hairline);">
             <span>${esc(p.icon||'📍')}</span>
             <input type="text" value="${esc(p.name)}" onblur="quickSave('points_of_interest','${p.id}','name',this.value,this)" ${isEditor()?'':'disabled'} style="flex:1;min-width:120px;">
             ${selectCell(p.id, 'category', p.category, ['sight','resupply','water','other'], 'points_of_interest')}
@@ -182,7 +182,7 @@ async function renderChecklistModule(kind) {
       ${isEditor() ? `<div style="display:flex;gap:6px;"><input id="newItemInput" type="text" placeholder="Add item…" style="width:220px;"><button class="btn btn-primary btn-sm" onclick="addChecklistItem('${table}')">+ Add</button></div>` : ''}
     </div>
     <div class="gridWrap"><table class="simple">
-      <thead><tr><th>Item</th>${(members||[]).map(m=>`<th style="text-align:center;">${esc(m.display_name)}</th>`).join('')}<th></th></tr></thead>
+      <thead><tr><th>Item</th>${(members||[]).map(m=>`<th style="text-align:center;">${avatarChip(m.display_name,'sm')}</th>`).join('')}<th></th></tr></thead>
       <tbody>
         ${(items||[]).map(i => `<tr>
           <td>${textCell(i.id, 'title', i.title, table)}</td>
@@ -232,7 +232,7 @@ async function renderExpensesModule() {
     return `<div class="card" style="margin-bottom:10px;">
       <strong>${esc(cur)}</strong> — total ${list.reduce((s,e)=>s+Number(e.amount),0).toFixed(2)}
       <div style="display:flex;gap:16px;margin-top:8px;flex-wrap:wrap;">
-        ${(members||[]).map(m => `<div style="font-size:12px;"><span class="muted">${esc(m.display_name)}</span> <strong style="color:${balances[m.id]>0.01?'var(--green)':balances[m.id]<-0.01?'var(--red)':'var(--dim)'};">${balances[m.id]>=0?'+':''}${(balances[m.id]||0).toFixed(2)}</strong></div>`).join('')}
+        ${(members||[]).map(m => `<div style="font-size:12px;"><span class="muted">${esc(m.display_name)}</span> <strong style="color:${balances[m.id]>0.01?'var(--color-success)':balances[m.id]<-0.01?'var(--color-danger)':'var(--text-secondary)'};">${balances[m.id]>=0?'+':''}${(balances[m.id]||0).toFixed(2)}</strong></div>`).join('')}
       </div>
     </div>`;
   }).join('');
@@ -257,7 +257,7 @@ async function renderExpensesModule() {
     </div>
     <table class="simple">
       <thead><tr><th>Description</th><th>Paid by</th><th>Amount</th><th></th></tr></thead>
-      <tbody>${(expenses||[]).map(e => `<tr><td>${esc(e.description)}</td><td>${esc(byId[e.paid_by]?.display_name||'?')}</td><td>${e.amount} ${esc(e.currency)}</td><td><button class="btn btn-sm btn-danger" onclick="deleteRow('expenses','${e.id}', renderExpensesModule)">✕</button></td></tr>`).join('')}</tbody>
+      <tbody>${(expenses||[]).map(e => `<tr><td>${esc(e.description)}</td><td style="display:flex;align-items:center;gap:8px;">${avatarChip(byId[e.paid_by]?.display_name||'?','sm')}${esc(byId[e.paid_by]?.display_name||'?')}</td><td>${e.amount} ${esc(e.currency)}</td><td><button class="btn btn-sm btn-danger" onclick="deleteRow('expenses','${e.id}', renderExpensesModule)">✕</button></td></tr>`).join('')}</tbody>
     </table>
   `;
 }

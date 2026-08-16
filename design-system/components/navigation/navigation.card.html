@@ -1,0 +1,32 @@
+<!-- @dsCard group="Components" viewport="500x300" subtitle="Sidebar nav item + tabs" name="Navigation" -->
+<!DOCTYPE html>
+<html><head><meta charset="utf-8">
+<link rel="stylesheet" href="../../styles.css">
+<script src="https://unpkg.com/react@18/umd/react.development.js"></script>
+<script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+<script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+<script src="../../_ds_bundle.js"></script>
+<style>body{margin:0;background:var(--bg-page);font-family:var(--font-ui);padding:20px;box-sizing:border-box;} .row{display:flex;gap:16px;align-items:flex-start;flex-wrap:wrap;margin-bottom:16px;}</style>
+</head><body>
+<div id="root"></div>
+<script type="text/babel" data-presets="react">
+const NS = window.TripTracker || {};
+const { SidebarNavItem, Tabs } = NS;
+const dot = <svg width="18" height="18" viewBox="0 0 18 18"><circle cx="9" cy="9" r="5.5" fill="none" stroke="currentColor" strokeWidth="1.6"/></svg>;
+const sq = <svg width="18" height="18" viewBox="0 0 18 18"><rect x="3" y="3" width="5.5" height="5.5" fill="none" stroke="currentColor" strokeWidth="1.6"/><rect x="9.5" y="3" width="5.5" height="5.5" fill="none" stroke="currentColor" strokeWidth="1.6"/><rect x="3" y="9.5" width="5.5" height="5.5" fill="none" stroke="currentColor" strokeWidth="1.6"/><rect x="9.5" y="9.5" width="5.5" height="5.5" fill="none" stroke="currentColor" strokeWidth="1.6"/></svg>;
+const home = <svg width="18" height="18" viewBox="0 0 18 18"><polygon points="9,3 15,8 15,15 3,15 3,8" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinejoin="round"/></svg>;
+function App() {
+  return (
+    <div style={{display:"flex", gap:40}}>
+      <div style={{width:180, display:"flex", flexDirection:"column", gap:2}}>
+        <SidebarNavItem label="Overview" active icon={dot} />
+        <SidebarNavItem label="Day by day" icon={sq} count={9} />
+        <SidebarNavItem label="Accommodation" icon={home} count={6} />
+      </div>
+      <div style={{width:260}}><Tabs items={["Details","Logistics","Notes"]} active="Details" /></div>
+    </div>
+  );
+}
+ReactDOM.createRoot(document.getElementById('root')).render(<App/>);
+</script>
+</body></html>

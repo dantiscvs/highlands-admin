@@ -1,0 +1,38 @@
+<!-- @dsCard group="Components" viewport="760x360" subtitle="Badges, tooltip, empty state, checklist row" name="Feedback" -->
+<!DOCTYPE html>
+<html><head><meta charset="utf-8">
+<link rel="stylesheet" href="../../styles.css">
+<script src="https://unpkg.com/react@18/umd/react.development.js"></script>
+<script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+<script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+<script src="../../_ds_bundle.js"></script>
+<style>body{margin:0;background:var(--bg-page);font-family:var(--font-ui);padding:20px;box-sizing:border-box;} .row{display:flex;gap:16px;align-items:flex-start;flex-wrap:wrap;margin-bottom:16px;}</style>
+</head><body>
+<div id="root"></div>
+<script type="text/babel" data-presets="react">
+const NS = window.TripTracker || {};
+const { Badge, Tooltip, EmptyState, ChecklistItem } = NS;
+function App() {
+  return (
+    <div>
+      <div className="row">
+        <Badge status="success">Confirmed</Badge>
+        <Badge status="warning">Awaiting reply</Badge>
+        <Badge status="danger">Overdue</Badge>
+        <Badge status="info">Draft</Badge>
+        <Badge kind="activity" activity="cycling">Cycling</Badge>
+        <Badge kind="activity" activity="hiking">Hiking</Badge>
+        <Badge kind="activity" activity="driving">Driving</Badge>
+        <Badge kind="activity" activity="kayaking">Kayaking</Badge>
+        <Badge kind="activity" activity="transit">Transit</Badge>
+      </div>
+      <div className="row" style={{marginTop:36}}><Tooltip label="Elevation gain, in meters"><span>Elev. +1,240m</span></Tooltip></div>
+      <div className="row" style={{width:340}}><ChecklistItem title="No accommodation linked for Day 4" description="Riders will see a gap in the plan." /></div>
+      <div className="row" style={{width:340}}><ChecklistItem status="done" title="Share link generated" /></div>
+      <div className="row" style={{width:300}}><EmptyState title="No accommodation yet" description="Add a place to stay for each night." actionLabel="Add accommodation" /></div>
+    </div>
+  );
+}
+ReactDOM.createRoot(document.getElementById('root')).render(<App/>);
+</script>
+</body></html>

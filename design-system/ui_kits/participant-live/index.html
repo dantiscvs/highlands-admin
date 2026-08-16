@@ -1,0 +1,96 @@
+<!-- @dsCard group="Participant Live Page" viewport="390x760" -->
+<!-- @startingPoint section="Trip Tracker" subtitle="Mobile-first, read-only rider view — light, high-glare-legible" viewport="390x844" -->
+<!DOCTYPE html>
+<html><head><meta charset="utf-8"><title>Trip Tracker — Live</title>
+<link rel="stylesheet" href="../../styles.css">
+<script src="https://unpkg.com/react@18/umd/react.development.js"></script>
+<script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+<script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+<style>html,body{margin:0;height:100%;background:#ddd;} #root{height:100%;display:flex;justify-content:center;}</style>
+</head><body>
+<div id="root"></div>
+<script type="text/plain" id="app-src">
+const { useState } = React;
+
+function Phone({ children }) {
+  return (
+    <div className="participant-theme" style={{ width: 390, minHeight: 760, background: "var(--p-bg)", fontFamily: "var(--font-ui)", overflowY: "auto" }}>
+      {children}
+    </div>
+  );
+}
+
+function TopStat({ label, value }) {
+  return (
+    <div style={{ flex: 1, textAlign: "center" }}>
+      <div style={{ fontSize: "var(--p-text-lg)", fontWeight: 700, color: "var(--p-text-primary)" }}>{value}</div>
+      <div style={{ fontSize: "12px", color: "var(--p-text-secondary)", marginTop: 2 }}>{label}</div>
+    </div>
+  );
+}
+
+function StopRow({ name, time, status }) {
+  const map = { done: { bg: "var(--p-success-subtle)", fg: "var(--p-success)", label: "Passed" },
+    now: { bg: "var(--p-accent-subtle)", fg: "var(--p-accent)", label: "Now" },
+    next: { bg: "var(--p-bg)", fg: "var(--p-text-secondary)", label: time } };
+  const c = map[status];
+  return (
+    <div style={{ display: "flex", alignItems: "center", gap: 12, padding: "14px 0", borderBottom: "1px solid var(--p-border)" }}>
+      <div style={{ width: 10, height: 10, borderRadius: "50%", background: c.fg, flex: "none" }} />
+      <div style={{ flex: 1 }}>
+        <div style={{ fontSize: "var(--p-text-base)", fontWeight: 600, color: "var(--p-text-primary)" }}>{name}</div>
+      </div>
+      <div style={{ fontSize: "13px", fontWeight: 600, color: c.fg, background: status === "next" ? "transparent" : c.bg, padding: status === "next" ? 0 : "4px 10px", borderRadius: 999 }}>{c.label}</div>
+    </div>
+  );
+}
+
+function App() {
+  return (
+    <Phone>
+      <div style={{ padding: "20px 20px 8px", borderBottom: "1px solid var(--p-border)", background: "var(--p-surface)" }}>
+        <div style={{ fontSize: "13px", color: "var(--p-text-secondary)", fontWeight: 600 }}>ALPS RIDGE TRAVERSE</div>
+        <div style={{ fontSize: "var(--p-text-2xl)", fontWeight: 700, color: "var(--p-text-primary)", marginTop: 2 }}>Day 4 of 9</div>
+        <div style={{ fontSize: "var(--p-text-lg)", color: "var(--p-text-secondary)", marginTop: 2 }}>Grächen → Col de la Croix</div>
+        <div style={{ display: "flex", marginTop: 18, paddingBottom: 16 }}>
+          <TopStat label="Distance" value="42.3 km" />
+          <TopStat label="Elevation" value="+1,240 m" />
+          <TopStat label="Surface" value="Singletrack" />
+        </div>
+      </div>
+
+      <div style={{ padding: "16px 20px" }}>
+        <div style={{ background: "var(--p-accent-subtle)", borderRadius: 14, padding: "14px 16px", display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 20 }}>
+          <div>
+            <div style={{ fontSize: "13px", color: "var(--p-text-secondary)" }}>Mira is at</div>
+            <div style={{ fontSize: "var(--p-text-base)", fontWeight: 700, color: "var(--p-accent)" }}>Bergsee viewpoint</div>
+          </div>
+          <div style={{ fontSize: "12px", color: "var(--p-text-secondary)" }}>updated 4 min ago</div>
+        </div>
+
+        <div style={{ fontSize: "15px", fontWeight: 700, color: "var(--p-text-primary)", marginBottom: 4 }}>Today's stops</div>
+        <StopRow name="Grächen (start)" status="done" />
+        <StopRow name="Bergsee viewpoint" status="now" />
+        <StopRow name="Riffelalp resupply" time="~1:30pm" status="next" />
+        <StopRow name="Col de la Croix (finish)" time="~5:00pm" status="next" />
+
+        <div style={{ marginTop: 24 }}>
+          <div style={{ fontSize: "15px", fontWeight: 700, color: "var(--p-text-primary)", marginBottom: 8 }}>Tonight</div>
+          <div style={{ background: "var(--p-surface)", border: "1px solid var(--p-border)", borderRadius: 14, padding: 14, boxShadow: "var(--p-shadow)" }}>
+            <div style={{ fontSize: "var(--p-text-base)", fontWeight: 700, color: "var(--p-text-primary)" }}>Summit Hut</div>
+            <div style={{ fontSize: "13px", color: "var(--p-text-secondary)", marginTop: 2 }}>Shared dorm · dinner included</div>
+          </div>
+        </div>
+      </div>
+    </Phone>
+  );
+}
+ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+</script>
+<script>
+  var src = document.getElementById('app-src').textContent;
+  var out = Babel.transform(src, { presets: [['react', { runtime: 'classic' }]] }).code;
+  (0, eval)(out);
+</script>
+</body></html>
+<template id="__bundler_thumbnail"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><rect width="100" height="100" fill="#FCFBF8"/><rect x="30" y="10" width="40" height="80" rx="8" fill="none" stroke="#2E5339" stroke-width="4"/><circle cx="50" cy="45" r="8" fill="#C1602E"/></svg></template>

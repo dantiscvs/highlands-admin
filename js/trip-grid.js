@@ -200,7 +200,7 @@ async function openDayDrawer(dayId) {
     <span id="drawerSaveInd" class="saveIndicator"></span>
 
     ${moduleOn('poi') ? `
-      <hr style="border-color:var(--bg3);margin:18px 0;">
+      <hr style="border-color:var(--border-hairline);margin:18px 0;">
       <h2>Sights &amp; resupply for this day</h2>
       <div id="drawerPoiList">${(pois||[]).map(p => poiRowHtml(p)).join('') || '<p class="muted" style="font-size:12px;">None yet.</p>'}</div>
       <button class="btn btn-sm" style="margin-top:8px;" onclick="addPoiFromDrawer('${dayId}')">+ Add place</button>
@@ -208,7 +208,7 @@ async function openDayDrawer(dayId) {
   `;
 }
 function poiRowHtml(p) {
-  return `<div style="display:flex;gap:8px;align-items:flex-start;padding:6px 0;border-top:1px solid var(--bg3);">
+  return `<div style="display:flex;gap:8px;align-items:flex-start;padding:6px 0;border-top:1px solid var(--border-hairline);">
     <span>${esc(p.icon||(p.category==='resupply'?'🛒':'📍'))}</span>
     <div style="flex:1;">
       <div style="font-weight:600;font-size:13px;">${esc(p.name)}</div>

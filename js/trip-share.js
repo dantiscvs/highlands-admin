@@ -97,7 +97,7 @@ async function regenerateShareToken() {
 function renderMyTrackingLinks(links, providers) {
   return `
     ${(links||[]).map(l => `
-      <div style="display:flex;gap:8px;align-items:center;padding:6px 0;border-top:1px solid var(--bg3);">
+      <div style="display:flex;gap:8px;align-items:center;padding:6px 0;border-top:1px solid var(--border-hairline);">
         <span class="badge ${l.is_active?'badge-green':'badge-gray'}">${(providers||[]).find(p=>p.id===l.provider_id)?.display_name || l.provider_id}</span>
         <span class="muted" style="font-size:12px;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${esc(l.url)}</span>
         <button class="btn btn-sm" onclick="toggleMyLink('${l.id}', ${!l.is_active})">${l.is_active?'Turn off':'Turn on'}</button>

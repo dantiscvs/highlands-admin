@@ -1,0 +1,42 @@
+/* ============================================================
+   TRIP TRACKER — SPACING, RADIUS, ELEVATION, Z-INDEX
+   ============================================================ */
+:root {
+  /* Spacing (4px base unit) */
+  --space-1: 2px;
+  --space-2: 4px;
+  --space-3: 8px;
+  --space-4: 12px;
+  --space-5: 16px;
+  --space-6: 20px;
+  --space-7: 24px;
+  --space-8: 32px;
+  --space-9: 40px;
+  --space-10: 48px;
+  --space-11: 64px;
+
+  /* Radius */
+  --radius-sm: 6px;   /* inputs, chips, table cell focus outline */
+  --radius-md: 10px;  /* buttons, small cards, badges (pill uses radius-full) */
+  --radius-lg: 14px;  /* cards, popovers, dropdown menus */
+  --radius-xl: 20px;  /* modals, drawer leading edge, large panels */
+  --radius-full: 999px; /* avatars, pill badges, toggle track */
+
+  /* Elevation — hairline border is the primary depth cue; shadow is a soft assist */
+  --shadow-e1: 0 1px 2px rgba(35, 38, 31, 0.05), 0 1px 1px rgba(35, 38, 31, 0.04);            /* resting card */
+  --shadow-e2: 0 4px 12px rgba(35, 38, 31, 0.08), 0 1px 3px rgba(35, 38, 31, 0.06);           /* dropdown, tooltip, popover */
+  --shadow-e3: 0 16px 40px rgba(35, 38, 31, 0.16), 0 4px 12px rgba(35, 38, 31, 0.08);         /* modal, drawer */
+
+  --z-dropdown: 100;
+  --z-sticky: 200;
+  --z-drawer: 300;
+  --z-modal: 400;
+  --z-tooltip: 500;
+  --z-toast: 600;
+}
+
+[data-theme="dark"] {
+  --shadow-e1: 0 1px 2px rgba(0, 0, 0, 0.3), 0 1px 1px rgba(0, 0, 0, 0.24);
+  --shadow-e2: 0 4px 14px rgba(0, 0, 0, 0.4), 0 1px 3px rgba(0, 0, 0, 0.3);
+  --shadow-e3: 0 20px 48px rgba(0, 0, 0, 0.55), 0 4px 16px rgba(0, 0, 0, 0.35);
+}

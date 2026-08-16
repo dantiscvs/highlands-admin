@@ -45,6 +45,9 @@ function paceSummaryHtml(day) {
   `;
 }
 
+const CHECK_ICON_DONE = '<svg class="check-icon" viewBox="0 0 18 18"><circle cx="9" cy="9" r="7.5" fill="none" stroke="var(--color-success)" stroke-width="1.5"/><polyline points="5.5,9.2 8,11.8 12.5,6.5" fill="none" stroke="var(--color-success)" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+const CHECK_ICON_WARNING = '<svg class="check-icon" viewBox="0 0 18 18"><polygon points="9,2.5 16,15 2,15" fill="none" stroke="var(--color-warning)" stroke-width="1.5" stroke-linejoin="round"/><line x1="9" y1="7.5" x2="9" y2="11" stroke="var(--color-warning)" stroke-width="1.5" stroke-linecap="round"/><circle cx="9" cy="13" r="0.9" fill="var(--color-warning)"/></svg>';
+
 async function renderReadinessChecklist() {
   const { data, error } = await db().rpc('trip_readiness', { p_trip_id: activeTrip.id });
   if (error) { document.getElementById('main').innerHTML = 'Failed: ' + error.message; return; }
@@ -57,18 +60,18 @@ async function renderReadinessChecklist() {
   document.getElementById('main').innerHTML = `
     <div class="pagehead">
       <div><h1>Readiness</h1><div class="subtitle">Warnings, never blockers — your pre-trip review.</div></div>
-      <div class="pct-ring" style="color:${data.completePct>=80?'var(--green)':data.completePct>=50?'var(--orange)':'var(--red)'};">${data.completePct}%</div>
+      <div class="pct-ring" style="color:${data.completePct>=80?'var(--color-success)':data.completePct>=50?'var(--color-warning)':'var(--color-danger)'};">${data.completePct}%</div>
     </div>
     <div class="card">
       ${items.map(it => {
         const dismissed = (JSON.parse(localStorage.getItem('dismissedWarnings_'+activeTrip.id) || '[]')).includes(it.key);
         if (dismissed) return '';
         const list = it.list || [];
-        return `<div class="checklist-item">
-          <span style="font-size:18px;">${list.length ? '⚠️' : '✅'}</span>
+        return `<div class="checklist-item ${list.length ? 'warning' : 'done'}">
+          ${list.length ? CHECK_ICON_WARNING : CHECK_ICON_DONE}
           <div style="flex:1;">
-            <div>${it.label}</div>
-            ${list.length ? `<div class="muted" style="font-size:12px;">${list.map(it.fmt).join(', ')}</div>` : '<div class="muted" style="font-size:12px;">All clear</div>'}
+            <div class="check-title">${it.label}</div>
+            ${list.length ? `<div class="check-desc">${list.map(it.fmt).join(', ')}</div>` : '<div class="check-desc">All clear</div>'}
           </div>
           ${list.length ? `<button class="btn btn-sm" onclick="dismissWarning('${it.key}')">Dismiss</button>` : ''}
         </div>`;

@@ -1,0 +1,25 @@
+<!-- @dsCard group="Components" viewport="900x500" subtitle="Modal + slide-in drawer" name="Overlay" -->
+<!DOCTYPE html>
+<html><head><meta charset="utf-8">
+<link rel="stylesheet" href="../../styles.css">
+<script src="https://unpkg.com/react@18/umd/react.development.js"></script>
+<script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+<script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+<script src="../../_ds_bundle.js"></script>
+<style>body{margin:0;background:var(--bg-page);font-family:var(--font-ui);padding:20px;box-sizing:border-box;} .row{display:flex;gap:16px;align-items:flex-start;flex-wrap:wrap;margin-bottom:16px;}</style>
+</head><body>
+<div id="root"></div>
+<script type="text/babel" data-presets="react">
+const NS = window.TripTracker || {};
+const { Modal, Drawer, Input } = NS;
+function App() {
+  return (
+    <div style={{display:"flex", gap:24, alignItems:"flex-start"}}>
+      <Modal title="Delete Day 6?" danger confirmLabel="Delete day">This removes all linked accommodation and sights for this day.</Modal>
+      <Drawer title="Day 4 — Col de la Croix" subtitle="Tue, Sep 8"><Input label="GPX link" placeholder="https://…" /><Input label="Resupply notes" placeholder="Water at km 30" /></Drawer>
+    </div>
+  );
+}
+ReactDOM.createRoot(document.getElementById('root')).render(<App/>);
+</script>
+</body></html>

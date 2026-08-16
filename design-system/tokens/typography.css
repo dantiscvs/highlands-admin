@@ -1,0 +1,40 @@
+/* ============================================================
+   TRIP TRACKER — TYPOGRAPHY TOKENS
+   ============================================================ */
+:root {
+  --font-ui: "Manrope", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, "SF Mono", Menlo, monospace;
+
+  /* Type scale — admin (dense, desktop) */
+  --text-xs: 11px;    /* table header labels, timestamps, badge text */
+  --text-sm: 13px;    /* secondary text, form labels, nav items */
+  --text-base: 14px;  /* body copy, table cell values, inputs */
+  --text-md: 16px;    /* emphasized body, drawer field values */
+  --text-lg: 18px;    /* card titles, modal titles, section headers */
+  --text-xl: 22px;    /* drawer/page subtitle */
+  --text-2xl: 28px;   /* page titles */
+  --text-3xl: 36px;   /* stat-card hero numbers */
+
+  --leading-tight: 1.2;
+  --leading-normal: 1.45;
+  --leading-relaxed: 1.6;
+
+  --weight-regular: 400;
+  --weight-medium: 500;
+  --weight-semibold: 600;
+  --weight-bold: 700;
+
+  /* Type scale — participant (mobile, glance-legible, larger floor) */
+  --p-text-sm: 14px;
+  --p-text-base: 17px;
+  --p-text-lg: 20px;
+  --p-text-xl: 26px;
+  --p-text-2xl: 32px;
+}
+
+/* Weight-usage rules (enforced in components, documented here):
+   - Never below 500 weight under 13px — thin type at small sizes fails legibility.
+   - 400 regular: body paragraphs, table cell values, input text ≥14px only.
+   - 500 medium: labels, nav items, button text, badges, table headers.
+   - 600 semibold: titles (card/section/modal/page), stat numbers, active nav item.
+   - 700 bold: reserved for hero stat numbers on the participant page only. */

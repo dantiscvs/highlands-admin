@@ -1,0 +1,162 @@
+/* ============================================================
+   TRIP TRACKER — COLOR TOKENS
+   Admin panel: light (default) + dark ([data-theme="dark"])
+   Participant live page: separate simplified theme (.participant-theme)
+   ============================================================ */
+
+:root {
+  /* ---- Surfaces (warm, desaturated off-whites — not clinical white) ---- */
+  --bg-page: #F7F5F0;
+  --bg-sidebar: #F1EEE5;
+  --bg-card: #FFFFFF;
+  --bg-recessed: #EDEAE1;       /* input fields, table header row, well */
+  --bg-recessed-hover: #E6E2D6;
+  --bg-overlay-scrim: rgba(35, 38, 31, 0.42);
+
+  /* ---- Borders ---- */
+  --border-hairline: #E3DFD3;
+  --border-strong: #CFC8B7;
+  --border-focus: #2E5339;
+
+  /* ---- Text ---- */
+  --text-primary: #23261E;
+  --text-secondary: #63614F;
+  --text-tertiary: #97927D;
+  --text-on-accent: #FBFAF6;
+  --text-link: #24523A;
+  --text-link-hover: #1A3D2A;
+
+  /* ---- Primary accent: deep trail green ---- */
+  --accent-primary: #2E5339;
+  --accent-primary-hover: #24422D;
+  --accent-primary-pressed: #1B3222;
+  --accent-primary-subtle: #E6EEE3;
+  --accent-primary-subtle-border: #C3D6BD;
+
+  /* ---- Secondary accent: terracotta / sunset ---- */
+  --accent-secondary: #C1602E;
+  --accent-secondary-hover: #A34F24;
+  --accent-secondary-pressed: #833E1B;
+  --accent-secondary-subtle: #FAEAE0;
+  --accent-secondary-subtle-border: #EAC5AE;
+
+  /* ---- Semantic ---- */
+  --color-success: #2E6B45;
+  --color-success-subtle: #E4EFE6;
+  --color-success-border: #BBD8C2;
+
+  --color-warning: #A8721F;
+  --color-warning-subtle: #F7EDD8;
+  --color-warning-border: #E4CB94;
+
+  --color-danger: #AC3B31;
+  --color-danger-subtle: #F8E5E2;
+  --color-danger-border: #E7BAB3;
+
+  --color-info: #35637F;
+  --color-info-subtle: #E4EDF2;
+  --color-info-border: #B9D0DD;
+
+  /* ---- Activity-type accents (oklch: same L/C, hue spread evenly) ---- */
+  --activity-cycling: oklch(0.56 0.10 246);
+  --activity-cycling-subtle: oklch(0.94 0.02 246);
+  --activity-hiking: oklch(0.56 0.10 118);
+  --activity-hiking-subtle: oklch(0.94 0.02 118);
+  --activity-driving: oklch(0.60 0.11 48);
+  --activity-driving-subtle: oklch(0.94 0.025 48);
+  --activity-kayaking: oklch(0.56 0.10 196);
+  --activity-kayaking-subtle: oklch(0.94 0.02 196);
+  --activity-transit: oklch(0.56 0.09 322);
+  --activity-transit-subtle: oklch(0.94 0.02 322);
+
+  /* ---- Focus ring ---- */
+  --focus-ring: 0 0 0 3px rgba(46, 83, 57, 0.28);
+  --focus-ring-danger: 0 0 0 3px rgba(172, 59, 49, 0.25);
+
+  /* ---- Elevation (soft, hairline-first — see spacing.css for shadow tokens) ---- */
+}
+
+[data-theme="dark"] {
+  /* ---- Surfaces: not just inverted — a distinct warm-charcoal dark ---- */
+  --bg-page: #1B1D18;
+  --bg-sidebar: #17190F;
+  --bg-card: #24261F;
+  --bg-recessed: #14150F;
+  --bg-recessed-hover: #1C1E16;
+  --bg-overlay-scrim: rgba(10, 11, 8, 0.6);
+
+  --border-hairline: #363827;
+  --border-strong: #4A4C37;
+  --border-focus: #7FB587;
+
+  --text-primary: #EFEEE4;
+  --text-secondary: #A8A793;
+  --text-tertiary: #767462;
+  --text-on-accent: #14150F;
+  --text-link: #8FCB97;
+  --text-link-hover: #ACDCB2;
+
+  --accent-primary: #7FB587;
+  --accent-primary-hover: #97C69D;
+  --accent-primary-pressed: #B0D5B5;
+  --accent-primary-subtle: #26331F;
+  --accent-primary-subtle-border: #3E4E31;
+
+  --accent-secondary: #E08A54;
+  --accent-secondary-hover: #E9A176;
+  --accent-secondary-pressed: #F0B592;
+  --accent-secondary-subtle: #382418;
+  --accent-secondary-subtle-border: #573621;
+
+  --color-success: #7DBE8E;
+  --color-success-subtle: #223026;
+  --color-success-border: #3C5443;
+
+  --color-warning: #DBAE5C;
+  --color-warning-subtle: #332A15;
+  --color-warning-border: #5A4A24;
+
+  --color-danger: #E08B7E;
+  --color-danger-subtle: #3A231F;
+  --color-danger-border: #603E36;
+
+  --color-info: #86B4CC;
+  --color-info-subtle: #1F2C33;
+  --color-info-border: #3A5764;
+
+  --activity-cycling: oklch(0.75 0.09 246);
+  --activity-cycling-subtle: oklch(0.28 0.03 246);
+  --activity-hiking: oklch(0.75 0.09 118);
+  --activity-hiking-subtle: oklch(0.28 0.03 118);
+  --activity-driving: oklch(0.76 0.10 48);
+  --activity-driving-subtle: oklch(0.29 0.035 48);
+  --activity-kayaking: oklch(0.75 0.09 196);
+  --activity-kayaking-subtle: oklch(0.28 0.03 196);
+  --activity-transit: oklch(0.75 0.08 322);
+  --activity-transit-subtle: oklch(0.28 0.03 322);
+
+  --focus-ring: 0 0 0 3px rgba(127, 181, 135, 0.35);
+  --focus-ring-danger: 0 0 0 3px rgba(224, 139, 126, 0.3);
+}
+
+/* ============================================================
+   PARTICIPANT LIVE PAGE — simplified, light-only, high-glare-legible
+   Scope with class="participant-theme" on the page root.
+   Fewer tokens on purpose: this screen has far fewer states to cover.
+   ============================================================ */
+.participant-theme {
+  --p-bg: #FCFBF8;
+  --p-surface: #FFFFFF;
+  --p-border: #E5E1D4;
+  --p-text-primary: #1D2018;
+  --p-text-secondary: #5C5A48;
+  --p-accent: #2E5339;
+  --p-accent-subtle: #E6EEE3;
+  --p-accent-secondary: #C1602E;
+  --p-success: #2E6B45;
+  --p-success-subtle: #E4EFE6;
+  --p-warning: #A8721F;
+  --p-warning-subtle: #F7EDD8;
+  --p-danger: #AC3B31;
+  --p-shadow: 0 2px 10px rgba(35, 38, 31, 0.08);
+}

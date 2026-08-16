@@ -86,3 +86,12 @@ function pacePresetTooltip(activityType) {
   const fmt = (p) => Object.entries(p).map(([k, v]) => `${k}: ${v}`).join(', ');
   return `Beginner — ${fmt(presets.beginner)}\nModerate — ${fmt(presets.moderate)}\nExperienced — ${fmt(presets.experienced)}`;
 }
+
+// Maps trip.activity_type onto the design system's 5-hue activity accent palette.
+const ACTIVITY_ACCENT_KEY = { cycling: 'cycling', hiking: 'hiking', driving: 'driving', kayaking: 'kayaking', public_transport: 'transit', mixed: 'cycling' };
+function activityBadgeHtml(trip) {
+  const type = (trip && trip.activity_type) || 'cycling';
+  const cfg = activityConfig(trip);
+  const key = ACTIVITY_ACCENT_KEY[type] || 'cycling';
+  return `<span class="badge badge-activity" style="background:var(--activity-${key}-subtle);"><span class="activity-dot" style="background:var(--activity-${key});"></span>${esc(cfg.label)}</span>`;
+}

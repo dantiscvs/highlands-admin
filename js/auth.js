@@ -29,13 +29,13 @@ function renderAuthForm() {
   const gate = document.getElementById('authGate');
   const route = typeof parseRoute === 'function' ? parseRoute() : null;
   const inviteNote = route && route.view === 'invite'
-    ? `<div class="card" style="margin-bottom:20px;text-align:left;background:var(--blue-bg);border-color:var(--blue2);"><p style="font-size:13px;">🎟️ You've been invited to a trip. Sign in or enter your email below — you'll be added automatically once you're signed in.</p></div>`
+    ? `<div class="card" style="margin-bottom:20px;text-align:left;background:var(--accent-primary-subtle);border-color:var(--accent-primary-subtle-border);"><p style="font-size:13px;">🎟️ You've been invited to a trip. Sign in or enter your email below — you'll be added automatically once you're signed in.</p></div>`
     : '';
   gate.innerHTML = `
     <div class="modal" style="max-width:380px;text-align:center;">
       ${inviteNote}
       <div style="font-size:40px;margin-bottom:8px;">🗺️</div>
-      <h1 style="margin-bottom:4px;">Trip Admin</h1>
+      <h1 style="margin-bottom:4px;">Trip Tracker</h1>
       <p class="subtitle" style="margin-bottom:24px;">Plan and run multi-day group trips.</p>
 
       <div id="authMagicPane">
@@ -79,26 +79,26 @@ function togglePasswordPane() {
 async function sendMagicLink() {
   const email = document.getElementById('authEmail').value.trim();
   const msg = document.getElementById('authMsg');
-  if (!email) { msg.textContent = 'Enter an email address.'; msg.style.color = 'var(--red)'; return; }
+  if (!email) { msg.textContent = 'Enter an email address.'; msg.style.color = 'var(--color-danger)'; return; }
   const route = typeof parseRoute === 'function' ? parseRoute() : null;
   if (route && route.view === 'invite') localStorage.setItem('pendingInviteToken', route.token);
-  msg.textContent = 'Sending…'; msg.style.color = 'var(--dim)';
+  msg.textContent = 'Sending…'; msg.style.color = 'var(--text-secondary)';
   const { error } = await sb.auth.signInWithOtp({ email, options: { emailRedirectTo: location.origin + location.pathname } });
-  if (error) { msg.textContent = error.message; msg.style.color = 'var(--red)'; return; }
-  msg.textContent = 'Check your email for a sign-in link.'; msg.style.color = 'var(--green)';
+  if (error) { msg.textContent = error.message; msg.style.color = 'var(--color-danger)'; return; }
+  msg.textContent = 'Check your email for a sign-in link.'; msg.style.color = 'var(--color-success)';
 }
 
 async function signInPassword() {
   const email = document.getElementById('authEmailPw').value.trim();
   const password = document.getElementById('authPassword').value;
   const msg = document.getElementById('authMsg');
-  msg.textContent = 'Signing in…'; msg.style.color = 'var(--dim)';
+  msg.textContent = 'Signing in…'; msg.style.color = 'var(--text-secondary)';
   const { error } = await sb.auth.signInWithPassword({ email, password });
   if (error) {
     msg.textContent = error.message.includes('Invalid')
       ? 'Invalid login. If you signed up with a magic link, that account has no password — use "Send magic link" instead.'
       : error.message;
-    msg.style.color = 'var(--red)';
+    msg.style.color = 'var(--color-danger)';
     return;
   }
 }

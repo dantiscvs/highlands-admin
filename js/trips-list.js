@@ -1,9 +1,11 @@
 function renderSidebarTripsList() {
   document.getElementById('sidebar').innerHTML = `
-    <div class="brand">🗺️ Trip Admin</div>
-    <div class="navitem on" onclick="goTrips()">📋 My trips</div>
-    <div style="flex:1;"></div>
-    <div class="navitem" onclick="signOut()">↩️ Sign out</div>
+    <div class="brand">🗺️ Trip Tracker</div>
+    <div class="navitem on" onclick="goTrips()"><span class="navicon">${NAV_ICONS.overview}</span><span>My trips</span></div>
+    <div class="sidebar-foot">
+      ${themeToggleHtml()}
+      <div class="navitem" onclick="signOut()"><span class="navicon">${NAV_ICONS.logout}</span><span>Sign out</span></div>
+    </div>
   `;
 }
 
@@ -31,6 +33,7 @@ async function renderTripsListPage() {
             <span class="badge ${t.status==='active'?'badge-green':t.status==='archived'?'badge-gray':'badge-blue'}">${t.status}</span>
           </div>
           <div class="muted" style="font-size:12px;margin-top:6px;">${t.start_date ? fmtDate(t.start_date) + ' – ' + fmtDate(t.end_date) : 'No dates set'}</div>
+          <div style="margin-top:8px;">${activityBadgeHtml(t)}</div>
           <div class="muted" style="font-size:11px;margin-top:8px;">Role: ${roleByTrip[t.id]}</div>
         </div>
       `).join('')}

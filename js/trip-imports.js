@@ -66,7 +66,7 @@ async function renderImportsSection() {
         <button class="btn btn-sm" onclick="navigator.clipboard.writeText('${fakeInboundAddress}');this.textContent='Copied!'">Copy</button>
       </div>
       <p class="muted" style="font-size:11px;">⚠️ This MVP ships the full parsing pipeline and this review queue, but the address above isn't wired to a real mailbox yet (needs an email provider connected — see the delivery report). Use the tester below to try it with real or sample emails right now.</p>
-      <hr style="border-color:var(--bg3);margin:14px 0;">
+      <hr style="border-color:var(--border-hairline);margin:14px 0;">
       <strong style="font-size:13px;">Try it — paste an email or pick a sample</strong>
       <div style="display:flex;gap:6px;flex-wrap:wrap;margin:8px 0;">
         ${Object.keys(EMAIL_FIXTURES).map(k => `<button class="btn btn-sm" onclick="loadFixture('${k}')">${k}</button>`).join('')}
@@ -135,8 +135,8 @@ function reviewRowHtml(c) {
     <div style="flex:1;min-width:0;">
       <div class="muted" style="font-size:11px;text-transform:uppercase;">${esc(c.entity_type)}${c.day_number ? ' · day ' + c.day_number : ''} · ${esc(c.field_name)} · confidence ${Number(c.confidence).toFixed(2)}</div>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:6px;">
-        <div style="background:var(--bg3);border-radius:6px;padding:8px;font-size:12px;color:var(--dim);">${esc(c.source_excerpt || '(no excerpt)')}</div>
-        <div style="background:var(--bg3);border-radius:6px;padding:8px;font-size:13px;">→ <strong>${esc(val)}</strong></div>
+        <div style="background:var(--bg-recessed);border-radius:6px;padding:8px;font-size:12px;color:var(--text-secondary);">${esc(c.source_excerpt || '(no excerpt)')}</div>
+        <div style="background:var(--bg-recessed);border-radius:6px;padding:8px;font-size:13px;">→ <strong>${esc(val)}</strong></div>
       </div>
     </div>
     <div style="display:flex;flex-direction:column;gap:4px;">

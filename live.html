@@ -3,25 +3,58 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<title>Trip — live</title>
-<meta name="theme-color" content="#0d1117">
+<title>Trip Tracker — live</title>
+<meta name="theme-color" content="#FCFBF8">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
+@import url('https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500;600&display=swap');
+:root {
+  --font-ui: "Manrope", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, "SF Mono", Menlo, monospace;
+  --p-bg: #FCFBF8;
+  --p-surface: #FFFFFF;
+  --p-border: #E5E1D4;
+  --p-text-primary: #1D2018;
+  --p-text-secondary: #5C5A48;
+  --p-accent: #2E5339;
+  --p-accent-subtle: #E6EEE3;
+  --p-accent-secondary: #C1602E;
+  --p-success: #2E6B45;
+  --p-success-subtle: #E4EFE6;
+  --p-warning: #A8721F;
+  --p-warning-subtle: #F7EDD8;
+  --p-danger: #AC3B31;
+  --p-shadow: 0 2px 10px rgba(35, 38, 31, 0.08);
+}
 * { box-sizing: border-box; margin: 0; padding: 0; }
-body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #0d1117; color: #e6edf3; min-height: 100vh; }
+body { font-family: var(--font-ui); background: var(--p-bg); color: var(--p-text-primary); min-height: 100vh; }
 .wrap { max-width: 640px; margin: 0 auto; padding: 20px 16px 60px; }
-.card { background: #161b22; border: 1px solid #30363d; border-radius: 12px; padding: 16px; margin-bottom: 14px; }
-h1 { font-size: 22px; font-weight: 800; }
-.muted { color: #8b949e; font-size: 13px; }
-.dayrow { display: flex; gap: 12px; padding: 10px 0; border-top: 1px solid #21262d; }
-.dayrow:first-child { border-top: none; }
-.daynum { width: 32px; text-align: center; font-weight: 800; color: #56d364; flex-shrink: 0; }
-.pbar { height: 6px; background: #21262d; border-radius: 3px; overflow: hidden; margin-top: 6px; }
-.pbar > div { height: 100%; background: #56d364; }
-.badge { display: inline-flex; padding: 2px 8px; border-radius: 10px; font-size: 11px; background: #21262d; border: 1px solid #30363d; color: #79c0ff; }
-a { color: #58a6ff; }
+.card { background: var(--p-surface); border: 1px solid var(--p-border); border-radius: 14px; padding: 18px; margin-bottom: 14px; box-shadow: var(--p-shadow); }
+h1 { font-size: 26px; font-weight: 700; letter-spacing: -0.01em; }
+h2 { font-size: 15px; font-weight: 700; margin-bottom: 4px; }
+.muted { color: var(--p-text-secondary); font-size: 14px; }
+.eyebrow { font-size: 12px; font-weight: 600; letter-spacing: .04em; text-transform: uppercase; color: var(--p-text-secondary); margin-bottom: 10px; }
+.progress-figure { font-family: var(--font-mono); font-weight: 600; font-size: 17px; }
+.dayrow { display: flex; gap: 14px; padding: 14px 0; border-top: 1px solid var(--p-border); }
+.dayrow:first-child { border-top: none; padding-top: 4px; }
+.daynum { width: 30px; height: 30px; border-radius: 50%; display: flex; align-items: center; justify-content: center;
+  font-weight: 700; font-family: var(--font-mono); font-size: 13px; color: var(--p-accent); background: var(--p-accent-subtle); flex-shrink: 0; }
+.dayrow .daytitle { font-weight: 600; font-size: 16px; }
+.dayrow .daymeta { font-family: var(--font-mono); font-size: 13px; color: var(--p-text-secondary); margin-top: 2px; }
+.pbar { height: 6px; background: var(--p-accent-subtle); border-radius: 3px; overflow: hidden; margin-top: 10px; }
+.pbar > div { height: 100%; background: var(--p-accent); }
+.badge { display: inline-flex; align-items: center; gap: 5px; padding: 3px 10px; border-radius: 999px; font-size: 12px; font-weight: 600; background: var(--p-accent-subtle); border: 1px solid var(--p-accent); color: var(--p-accent); }
+.badge-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--p-accent-secondary); flex: none; }
+a { color: var(--p-accent); font-weight: 500; }
+a:hover { color: var(--p-accent-secondary); }
 .gallery { display: grid; grid-template-columns: repeat(auto-fill, minmax(110px, 1fr)); gap: 8px; }
-.gallery img { width: 100%; height: 100px; object-fit: cover; border-radius: 8px; }
+.gallery img { width: 100%; height: 100px; object-fit: cover; border-radius: 10px; }
+.stay-note { font-size: 14px; margin-top: 4px; color: var(--p-text-primary); }
+input[type="password"] { font-family: var(--font-ui); font-size: 15px; padding: 10px 12px; width: 100%;
+  background: var(--p-bg); border: 1px solid var(--p-border); border-radius: 8px; color: var(--p-text-primary); outline: none; }
+input[type="password"]:focus { border-color: var(--p-accent); }
+button { font-family: var(--font-ui); font-weight: 600; font-size: 14px; padding: 10px 16px; background: var(--p-accent);
+  border: none; border-radius: 8px; color: #fff; cursor: pointer; }
 </style>
 </head>
 <body>
@@ -37,14 +70,15 @@ async function load(passcode) {
   const params = new URLSearchParams(location.search);
   const token = params.get('t');
   const app = document.getElementById('app');
-  if (!token) { app.innerHTML = '<p>No trip link given.</p>'; return; }
+  if (!token) { app.innerHTML = '<div class="card"><p>No trip link given.</p></div>'; return; }
   const { data, error } = await sb.schema('app').rpc('public_trip_view', { p_token: token, p_passcode: passcode || null });
-  if (error) { app.innerHTML = '<p>Could not load this trip.</p>'; return; }
-  if (data.error === 'not_found') { app.innerHTML = '<p>This link is not active.</p>'; return; }
+  if (error) { app.innerHTML = '<div class="card"><p>Could not load this trip.</p></div>'; return; }
+  if (data.error === 'not_found') { app.innerHTML = '<div class="card"><p>This link is not active.</p></div>'; return; }
   if (data.error === 'passcode_required') {
     app.innerHTML = `<div class="card"><h2>This trip is passcode-protected</h2>
-      <input type="password" id="pcInput" placeholder="Passcode" style="margin:10px 0;padding:8px;width:100%;background:#21262d;border:1px solid #30363d;border-radius:6px;color:#e6edf3;">
-      <button onclick="load(document.getElementById('pcInput').value)" style="padding:8px 14px;background:#238636;border:none;border-radius:6px;color:#fff;cursor:pointer;">Unlock</button></div>`;
+      <div class="muted" style="margin:4px 0 12px;">Ask the organizer for the passcode.</div>
+      <input type="password" id="pcInput" placeholder="Passcode" style="margin-bottom:10px;">
+      <button onclick="load(document.getElementById('pcInput').value)">Unlock</button></div>`;
     return;
   }
   render(data);
@@ -58,35 +92,35 @@ function render(data) {
   document.getElementById('app').innerHTML = `
     <div class="card">
       <h1>${esc(t.name)}</h1>
-      <div class="muted">${t.startDate||''} ${t.endDate ? '– ' + t.endDate : ''}</div>
-      ${totalKm ? `<div style="margin-top:10px;"><strong>${doneKm.toFixed(0)} / ${totalKm.toFixed(0)} km</strong>
+      <div class="muted" style="margin-top:4px;">${t.startDate||''} ${t.endDate ? '– ' + t.endDate : ''}</div>
+      ${totalKm ? `<div style="margin-top:14px;"><span class="progress-figure">${doneKm.toFixed(0)} / ${totalKm.toFixed(0)} km</span>
         <div class="pbar"><div style="width:${Math.min(100, totalKm ? doneKm/totalKm*100 : 0)}%;"></div></div></div>` : ''}
     </div>
 
     ${(data.trackingLinks||[]).length ? `<div class="card">
-      <strong style="font-size:13px;">🔴 Live tracking</strong>
-      <div style="margin-top:8px;display:flex;flex-direction:column;gap:6px;">
+      <span class="badge"><span class="badge-dot"></span>Live tracking</span>
+      <div style="margin-top:12px;display:flex;flex-direction:column;gap:8px;">
         ${data.trackingLinks.map(l => `<a href="${esc(l.url)}" target="_blank" rel="noopener">${esc(l.label)} ↗</a>`).join('')}
       </div>
     </div>` : ''}
 
     <div class="card">
-      <strong style="font-size:13px;">Route</strong>
+      <div class="eyebrow">Route</div>
       ${days.map(d => `
         <div class="dayrow">
           <div class="daynum">${d.dayNumber}</div>
           <div style="flex:1;">
-            <div style="font-weight:700;">${esc(d.titleEn || d.title || 'Day ' + d.dayNumber)}</div>
-            <div class="muted">${d.date||''} ${d.distanceKm ? '· ' + d.distanceKm + ' km' : ''} ${d.ascentM ? '· ' + d.ascentM + ' m ⛰️' : ''}</div>
-            ${d.accommodationName ? `<div style="font-size:12px;margin-top:2px;">🏠 ${esc(d.accommodationName)}${d.accommodationAddress ? ' — ' + esc(d.accommodationAddress) : ''}</div>` : ''}
+            <div class="daytitle">${esc(d.titleEn || d.title || 'Day ' + d.dayNumber)}</div>
+            <div class="daymeta">${d.date||''}${d.distanceKm ? ' · ' + d.distanceKm + ' km' : ''}${d.ascentM ? ' · +' + d.ascentM + ' m' : ''}</div>
+            ${d.accommodationName ? `<div class="stay-note">${esc(d.accommodationName)}${d.accommodationAddress ? ' — ' + esc(d.accommodationAddress) : ''}</div>` : ''}
           </div>
         </div>
       `).join('')}
     </div>
 
     ${(data.photos||[]).length ? `<div class="card">
-      <strong style="font-size:13px;">Photos</strong>
-      <div class="gallery" style="margin-top:10px;">
+      <div class="eyebrow">Photos</div>
+      <div class="gallery">
         ${data.photos.map(p => `<img src="${esc(p.photoUrl)}" alt="${esc(p.caption||'')}" loading="lazy">`).join('')}
       </div>
     </div>` : ''}

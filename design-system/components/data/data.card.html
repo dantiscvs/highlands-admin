@@ -1,0 +1,34 @@
+<!-- @dsCard group="Components" viewport="760x420" subtitle="Cards, avatars, editable cell" name="Data display" -->
+<!DOCTYPE html>
+<html><head><meta charset="utf-8">
+<link rel="stylesheet" href="../../styles.css">
+<script src="https://unpkg.com/react@18/umd/react.development.js"></script>
+<script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+<script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+<script src="../../_ds_bundle.js"></script>
+<style>body{margin:0;background:var(--bg-page);font-family:var(--font-ui);padding:20px;box-sizing:border-box;} .row{display:flex;gap:16px;align-items:flex-start;flex-wrap:wrap;margin-bottom:16px;}</style>
+</head><body>
+<div id="root"></div>
+<script type="text/babel" data-presets="react">
+const NS = window.TripTracker || {};
+const { Card, StatCard, AvatarChip, AvatarGroup, EditableCell, Tabs } = NS;
+function App() {
+  return (
+    <div>
+      <div className="row">
+        <div style={{width:180}}><StatCard label="Total distance" value="612 km" trend="9 riding days" /></div>
+        <div style={{width:180}}><StatCard label="Elevation gain" value="8,420 m" /></div>
+        <div style={{width:220}}><Card><Tabs items={["Details","Notes"]} active="Details" /></Card></div>
+      </div>
+      <div className="row">
+        <AvatarChip name="Mira Kohl" organizer />
+        <AvatarChip name="Tom Reyes" />
+        <AvatarGroup names={["Mira Kohl","Tom Reyes","Nadia Bloom","Ilya Popov"]} />
+      </div>
+      <div className="row"><EditableCell /></div>
+    </div>
+  );
+}
+ReactDOM.createRoot(document.getElementById('root')).render(<App/>);
+</script>
+</body></html>
