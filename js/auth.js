@@ -38,12 +38,13 @@ function renderAuthForm() {
           <label>Email</label>
           <input type="email" id="authEmail" placeholder="you@example.com">
         </div>
-        <button class="btn btn-primary" style="width:100%;justify-content:center;margin-bottom:10px;" onclick="sendMagicLink()">Send magic link</button>
-        <div class="muted" style="font-size:12px;margin:10px 0;">or</div>
-        <button class="btn" style="width:100%;justify-content:center;" onclick="togglePasswordPane()">Sign in with email + password</button>
+        <div class="muted" style="font-size:11px;margin-top:8px;">First time here? Just enter your email above — an account is created automatically the first time you click the link.</div>
+        <div class="muted" style="font-size:12px;margin:14px 0 6px;">or</div>
+        <button class="btn btn-sm" onclick="togglePasswordPane()">Use a demo account (email + password)</button>
       </div>
 
       <div id="authPasswordPane" style="display:none;">
+        <div class="muted" style="font-size:11px;margin-bottom:10px;text-align:left;">Only works for accounts created with a password already set (e.g. the shared demo login). Magic-link accounts have no password — use "Send magic link" instead.</div>
         <div class="field" style="text-align:left;">
           <label>Email</label>
           <input type="email" id="authEmailPw" placeholder="demo@tripadmin.app">
@@ -74,7 +75,7 @@ async function sendMagicLink() {
   const msg = document.getElementById('authMsg');
   if (!email) { msg.textContent = 'Enter an email address.'; msg.style.color = 'var(--red)'; return; }
   msg.textContent = 'Sending…'; msg.style.color = 'var(--dim)';
-  const { error } = await sb.auth.signInWithOtp({ email, options: { emailRedirectTo: window.location.href } });
+  const { error } = await sb.auth.signInWithOtp({ email, options: { emailRedirectTo: location.origin + location.pathname } });
   if (error) { msg.textContent = error.message; msg.style.color = 'var(--red)'; return; }
   msg.textContent = 'Check your email for a sign-in link.'; msg.style.color = 'var(--green)';
 }
@@ -85,7 +86,13 @@ async function signInPassword() {
   const msg = document.getElementById('authMsg');
   msg.textContent = 'Signing in…'; msg.style.color = 'var(--dim)';
   const { error } = await sb.auth.signInWithPassword({ email, password });
-  if (error) { msg.textContent = error.message; msg.style.color = 'var(--red)'; return; }
+  if (error) {
+    msg.textContent = error.message.includes('Invalid')
+      ? 'Invalid login. If you signed up with a magic link, that account has no password — use "Send magic link" instead.'
+      : error.message;
+    msg.style.color = 'var(--red)';
+    return;
+  }
 }
 
 async function signOut() {
