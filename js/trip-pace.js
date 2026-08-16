@@ -7,17 +7,27 @@
 // are not implemented in this pass.
 function computeDayPace(day, pace) {
   if (!day.distance_km) return null;
+  const cfg = activityConfig(activeTrip);
+  if (!cfg.paceKeys || cfg.paceKeys.length === 0) return null; // e.g. public transport — no pace model applies
   pace = pace || {};
   const flat = pace.flatKmh || {};
-  const speedKmh = flat[day.surface] || flat.tarmac || 15;
-  const climbHours = (Number(day.ascent_m) || 0) / (pace.climbMPerHour || 400);
+  const primaryKey = cfg.paceKeys[0];
+  const speedKmh = flat[day.surface] || flat[primaryKey] || 15;
+  const climbHours = cfg.showClimb ? (Number(day.ascent_m) || 0) / (pace.climbMPerHour || 400) : 0;
   const flatHours = Number(day.distance_km) / speedKmh;
   const movingHours = flatHours + climbHours;
   const overheadHours = (pace.dayOverheadMin || 30) / 60;
   const totalHours = movingHours + overheadHours;
-  return { movingHours, totalHours, speedKmh, assumptionNote: `${speedKmh} km/h on ${day.surface || 'tarmac'} + ${pace.climbMPerHour || 400} m/h climbing` };
+  const assumptionNote = cfg.showClimb
+    ? `${speedKmh} km/h on ${day.surface || primaryKey} + ${pace.climbMPerHour || 400} m/h climbing`
+    : `${speedKmh} km/h (${day.surface || primaryKey})`;
+  return { movingHours, totalHours, speedKmh, assumptionNote };
 }
 function paceSummaryHtml(day) {
+  const cfg = activityConfig(activeTrip);
+  if (!cfg.paceKeys || cfg.paceKeys.length === 0) {
+    return '<p class="muted" style="font-size:12px;">Pace estimates aren\'t applicable for this trip type.</p>';
+  }
   const p = computeDayPace(day, activeTrip.pace_assumptions);
   if (!p) return '<p class="muted" style="font-size:12px;">No distance set — nothing to calculate.</p>';
   let eta = '';

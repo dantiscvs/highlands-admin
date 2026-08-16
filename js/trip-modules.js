@@ -5,23 +5,28 @@ function moduleGate(key) {
 }
 
 // ---------------- Logistics / transport legs ----------------
+const TRANSPORT_TYPES = ['flight','train','bus','ferry','boat','car','campervan','transfer','bike_shipping','other'];
 async function renderLogistics() {
   if (moduleGate('transport')) return;
-  const { data: legs } = await db().from('transport_legs').select('*').eq('trip_id', activeTrip.id).order('order_index');
+  const [{ data: legs }, { data: days }] = await Promise.all([
+    db().from('transport_legs').select('*').eq('trip_id', activeTrip.id).order('order_index'),
+    db().from('trip_days').select('id, day_number').eq('trip_id', activeTrip.id).order('order_index'),
+  ]);
   document.getElementById('main').innerHTML = `
-    <div class="pagehead"><div><h1>Logistics</h1><div class="subtitle">Flights, trains, ferries, transfers and bike shipping — anchored to the trip, not a specific riding day.</div></div>
-      ${isEditor() ? '<button class="btn btn-primary btn-sm" onclick="addTransportLeg()">+ Add leg</button>' : ''}
+    <div class="pagehead"><div><h1>Logistics</h1><div class="subtitle">Flights, trains, buses, ferries, transfers, bike shipping — for the trip overall or a mid-trip leg between locations (e.g. "Day 3: train Delhi → Mumbai").</div></div>
+      ${isEditor() ? `<button class="btn btn-primary btn-sm" onclick="addTransportLeg()" title="Tip: legs you add here can also be filled in automatically — see the Imports tab to paste a booking confirmation email or document.">+ Add leg</button>` : ''}
     </div>
+    ${isEditor() ? `<div class="muted" style="font-size:11px;margin:-6px 0 12px;">💡 Got a booking confirmation email or PDF? <a href="#" onclick="event.preventDefault();goTrip(activeTrip.id,'imports');">Paste/upload it in Imports</a> instead of typing legs by hand — we'll extract the details and you just review &amp; accept.</div>` : ''}
     <div class="gridWrap"><table class="simple">
-      <thead><tr><th>Type</th><th>Anchor</th><th>Carrier</th><th>Reference</th><th>Departs</th><th>Arrives</th><th>Cost</th><th></th></tr></thead>
-      <tbody>${(legs||[]).map(l => transportRowHtml(l)).join('') || '<tr><td colspan="8" class="muted">No transport legs yet.</td></tr>'}</tbody>
+      <thead><tr><th>Type</th><th title="When this leg happens: at the very start/end of the trip, or on a specific day mid-trip">When</th><th>Carrier</th><th>Reference</th><th>Departs</th><th>Arrives</th><th>Cost</th><th></th></tr></thead>
+      <tbody>${(legs||[]).map(l => transportRowHtml(l, days)).join('') || '<tr><td colspan="8" class="muted">No transport legs yet.</td></tr>'}</tbody>
     </table></div>
   `;
 }
-function transportRowHtml(l) {
+function transportRowHtml(l, days) {
   return `<tr data-id="${l.id}">
-    <td>${selectCell(l.id, 'type', l.type, ['flight','train','ferry','transfer','bike_shipping','other'], 'transport_legs')}</td>
-    <td>${selectCell(l.id, 'anchor', l.anchor, ['trip_start','trip_end','custom'], 'transport_legs')}</td>
+    <td>${selectCell(l.id, 'type', l.type, TRANSPORT_TYPES, 'transport_legs')}</td>
+    <td>${anchorDayCell(l, days)}</td>
     <td>${textCell(l.id, 'carrier', l.carrier, 'transport_legs')}</td>
     <td>${textCell(l.id, 'reference', l.reference, 'transport_legs')}</td>
     <td>${textCell(l.id, 'departure_place', l.departure_place, 'transport_legs')}</td>
@@ -29,6 +34,21 @@ function transportRowHtml(l) {
     <td>${textCell(l.id, 'cost', l.cost, 'transport_legs', 'number')} ${esc(l.currency||'')}</td>
     <td><button class="btn btn-sm btn-danger" onclick="deleteRow('transport_legs','${l.id}', renderLogistics)">✕</button></td>
   </tr>`;
+}
+function anchorDayCell(l, days) {
+  const value = l.anchor === 'custom' && l.day_id ? 'day:' + l.day_id : l.anchor;
+  const dayOptions = (days||[]).map(d => `<option value="day:${d.id}" ${value==='day:'+d.id?'selected':''}>Day ${d.day_number}</option>`).join('');
+  return `<select ${isEditor()?'':'disabled'} onchange="saveTransportAnchor('${l.id}', this.value)" style="border:none;background:transparent;">
+    <option value="trip_start" ${value==='trip_start'?'selected':''}>Trip start</option>
+    <option value="trip_end" ${value==='trip_end'?'selected':''}>Trip end</option>
+    ${dayOptions}
+  </select>`;
+}
+async function saveTransportAnchor(id, value) {
+  const isDay = value.startsWith('day:');
+  const patch = isDay ? { anchor: 'custom', day_id: value.slice(4) } : { anchor: value, day_id: null };
+  const { error } = await db().from('transport_legs').update(patch).eq('id', id);
+  if (error) alert(error.message);
 }
 function textCell(id, field, val, table, type = 'text') {
   return `<input type="${type}" value="${esc(val==null?'':val)}" ${isEditor()?'':'disabled'} onblur="quickSave('${table}','${id}','${field}',this.value,this)" style="width:100%;min-width:90px;border:none;background:transparent;">`;
@@ -61,8 +81,9 @@ async function renderAccommodationModule() {
   const dayLabel = id => { const d = (days||[]).find(x=>x.id===id); return d ? 'Day ' + d.day_number : '—'; };
   document.getElementById('main').innerHTML = `
     <div class="pagehead"><div><h1>Accommodation</h1><div class="subtitle">One row can be linked to a day, or left unlinked for multi-night stays.</div></div>
-      ${isEditor() ? '<button class="btn btn-primary btn-sm" onclick="addAccommodation()">+ Add stay</button>' : ''}
+      ${isEditor() ? '<button class="btn btn-primary btn-sm" onclick="addAccommodation()" title="Tip: booking confirmation emails or PDFs can fill this in automatically — see the Imports tab.">+ Add stay</button>' : ''}
     </div>
+    ${isEditor() ? `<div class="muted" style="font-size:11px;margin:-6px 0 12px;">💡 Got a booking confirmation email or PDF? <a href="#" onclick="event.preventDefault();goTrip(activeTrip.id,'imports');">Paste/upload it in Imports</a> instead of typing stays by hand — we'll extract the details and you just review &amp; accept.</div>` : ''}
     <div style="display:flex;flex-direction:column;gap:10px;">
       ${(accs||[]).map(a => accommodationCardHtml(a, days, dayLabel)).join('') || '<p class="muted">No accommodation added yet.</p>'}
     </div>

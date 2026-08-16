@@ -18,6 +18,11 @@ input[type="text"], input[type="number"], input[type="date"], input[type="time"]
   background: var(--bg3); border: 1px solid var(--border); border-radius: 6px; padding: 7px 10px; color: var(--text); outline: none;
 }
 input:focus, select:focus, textarea:focus { border-color: var(--link); }
+/* Interim contrast fix (superseded once the design-system CSS lands): native
+   <option> popups ignore the select's own background/color in most browsers
+   unless styled explicitly, so they were rendering as white-on-grey. */
+select option { background: var(--bg3); color: var(--text); }
+select:disabled { opacity: .6; }
 .btn { padding: 7px 13px; border-radius: 6px; border: 1px solid var(--border); background: var(--bg3); color: var(--text); cursor: pointer; font-weight: 500; display: inline-flex; align-items: center; gap: 6px; transition: background .15s; }
 .btn:hover { background: var(--border); }
 .btn-primary { background: var(--green2); border-color: var(--green2); color: #fff; }

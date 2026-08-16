@@ -2,17 +2,23 @@
 // keyboard nav, autosave-on-blur. Clicking the drawer icon opens the detail
 // drawer for the long-tail per-day fields.
 let gridDays = [];
-const GRID_COLS = [
-  { key: 'date', label: 'Date', type: 'date', w: 120 },
-  { key: 'title', label: 'Title', type: 'text', w: 170 },
-  { key: 'start_point', label: 'Start', type: 'text', w: 120 },
-  { key: 'end_point', label: 'End', type: 'text', w: 120 },
-  { key: 'distance_km', label: 'Km', type: 'number', w: 70 },
-  { key: 'ascent_m', label: 'Ascent m', type: 'number', w: 80 },
-  { key: 'surface', label: 'Surface', type: 'select', w: 100, options: ['', 'tarmac', 'gravel', 'singletrack', 'mixed'] },
-];
+let GRID_COLS = [];
+function buildGridCols() {
+  const cfg = activityConfig(activeTrip);
+  const cols = [
+    { key: 'date', label: 'Date', type: 'date', w: 120 },
+    { key: 'title', label: 'Title', type: 'text', w: 170 },
+    { key: 'start_point', label: 'Start', type: 'text', w: 120 },
+    { key: 'end_point', label: 'End', type: 'text', w: 120 },
+    { key: 'distance_km', label: cfg.distanceLabel || 'Distance (km)', type: 'number', w: 90 },
+  ];
+  if (cfg.showAscent) cols.push({ key: 'ascent_m', label: cfg.ascentLabel || 'Ascent (m)', type: 'number', w: 90 });
+  if (cfg.showSurface) cols.push({ key: 'surface', label: cfg.surfaceLabel || 'Surface', type: 'select', w: 110, options: ['', ...cfg.surfaceOptions] });
+  return cols;
+}
 
 async function renderDayGrid() {
+  GRID_COLS = buildGridCols();
   const { data, error } = await db().from('trip_days').select('*').eq('trip_id', activeTrip.id).order('order_index');
   gridDays = data || [];
   const accByDay = {};
@@ -43,6 +49,7 @@ async function renderDayGrid() {
           ${moduleOn('accommodation') ? '<th style="min-width:140px;">Accommodation</th>' : ''}
           ${moduleOn('poi') ? '<th style="min-width:90px;">Sights / Resupply</th>' : ''}
           <th class="opencol"></th>
+          ${isEditor() ? '<th class="opencol"></th>' : ''}
         </tr></thead>
         <tbody>
           ${gridDays.map((d, i) => gridRowHtml(d, i, accByDay, poiCountByDay)).join('')}
@@ -62,6 +69,7 @@ function gridRowHtml(d, i, accByDay, poiCountByDay) {
       ${moduleOn('accommodation') ? `<td><div class="cell muted" style="cursor:pointer;" onclick="goTrip(activeTrip.id,'accommodation')">${accByDay[d.id] ? esc(accByDay[d.id]) : '— none —'}</div></td>` : ''}
       ${moduleOn('poi') ? `<td><div class="cell muted" style="cursor:pointer;font-size:12px;" onclick="goTrip(activeTrip.id,'poi')">🏰${poi.sight} · 🛒${poi.resupply}</div></td>` : ''}
       <td class="opencol" title="Open day details" onclick="openDayDrawer('${d.id}')">⋯</td>
+      ${isEditor() ? `<td class="opencol" title="Remove day" onclick="deleteGridDay('${d.id}')">🗑</td>` : ''}
     </tr>
   `;
 }
@@ -99,6 +107,21 @@ async function onGridCellCommit(e) {
   lastGridEdit = { dayId: day.id, field, prevValue };
   ind.textContent = '✓ Saved'; ind.className = 'saveIndicator saved';
   setTimeout(() => { if (ind.textContent === '✓ Saved') ind.textContent = ''; }, 2000);
+  if (field === 'date') syncTripDateRange();
+}
+
+// Fix for reported bug: the trip's start/end date were only ever set once at
+// creation time and never followed actual per-day dates entered afterwards
+// (e.g. creating "5 days" then dating out a 7-day span). Whenever a day's date
+// changes or the day count changes, re-derive the trip's date range from the
+// actual trip_days rows instead of leaving the stale creation-time guess.
+async function syncTripDateRange() {
+  const dates = gridDays.map(d => d.date).filter(Boolean).sort();
+  if (!dates.length) return;
+  const start = dates[0], end = dates[dates.length - 1];
+  if (start === activeTrip.start_date && end === activeTrip.end_date) return;
+  const { error } = await db().from('trips').update({ start_date: start, end_date: end }).eq('id', activeTrip.id);
+  if (!error) { activeTrip.start_date = start; activeTrip.end_date = end; }
 }
 function onGridCellKeydown(e) {
   const el = e.target;
@@ -124,6 +147,16 @@ async function addGridDay() {
   const nextNum = gridDays.length ? Math.max(...gridDays.map(d => d.day_number)) + 1 : 1;
   const { error } = await db().from('trip_days').insert({ trip_id: activeTrip.id, day_number: nextNum, title: `Day ${nextNum}`, order_index: nextNum });
   if (error) { alert(error.message); return; }
+  renderDayGrid();
+}
+async function deleteGridDay(dayId) {
+  const day = gridDays.find(d => d.id === dayId);
+  if (!day) return;
+  if (!confirm(`Remove Day ${day.day_number}${day.title ? ' — ' + day.title : ''}? Linked accommodation/sights lose their day link but aren't deleted.`)) return;
+  const { error } = await db().from('trip_days').delete().eq('id', dayId);
+  if (error) { alert(error.message); return; }
+  gridDays = gridDays.filter(d => d.id !== dayId);
+  await syncTripDateRange();
   renderDayGrid();
 }
 

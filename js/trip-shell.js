@@ -5,7 +5,7 @@ const MODULE_LABELS = {
   route: '🗺️ Route', gpx: 'GPX tracks', elevation: 'Elevation', weather: 'Weather',
   accommodation: '🏠 Accommodation', resupply: '🛒 Resupply', poi: '🏰 Sights',
   packing: '🎒 Packing', tasks: '✅ Tasks', expenses: '💸 Expenses',
-  sightseeing: 'Sightseeing', transport: '✈️ Transport', live: '🔴 Live', overlays: 'Overlays',
+  sightseeing: 'Sightseeing', transport: '✈️ Logistics', live: '🔴 Live', overlays: 'Overlays',
 };
 
 async function loadTrip(tripId) {
@@ -38,6 +38,7 @@ async function renderTripShell(tripId, section) {
     readiness: renderReadinessChecklist,
     share: renderShareSection,
     imports: renderImportsSection,
+    participants: renderParticipantsSection,
     settings: renderTripSettings,
   };
   const fn = renderers[section] || renderTripOverview;
@@ -67,6 +68,9 @@ function renderTripSidebar(section) {
     ${moduleOn('packing') ? navRow('packing','🎒 Packing','packing',section) : ''}
     ${moduleOn('tasks') ? navRow('tasks','✅ Tasks','tasks',section) : ''}
     ${moduleOn('expenses') ? navRow('expenses','💸 Expenses','expenses',section) : ''}
+
+    <div class="navgroup">People</div>
+    ${navRow('participants','👥 Participants','participants',section)}
 
     <div class="navgroup">Trip health</div>
     ${navRow('readiness','☑️ Readiness','readiness',section)}
@@ -132,11 +136,16 @@ async function renderTripSettings() {
       <div class="card">
         <h2>Basics</h2>
         <div class="field"><label>Name</label><input id="sName" type="text" value="${esc(t.name)}"></div>
+        <div class="field"><label>Trip type</label>
+          <select id="sActivityType" onchange="onSettingsActivityTypeChange()">${activityTypeOptionsHtml(t.activity_type || 'cycling')}</select>
+          <div class="muted" style="font-size:11px;margin-top:4px;">Controls which fields show in the day grid and how pace/ETA is calculated.</div>
+        </div>
         <div class="field"><label>Status</label>
           <select id="sStatus">${['draft','active','archived'].map(s=>`<option value="${s}" ${s===t.status?'selected':''}>${s}</option>`).join('')}</select>
         </div>
         <div class="field"><label>Start date</label><input id="sStart" type="date" value="${t.start_date||''}"></div>
         <div class="field"><label>End date</label><input id="sEnd" type="date" value="${t.end_date||''}"></div>
+        <div class="muted" style="font-size:11px;margin:-6px 0 10px;">Dates auto-update from the day grid whenever you set a date on a day — editing them here just overrides the display until the grid changes again.</div>
         <div class="field"><label>Timezone</label><input id="sTz" type="text" value="${esc(t.timezone)}"></div>
         <div class="field"><label>Default currency</label><input id="sCur" type="text" value="${esc(t.default_currency)}" maxlength="3" style="width:80px;"></div>
         <button class="btn btn-primary" onclick="saveTripSettings()">Save</button>
@@ -154,29 +163,47 @@ async function renderTripSettings() {
       </div>
       <div class="card">
         <h2>Pace assumptions</h2>
-        <p class="muted" style="font-size:12px;margin-bottom:10px;">Used by the readiness/ETA calculations on each day. Editable any time.</p>
-        ${renderPaceForm(t.pace_assumptions)}
+        <p class="muted" style="font-size:12px;margin-bottom:10px;">Used by the readiness/ETA calculations on each day. Editable any time. Hover a field for beginner/moderate/experienced reference values.</p>
+        <div id="paceFormWrap">${renderPaceForm(t.pace_assumptions, t.activity_type || 'cycling')}</div>
         <button class="btn btn-primary" style="margin-top:10px;" onclick="savePaceAssumptions()">Save pace assumptions</button>
       </div>
     </div>
   `;
 }
-function renderPaceForm(p) {
-  p = p || { flatKmh: {}, climbMPerHour: 400, stopOverheadMin: 15, dayOverheadMin: 30 };
+function onSettingsActivityTypeChange() {
+  const type = document.getElementById('sActivityType').value;
+  document.getElementById('paceFormWrap').innerHTML = renderPaceForm(activeTrip.pace_assumptions, type);
+}
+function renderPaceForm(p, activityType) {
+  activityType = activityType || 'cycling';
+  const cfg = ACTIVITY_TYPES[activityType] || ACTIVITY_TYPES.cycling;
+  p = p || {};
   const f = p.flatKmh || {};
+  const tip = pacePresetTooltip(activityType);
+  if (!cfg.paceKeys || cfg.paceKeys.length === 0) {
+    return `<p class="muted" style="font-size:12px;">Pace/ETA estimates aren't used for "${cfg.label}" trips — nothing to configure here.</p>`;
+  }
+  const surfaceLabels = { tarmac: 'Tarmac', gravel: 'Gravel', singletrack: 'Singletrack', trail: 'Trail', calm: 'Calm water', moderate: 'Moderate water', driving: 'Driving' };
+  const speedFields = cfg.paceKeys.map(key => `
+    <div class="field" title="${esc(tip)}"><label>${cfg.paceLabel ? cfg.paceLabel + ' — ' : ''}${surfaceLabels[key] || key} (km/h)</label>
+      <input id="pSpeed_${key}" type="number" step="0.1" value="${f[key] ?? ''}" title="${esc(tip)}"></div>
+  `).join('');
   return `
-    <div class="field"><label>Flat speed — tarmac (km/h)</label><input id="pTarmac" type="number" value="${f.tarmac ?? 18}"></div>
-    <div class="field"><label>Flat speed — gravel (km/h)</label><input id="pGravel" type="number" value="${f.gravel ?? 14}"></div>
-    <div class="field"><label>Flat speed — singletrack (km/h)</label><input id="pSingle" type="number" value="${f.singletrack ?? 8}"></div>
-    <div class="field"><label>Climbing rate (m/h)</label><input id="pClimb" type="number" value="${p.climbMPerHour ?? 400}"></div>
+    ${speedFields}
+    ${cfg.showClimb ? `<div class="field" title="${esc(tip)}"><label>${cfg.climbLabel || 'Climbing rate (m/h)'}</label><input id="pClimb" type="number" value="${p.climbMPerHour ?? 400}" title="${esc(tip)}"></div>` : ''}
     <div class="field"><label>Overhead per stop (min)</label><input id="pStopOh" type="number" value="${p.stopOverheadMin ?? 15}"></div>
     <div class="field"><label>Overhead per day (min)</label><input id="pDayOh" type="number" value="${p.dayOverheadMin ?? 30}"></div>
+    <input type="hidden" id="pActivityType" value="${activityType}">
   `;
 }
 async function savePaceAssumptions() {
+  const activityType = document.getElementById('pActivityType') ? document.getElementById('pActivityType').value : (activeTrip.activity_type || 'cycling');
+  const cfg = ACTIVITY_TYPES[activityType] || ACTIVITY_TYPES.cycling;
+  const flatKmh = {};
+  cfg.paceKeys.forEach(key => { const el = document.getElementById('pSpeed_' + key); if (el) flatKmh[key] = +el.value; });
   const pace = {
-    flatKmh: { tarmac: +document.getElementById('pTarmac').value, gravel: +document.getElementById('pGravel').value, singletrack: +document.getElementById('pSingle').value, hikeABike: 3 },
-    climbMPerHour: +document.getElementById('pClimb').value,
+    flatKmh,
+    climbMPerHour: cfg.showClimb ? +document.getElementById('pClimb').value : undefined,
     stopOverheadMin: +document.getElementById('pStopOh').value,
     dayOverheadMin: +document.getElementById('pDayOh').value,
   };
@@ -196,6 +223,7 @@ async function saveTripSettings() {
   ind.textContent = 'Saving…'; ind.className = 'saveIndicator saving';
   const patch = {
     name: document.getElementById('sName').value.trim(),
+    activity_type: document.getElementById('sActivityType').value,
     status: document.getElementById('sStatus').value,
     start_date: document.getElementById('sStart').value || null,
     end_date: document.getElementById('sEnd').value || null,

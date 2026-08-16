@@ -39,6 +39,7 @@ async function renderShareSection() {
       ${visToggle('showPhotos', 'Photos', vis)}
     </div>
 
+    ${moduleOn('live') ? `
     <div class="card" style="margin-bottom:16px;">
       <h2>Your tracking link</h2>
       <p class="muted" style="font-size:12px;margin-bottom:10px;">Only you can add or revoke your own link — the organizer can't add one on your behalf.</p>
@@ -58,6 +59,11 @@ async function renderShareSection() {
         </tbody>
       </table>
     </div>
+    ` : `
+    <div class="card">
+      <p class="muted" style="font-size:12px;">Live tracking is off for this trip. <a href="#" onclick="event.preventDefault();goTrip(activeTrip.id,'settings');">Turn on the Live module</a> in Settings to let riders share GPS tracking links.</p>
+    </div>
+    `}
   `;
 }
 function visToggle(key, label, vis) {

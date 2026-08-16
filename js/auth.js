@@ -27,8 +27,13 @@ function renderAuthGate() {
 
 function renderAuthForm() {
   const gate = document.getElementById('authGate');
+  const route = typeof parseRoute === 'function' ? parseRoute() : null;
+  const inviteNote = route && route.view === 'invite'
+    ? `<div class="card" style="margin-bottom:20px;text-align:left;background:var(--blue-bg);border-color:var(--blue2);"><p style="font-size:13px;">🎟️ You've been invited to a trip. Sign in or enter your email below — you'll be added automatically once you're signed in.</p></div>`
+    : '';
   gate.innerHTML = `
     <div class="modal" style="max-width:380px;text-align:center;">
+      ${inviteNote}
       <div style="font-size:40px;margin-bottom:8px;">🗺️</div>
       <h1 style="margin-bottom:4px;">Trip Admin</h1>
       <p class="subtitle" style="margin-bottom:24px;">Plan and run multi-day group trips.</p>
@@ -75,6 +80,8 @@ async function sendMagicLink() {
   const email = document.getElementById('authEmail').value.trim();
   const msg = document.getElementById('authMsg');
   if (!email) { msg.textContent = 'Enter an email address.'; msg.style.color = 'var(--red)'; return; }
+  const route = typeof parseRoute === 'function' ? parseRoute() : null;
+  if (route && route.view === 'invite') localStorage.setItem('pendingInviteToken', route.token);
   msg.textContent = 'Sending…'; msg.style.color = 'var(--dim)';
   const { error } = await sb.auth.signInWithOtp({ email, options: { emailRedirectTo: location.origin + location.pathname } });
   if (error) { msg.textContent = error.message; msg.style.color = 'var(--red)'; return; }

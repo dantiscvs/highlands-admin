@@ -76,6 +76,7 @@ function openBlankModal() {
   showModal(`
     <h2>Start blank</h2>
     <div class="field"><label>Trip name</label><input id="mName" type="text" placeholder="e.g. Peaks Loop 2027"></div>
+    <div class="field"><label>Trip type</label><select id="mActivityType">${activityTypeOptionsHtml('cycling')}</select></div>
     <div class="field"><label>Number of days</label><input id="mDays" type="number" value="5" min="1" max="60"></div>
     <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:16px;">
       <button class="btn" onclick="closeAnyModal()">Cancel</button>
@@ -85,8 +86,9 @@ function openBlankModal() {
 }
 async function createBlankTrip() {
   const name = document.getElementById('mName').value.trim() || 'Untitled trip';
+  const activity_type = document.getElementById('mActivityType').value;
   const days = Math.max(1, parseInt(document.getElementById('mDays').value, 10) || 1);
-  const { data: trip, error } = await db().from('trips').insert({ owner_id: currentUser.id, name, slug: slugify(name), status: 'draft', enabled_modules: ['route','accommodation','resupply'] }).select('id').single();
+  const { data: trip, error } = await db().from('trips').insert({ owner_id: currentUser.id, name, activity_type, slug: slugify(name), status: 'draft', enabled_modules: ['route','accommodation','resupply'] }).select('id').single();
   if (error) { alert(error.message); return; }
   const dayRows = Array.from({ length: days }, (_, i) => ({ trip_id: trip.id, day_number: i + 1, title: `Day ${i + 1}`, order_index: i + 1 }));
   await db().from('trip_days').insert(dayRows);
@@ -106,6 +108,7 @@ function openTemplateModal() {
         <option value="expedition">14-day expedition (camping + resupply)</option>
       </select>
     </div>
+    <div class="field"><label>Trip type</label><select id="mActivityType">${activityTypeOptionsHtml('cycling')}</select></div>
     <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:16px;">
       <button class="btn" onclick="closeAnyModal()">Cancel</button>
       <button class="btn btn-primary" onclick="createFromTemplate()">Create</button>
@@ -115,9 +118,11 @@ function openTemplateModal() {
 async function createFromTemplate() {
   const name = document.getElementById('mName').value.trim() || 'Untitled trip';
   const template = document.getElementById('mTemplate').value;
+  const activity_type = document.getElementById('mActivityType').value;
   try {
     const { data: tripId, error } = await db().rpc('create_trip_from_template', { p_template: template, p_name: name });
     if (error) throw error;
+    await db().from('trips').update({ activity_type }).eq('id', tripId);
     closeAnyModal(); goTrip(tripId);
   } catch (e) { alert(e.message); }
 }
@@ -155,6 +160,7 @@ function openImportRouteModal() {
     <h2>Import a route</h2>
     <p class="muted" style="margin-bottom:14px;font-size:12px;">Upload a GPX file. We'll compute distance and elevation and split it evenly across the number of days you choose. You can adjust everything afterwards in the grid.</p>
     <div class="field"><label>Trip name</label><input id="mName" type="text" placeholder="e.g. Peaks Loop 2027"></div>
+    <div class="field"><label>Trip type</label><select id="mActivityType">${activityTypeOptionsHtml('cycling')}</select></div>
     <div class="field"><label>GPX file</label><input id="mGpx" type="file" accept=".gpx"></div>
     <div class="field"><label>Split into how many days?</label><input id="mDays" type="number" value="5" min="1" max="60"></div>
     <div id="gpxPreview" class="muted" style="font-size:12px;margin-bottom:10px;"></div>
@@ -184,6 +190,7 @@ function parseGpx(text) {
 }
 async function doImportRoute() {
   const name = document.getElementById('mName').value.trim() || 'Untitled trip';
+  const activity_type = document.getElementById('mActivityType').value;
   const file = document.getElementById('mGpx').files[0];
   const days = Math.max(1, parseInt(document.getElementById('mDays').value, 10) || 1);
   if (!file) { alert('Choose a GPX file'); return; }
@@ -191,7 +198,7 @@ async function doImportRoute() {
   const parsed = parseGpx(text);
   if (parsed.pts.length < 2) { alert('Could not read any track points from this file.'); return; }
 
-  const { data: trip, error } = await db().from('trips').insert({ owner_id: currentUser.id, name, slug: slugify(name), status: 'draft', enabled_modules: ['route','gpx','elevation','accommodation','resupply'] }).select('id').single();
+  const { data: trip, error } = await db().from('trips').insert({ owner_id: currentUser.id, name, activity_type, slug: slugify(name), status: 'draft', enabled_modules: ['route','gpx','elevation','accommodation','resupply'] }).select('id').single();
   if (error) { alert(error.message); return; }
 
   const kmPerDay = parsed.totalKm / days;
