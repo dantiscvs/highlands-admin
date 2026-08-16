@@ -38,6 +38,7 @@ function renderAuthForm() {
           <label>Email</label>
           <input type="email" id="authEmail" placeholder="you@example.com">
         </div>
+        <button class="btn btn-primary" style="width:100%;justify-content:center;margin-top:10px;" onclick="sendMagicLink()">Send magic link</button>
         <div class="muted" style="font-size:11px;margin-top:8px;">First time here? Just enter your email above — an account is created automatically the first time you click the link.</div>
         <div class="muted" style="font-size:12px;margin:14px 0 6px;">or</div>
         <button class="btn btn-sm" onclick="togglePasswordPane()">Use a demo account (email + password)</button>
