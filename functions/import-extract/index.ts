@@ -38,14 +38,39 @@ const EXTRACTION_SCHEMA = {
   required: ["proposals"],
 };
 
-async function extractWithLLM(apiKey: string, text: string) {
+async function extractWithGroq(apiKey: string, text: string) {
+  const res = await fetch("https://api.groq.com/openai/v1/chat/completions", {
+    method: "POST",
+    headers: { "content-type": "application/json", "authorization": `Bearer ${apiKey}` },
+    body: JSON.stringify({
+      model: "llama-3.3-70b-versatile",
+      temperature: 0,
+      max_tokens: 4096,
+      messages: [
+        {
+          role: "system",
+          content:
+            "You extract trip-planning facts (accommodation, transport, day distances/titles/dates) from booking confirmations or itinerary documents. " +
+            "Return ONLY a JSON object with a 'proposals' array matching this schema: " + JSON.stringify(EXTRACTION_SCHEMA) + ". " +
+            "If a field is not clearly present, omit it — never guess a distance, date, or price. " +
+            "Quote the exact source text in sourceExcerpt. No markdown fences — raw JSON only.",
+        },
+        { role: "user", content: text.slice(0, 15000) },
+      ],
+    }),
+  });
+  if (!res.ok) throw new Error(`Groq call failed: ${res.status} ${await res.text()}`);
+  const json = await res.json();
+  const raw = json.choices?.[0]?.message?.content ?? "{}";
+  const match = raw.match(/\{[\s\S]*\}/);
+  const parsed = JSON.parse(match ? match[0] : raw);
+  return (parsed.proposals ?? []).map((p: any) => ({ ...p, source: "llm" }));
+}
+
+async function extractWithClaude(apiKey: string, text: string) {
   const res = await fetch("https://api.anthropic.com/v1/messages", {
     method: "POST",
-    headers: {
-      "content-type": "application/json",
-      "x-api-key": apiKey,
-      "anthropic-version": "2023-06-01",
-    },
+    headers: { "content-type": "application/json", "x-api-key": apiKey, "anthropic-version": "2023-06-01" },
     body: JSON.stringify({
       model: "claude-sonnet-5",
       max_tokens: 4096,
@@ -54,15 +79,10 @@ async function extractWithLLM(apiKey: string, text: string) {
         "You extract trip-planning facts (accommodation, transport, day distances/titles/dates) from booking confirmations or itinerary documents. " +
         "Return ONLY JSON matching the given schema. If a field is not clearly present, omit it — never guess a distance, date, or price. " +
         "Quote the exact source text you based each proposal on in sourceExcerpt.",
-      messages: [
-        {
-          role: "user",
-          content: `Schema:\n${JSON.stringify(EXTRACTION_SCHEMA)}\n\nDocument:\n${text.slice(0, 15000)}`,
-        },
-      ],
+      messages: [{ role: "user", content: `Schema:\n${JSON.stringify(EXTRACTION_SCHEMA)}\n\nDocument:\n${text.slice(0, 15000)}` }],
     }),
   });
-  if (!res.ok) throw new Error(`LLM call failed: ${res.status} ${await res.text()}`);
+  if (!res.ok) throw new Error(`Claude call failed: ${res.status} ${await res.text()}`);
   const json = await res.json();
   const raw = json.content?.[0]?.text ?? "{}";
   const match = raw.match(/\{[\s\S]*\}/);
@@ -134,15 +154,14 @@ Deno.serve(async (req) => {
     return new Response(JSON.stringify({ error: "method_not_allowed" }), { status: 405, headers: CORS });
   }
 
-  const authHeader = req.headers.get("Authorization");
-  if (!authHeader) return new Response(JSON.stringify({ error: "unauthenticated" }), { status: 401, headers: CORS });
-
   const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
   const anonKey = Deno.env.get("SUPABASE_ANON_KEY")!;
-  const client = createClient(supabaseUrl, anonKey, { global: { headers: { Authorization: authHeader } } });
+  const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+  const inboundSecret = Deno.env.get("INBOUND_EMAIL_SECRET");
 
-  const { data: userData, error: userErr } = await client.auth.getUser();
-  if (userErr || !userData?.user) return new Response(JSON.stringify({ error: "unauthenticated" }), { status: 401, headers: CORS });
+  // Webhook path: Cloudflare Email Worker sends x-inbound-secret instead of a user JWT.
+  const webhookSecret = req.headers.get("x-inbound-secret");
+  const isWebhook = inboundSecret && webhookSecret === inboundSecret;
 
   let body: {
     tripId?: string; kind?: "email" | "document"; filename?: string;
@@ -157,26 +176,44 @@ Deno.serve(async (req) => {
     return new Response(JSON.stringify({ error: "missing_fields", need: ["tripId", "kind", "text"] }), { status: 400, headers: CORS });
   }
 
-  // Confirm the caller is an editor/owner of this trip (RLS on the insert
-  // below would reject it anyway, but fail fast with a clear message).
-  const { data: isEditor } = await client.schema("app").rpc("is_trip_editor", { p_trip_id: body.tripId });
-  if (!isEditor) return new Response(JSON.stringify({ error: "forbidden" }), { status: 403, headers: CORS });
+  let client;
+  let callerId: string | null = null;
+  if (isWebhook) {
+    // Service-role client — bypasses RLS; trip ownership already enforced by the
+    // email address format (only someone who knows the full UUID can send to it).
+    client = createClient(supabaseUrl, serviceKey);
+  } else {
+    const authHeader = req.headers.get("Authorization");
+    if (!authHeader) return new Response(JSON.stringify({ error: "unauthenticated" }), { status: 401, headers: CORS });
+    client = createClient(supabaseUrl, anonKey, { global: { headers: { Authorization: authHeader } } });
+    const { data: userData, error: userErr } = await client.auth.getUser();
+    if (userErr || !userData?.user) return new Response(JSON.stringify({ error: "unauthenticated" }), { status: 401, headers: CORS });
+    callerId = userData.user.id;
+    // Confirm caller is an editor/owner of this trip.
+    const { data: isEditor } = await client.schema("app").rpc("is_trip_editor", { p_trip_id: body.tripId });
+    if (!isEditor) return new Response(JSON.stringify({ error: "forbidden" }), { status: 403, headers: CORS });
+  }
 
   const { data: importRow, error: importErr } = await client
     .schema("app")
     .from("staged_imports")
-    .insert({ trip_id: body.tripId, kind: body.kind, filename: body.filename ?? null, raw_excerpt: body.text.slice(0, 2000), created_by: userData.user.id, status: "pending" })
+    .insert({ trip_id: body.tripId, kind: body.kind, filename: body.filename ?? null, raw_excerpt: body.text.slice(0, 2000), created_by: callerId, status: "pending" })
     .select("id")
     .single();
   if (importErr) return new Response(JSON.stringify({ error: "import_row_failed", detail: importErr.message }), { status: 500, headers: CORS });
 
   let proposals: any[] = [];
   let usedLLM = false;
-  const apiKey = Deno.env.get("ANTHROPIC_API_KEY");
+  let provider: "groq" | "claude" | "heuristic" = "heuristic";
+  const groqKey = Deno.env.get("GROQ_API_KEY");
+  const claudeKey = Deno.env.get("ANTHROPIC_API_KEY");
   try {
-    if (apiKey) {
-      proposals = await extractWithLLM(apiKey, body.text);
-      usedLLM = true;
+    if (groqKey) {
+      proposals = await extractWithGroq(groqKey, body.text);
+      usedLLM = true; provider = "groq";
+    } else if (claudeKey) {
+      proposals = await extractWithClaude(claudeKey, body.text);
+      usedLLM = true; provider = "claude";
     } else if (body.kind === "document") {
       proposals = extractFromCsv(body.text);
     } else {
@@ -218,7 +255,7 @@ Deno.serve(async (req) => {
   await client.schema("app").from("staged_imports").update({ status: "processed" }).eq("id", importRow.id);
 
   return new Response(
-    JSON.stringify({ importId: importRow.id, proposalCount: rows.length, usedLLM }),
+    JSON.stringify({ importId: importRow.id, proposalCount: rows.length, usedLLM, provider }),
     { headers: { ...CORS, "content-type": "application/json" } },
   );
 });

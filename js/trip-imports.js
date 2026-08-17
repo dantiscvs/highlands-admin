@@ -53,7 +53,7 @@ async function renderImportsSection() {
     db().from('staged_imports').select('*').eq('trip_id', activeTrip.id).order('created_at', { ascending: false }).limit(10),
     db().from('staged_changes').select('*').eq('trip_id', activeTrip.id).eq('status', 'pending').order('created_at', { ascending: false }),
   ]);
-  const fakeInboundAddress = `trip-${activeTrip.id.slice(0,8)}@inbox.tripadmin.app`;
+  const fakeInboundAddress = `trip-${activeTrip.id}@triptracker.cc`;
 
   document.getElementById('main').innerHTML = `
     <div class="pagehead"><div><h1>Imports</h1><div class="subtitle">Nothing here writes to your trip directly — everything lands in the review queue below first.</div></div></div>
@@ -65,7 +65,7 @@ async function renderImportsSection() {
         <input type="text" readonly value="${fakeInboundAddress}" style="flex:1;font-family:monospace;" onclick="this.select()">
         <button class="btn btn-sm" onclick="navigator.clipboard.writeText('${fakeInboundAddress}');this.textContent='Copied!'">Copy</button>
       </div>
-      <p class="muted" style="font-size:11px;">⚠️ This MVP ships the full parsing pipeline and this review queue, but the address above isn't wired to a real mailbox yet (needs an email provider connected — see the delivery report). Use the tester below to try it with real or sample emails right now.</p>
+      <p class="muted" style="font-size:11px;">Forward any booking confirmation to this address and it will be automatically parsed into your review queue.</p>
       <hr style="border-color:var(--border-hairline);margin:14px 0;">
       <strong style="font-size:13px;">Try it — paste an email or pick a sample</strong>
       <div style="display:flex;gap:6px;flex-wrap:wrap;margin:8px 0;">
@@ -112,7 +112,8 @@ async function runEmailImport() {
   status.textContent = 'Processing…';
   try {
     const res = await callFn('import-extract', { tripId: activeTrip.id, kind: 'email', subject, text });
-    status.textContent = `${res.proposalCount} proposal(s) added to the review queue${res.usedLLM ? ' (LLM)' : ' (heuristic — add an ANTHROPIC_API_KEY secret for higher-quality extraction)'}.`;
+    const providerLabel = res.provider === 'groq' ? 'Groq/Llama' : res.provider === 'claude' ? 'Claude' : 'heuristic — set GROQ_API_KEY secret for better extraction';
+    status.textContent = `${res.proposalCount} proposal(s) added to the review queue (${providerLabel}).`;
     renderImportsSection();
   } catch (e) { status.textContent = 'Failed: ' + e.message; }
 }
@@ -124,7 +125,8 @@ async function runDocumentImport() {
   try {
     const text = await file.text();
     const res = await callFn('import-extract', { tripId: activeTrip.id, kind: 'document', filename: file.name, text });
-    status.textContent = `${res.proposalCount} proposal(s) added to the review queue${res.usedLLM ? ' (LLM)' : ' (heuristic CSV mapping — add an ANTHROPIC_API_KEY secret for higher-quality extraction)'}.`;
+    const providerLabel = res.provider === 'groq' ? 'Groq/Llama' : res.provider === 'claude' ? 'Claude' : 'heuristic — set GROQ_API_KEY secret for better extraction';
+    status.textContent = `${res.proposalCount} proposal(s) added to the review queue (${providerLabel}).`;
     renderImportsSection();
   } catch (e) { status.textContent = 'Failed: ' + e.message; }
 }

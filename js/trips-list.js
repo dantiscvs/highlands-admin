@@ -154,34 +154,124 @@ async function doDuplicate() {
   } catch (e) { alert(e.message); }
 }
 
-// ---- Import a route (GPX, or a CSV/XLSX spreadsheet) ----
-// GPX path: simplified vs. the full spec — splits evenly by distance into N
-// days rather than detecting multi-day stage boundaries or named waypoints.
-// CSV/XLSX path: one row per day, heuristic column mapping (day/date/title/
-// distance/ascent/accommodation/notes) — same column names the Imports tab's
-// document-import heuristic understands, so the two stay predictable together.
-// Flagged as a known limitation in the delivery report.
+// ---- Import a route — spreadsheet or GPX ----
+// Spreadsheet (CSV/XLSX): one row per day, heuristic column mapping.
+// GPX multi-day: one file, split by <trkseg> elements — each segment = one day.
+//   Dates detected from <time> tags; file stored in Supabase Storage (bucket: trip-gpx).
+// GPX per-day: multiple files, one per day. Each assigned to a date (detected or user-set).
+//   Each file stored individually; URL written to trip_days.gpx_url.
+
+let _importState = {};
+
 function openImportRouteModal() {
-  showModal(`
-    <h2>Import a route</h2>
-    <p class="muted" style="margin-bottom:14px;font-size:12px;">Upload a GPX track, or a CSV/XLSX spreadsheet with one row per day (columns: day, date, title, distance, ascent, accommodation, notes). You can adjust everything afterwards in the grid.</p>
-    <div class="field"><label>Trip name</label><input id="mName" type="text" placeholder="e.g. Peaks Loop 2027"></div>
-    <div class="field"><label>Trip type</label><select id="mActivityType">${activityTypeOptionsHtml('cycling')}</select></div>
-    <div class="field"><label>File (GPX, CSV or XLSX)</label><input id="mGpx" type="file" accept=".gpx,.csv,.xlsx,.xls"></div>
-    <div class="field" id="mDaysField"><label>Split into how many days? <span class="muted" style="font-weight:400;">(GPX only — spreadsheets use one row per day)</span></label><input id="mDays" type="number" value="5" min="1" max="60"></div>
-    <div id="gpxPreview" class="muted" style="font-size:12px;margin-bottom:10px;"></div>
-    <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:16px;">
-      <button class="btn" onclick="closeAnyModal()">Cancel</button>
-      <button class="btn btn-primary" onclick="doImportRoute()">Import & create trip</button>
-    </div>
-  `);
+  _importState = { tab: 'spreadsheet', gpxMode: 'multiday', segments: null, gpxFile: null, perDayFiles: [], perDayFileObjects: [], tripName: '', activityType: 'cycling' };
+  showModal(`<div id="imc"></div><div style="display:flex;gap:8px;justify-content:flex-end;margin-top:16px;"><button class="btn" onclick="closeAnyModal()">Cancel</button><button class="btn btn-primary" id="importSubmitBtn" onclick="doImportRoute()">Import & create trip</button></div>`);
+  _renderIM();
 }
+
+function _saveIM() {
+  const n = document.getElementById('mName'), t = document.getElementById('mActivityType');
+  if (n) _importState.tripName = n.value;
+  if (t) _importState.activityType = t.value;
+}
+
+function _importTab(tab) {
+  _saveIM();
+  if (_importState.tab !== tab) { _importState.segments = null; _importState.gpxFile = null; _importState.perDayFiles = []; _importState.perDayFileObjects = []; }
+  _importState.tab = tab; _renderIM();
+}
+
+function _importGpxMode(mode) {
+  _saveIM();
+  if (_importState.gpxMode !== mode) { _importState.segments = null; _importState.gpxFile = null; _importState.perDayFiles = []; _importState.perDayFileObjects = []; }
+  _importState.gpxMode = mode; _renderIM();
+}
+
+function _renderIM() {
+  const s = _importState;
+  const tabCls = (t) => `btn btn-sm${s.tab === t ? ' btn-primary' : ''}`;
+  document.getElementById('imc').innerHTML = `
+    <h2 style="margin-bottom:14px;">Import a route</h2>
+    <div style="display:flex;gap:6px;margin-bottom:14px;">
+      <button class="${tabCls('spreadsheet')}" onclick="_importTab('spreadsheet')">📄 Spreadsheet</button>
+      <button class="${tabCls('gpx')}" onclick="_importTab('gpx')">🛰️ GPX</button>
+    </div>
+    <div class="field"><label>Trip name</label><input id="mName" type="text" value="${esc(s.tripName)}" placeholder="e.g. Peaks Loop 2027"></div>
+    <div class="field"><label>Trip type</label><select id="mActivityType">${activityTypeOptionsHtml(s.activityType || 'cycling')}</select></div>
+    ${s.tab === 'spreadsheet' ? _imcSheet() : _imcGpx()}
+  `;
+}
+
+function _imcSheet() {
+  return `
+    <div class="field"><label>File (CSV or XLSX)</label><input id="mSheet" type="file" accept=".csv,.xlsx,.xls"></div>
+    <div id="iPreview" class="muted" style="font-size:12px;margin-top:4px;"></div>
+    <p class="muted" style="font-size:11px;margin-top:10px;">Expected columns: day · date · title · distance · ascent · accommodation · notes</p>
+  `;
+}
+
+function _imcGpx() {
+  const s = _importState;
+  const modeCls = (m) => `btn btn-sm${s.gpxMode === m ? ' btn-primary' : ''}`;
+  return `
+    <div style="display:flex;gap:6px;margin-bottom:12px;">
+      <button class="${modeCls('multiday')}" onclick="_importGpxMode('multiday')">Full multi-day route</button>
+      <button class="${modeCls('perday')}" onclick="_importGpxMode('perday')">Day-by-day files</button>
+    </div>
+    ${s.gpxMode === 'multiday' ? _imcGpxMultiday() : _imcGpxPerday()}
+  `;
+}
+
+function _imcGpxMultiday() {
+  const segs = _importState.segments || [];
+  return `
+    <p class="muted" style="font-size:12px;margin-bottom:10px;">One GPX file for the whole trip. Each <code>&lt;trkseg&gt;</code> becomes a day. Dates are detected from <code>&lt;time&gt;</code> tags — edit below if needed.</p>
+    <div class="field"><label>GPX file</label><input id="mGpxSingle" type="file" accept=".gpx"></div>
+    ${segs.length ? `
+      <div style="margin-top:12px;font-size:12px;font-weight:600;margin-bottom:6px;">${segs.length} segment${segs.length !== 1 ? 's' : ''} detected — ${segs.reduce((a, s) => a + s.totalKm, 0).toFixed(1)} km total</div>
+      <div style="display:grid;gap:4px;max-height:260px;overflow-y:auto;">
+        ${segs.map((seg, i) => `
+          <div style="display:grid;grid-template-columns:52px 1fr 60px 60px;gap:8px;align-items:center;font-size:12px;background:var(--bg-recessed);border-radius:6px;padding:8px;">
+            <span class="muted">Day ${i + 1}</span>
+            <input type="date" value="${seg.date || ''}" oninput="_importState.segments[${i}].date=this.value" style="font-size:12px;width:100%;">
+            <span class="muted" style="text-align:right;">${seg.totalKm} km</span>
+            <span class="muted" style="text-align:right;">${seg.totalAscent} m ↑</span>
+          </div>
+        `).join('')}
+      </div>
+    ` : `<div id="iPreview" class="muted" style="font-size:12px;margin-top:8px;"></div>`}
+  `;
+}
+
+function _imcGpxPerday() {
+  const files = _importState.perDayFiles || [];
+  return `
+    <p class="muted" style="font-size:12px;margin-bottom:10px;">One GPX per day — select multiple files at once. Dates are detected from track timestamps; edit below if needed. Each file is stored and linked to its day.</p>
+    <div class="field"><label>GPX files</label><input id="mGpxMulti" type="file" accept=".gpx" multiple></div>
+    ${files.length ? `
+      <div style="margin-top:12px;font-size:12px;font-weight:600;margin-bottom:6px;">${files.length} file${files.length !== 1 ? 's' : ''}</div>
+      <div style="display:grid;gap:4px;max-height:260px;overflow-y:auto;">
+        ${files.map((f, i) => `
+          <div style="display:grid;grid-template-columns:1fr 130px 55px 55px;gap:8px;align-items:center;font-size:12px;background:var(--bg-recessed);border-radius:6px;padding:8px;">
+            <span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="${esc(f.name)}">${esc(f.name)}</span>
+            <input type="date" value="${f.date || ''}" oninput="_importState.perDayFiles[${i}].date=this.value" style="font-size:12px;width:100%;">
+            <span class="muted" style="text-align:right;">${f.totalKm} km</span>
+            <span class="muted" style="text-align:right;">${f.totalAscent} m ↑</span>
+          </div>
+        `).join('')}
+      </div>
+    ` : ''}
+  `;
+}
+
+// ---- GPX parsing ----
 function haversineKm(lat1, lon1, lat2, lon2) {
   const R = 6371, toRad = x => x * Math.PI / 180;
   const dLat = toRad(lat2 - lat1), dLon = toRad(lon2 - lon1);
   const a = Math.sin(dLat/2)**2 + Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) * Math.sin(dLon/2)**2;
   return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
 }
+
 function parseGpx(text) {
   const re = /<trkpt\s+lat="(-?[\d.]+)"\s+lon="(-?[\d.]+)"[^>]*>\s*<ele>(-?[\d.]+)<\/ele>/g;
   const pts = []; let m;
@@ -194,6 +284,52 @@ function parseGpx(text) {
   }
   return { pts, totalKm: dist, totalAscent: Math.round(ascent) };
 }
+
+function _gpxSegmentStats(segText) {
+  const re = /<trkpt\s+lat="(-?[\d.]+)"\s+lon="(-?[\d.]+)"[^>]*>([\s\S]*?)<\/trkpt>/g;
+  const pts = []; let m;
+  while ((m = re.exec(segText))) {
+    const inner = m[3];
+    const eleM = inner.match(/<ele>(-?[\d.]+)<\/ele>/);
+    const timeM = inner.match(/<time>([^<]+)<\/time>/);
+    pts.push({ lat: parseFloat(m[1]), lon: parseFloat(m[2]), ele: eleM ? parseFloat(eleM[1]) : 0, time: timeM ? timeM[1] : null });
+  }
+  if (!pts.length) return null;
+  let dist = 0, ascent = 0;
+  for (let i = 1; i < pts.length; i++) {
+    dist += haversineKm(pts[i-1].lat, pts[i-1].lon, pts[i].lat, pts[i].lon);
+    const dEl = pts[i].ele - pts[i-1].ele;
+    if (dEl > 0) ascent += dEl;
+  }
+  const date = (pts.find(p => p.time) || {}).time;
+  return { totalKm: Math.round(dist * 10) / 10, totalAscent: Math.round(ascent), date: date ? date.slice(0, 10) : null };
+}
+
+function parseGpxSegments(text) {
+  const segRe = /<trkseg>([\s\S]*?)<\/trkseg>/g;
+  const segments = []; let sm;
+  while ((sm = segRe.exec(text))) {
+    const stats = _gpxSegmentStats(sm[1]);
+    if (stats) segments.push(stats);
+  }
+  if (!segments.length) {
+    const fallback = _gpxSegmentStats(text);
+    if (fallback) segments.push(fallback);
+  }
+  return segments;
+}
+
+function parseGpxSingle(text) {
+  const segs = parseGpxSegments(text);
+  if (!segs.length) return { totalKm: 0, totalAscent: 0, date: null };
+  return {
+    totalKm: Math.round(segs.reduce((a, s) => a + s.totalKm, 0) * 10) / 10,
+    totalAscent: Math.round(segs.reduce((a, s) => a + s.totalAscent, 0)),
+    date: segs[0].date,
+  };
+}
+
+// ---- Spreadsheet parsing ----
 function fileKind(name) {
   const ext = (name.split('.').pop() || '').toLowerCase();
   if (ext === 'gpx') return 'gpx';
@@ -201,8 +337,6 @@ function fileKind(name) {
   return 'csv';
 }
 function splitDelimited(line) {
-  // Heuristic delimiter pick per line rather than a single sniff, so ragged
-  // CSV/TSV exports (mixed quoting, trailing commas) don't derail every row.
   if (line.includes('\t')) return line.split('\t');
   const semi = (line.match(/;/g) || []).length, comma = (line.match(/,/g) || []).length;
   return line.split(semi > comma ? ';' : ',');
@@ -218,9 +352,6 @@ async function parseXlsxRows(file) {
     .map(row => row.map(c => String(c == null ? '' : c).trim()))
     .filter(row => row.some(c => c));
 }
-// Same column vocabulary as the Imports tab's document-import heuristic
-// (functions/import-extract), so a spreadsheet works predictably whichever
-// entry point you use it from.
 const TABULAR_COL_MAP = {
   day: 'dayNumber', 'day number': 'dayNumber', '#': 'dayNumber',
   date: 'date', title: 'title', name: 'title', route: 'title',
@@ -235,9 +366,9 @@ function normalizeDateStr(s) {
   let m = s.match(/^(\d{4})-(\d{1,2})-(\d{1,2})/);
   if (m) return `${m[1]}-${m[2].padStart(2, '0')}-${m[3].padStart(2, '0')}`;
   m = s.match(/^(\d{1,2})[\/.](\d{1,2})[\/.](\d{4})$/);
-  if (m) return `${m[3]}-${m[2].padStart(2, '0')}-${m[1].padStart(2, '0')}`; // assumes D/M/Y
+  if (m) return `${m[3]}-${m[2].padStart(2, '0')}-${m[1].padStart(2, '0')}`;
   const d = new Date(s);
-  return isNaN(d) ? null : d.toISOString().slice(0, 10); // unrecognized format — skip rather than risk a failed insert
+  return isNaN(d) ? null : d.toISOString().slice(0, 10);
 }
 function rowsToDays(rows) {
   if (rows.length < 2) return [];
@@ -264,63 +395,113 @@ async function parseTabularFile(file) {
   const rows = fileKind(file.name) === 'xlsx' ? await parseXlsxRows(file) : parseCsvRows(await file.text());
   return rowsToDays(rows);
 }
+
+// ---- Import execution ----
 async function doImportRoute() {
-  const name = document.getElementById('mName').value.trim() || 'Untitled trip';
-  const activity_type = document.getElementById('mActivityType').value;
-  const file = document.getElementById('mGpx').files[0];
-  if (!file) { alert('Choose a file first.'); return; }
-  const kind = fileKind(file.name);
+  _saveIM();
+  const s = _importState;
+  const name = s.tripName || 'Untitled trip';
+  const activity_type = s.activityType || 'cycling';
+  const btn = document.getElementById('importSubmitBtn');
+  if (btn) { btn.disabled = true; btn.textContent = 'Importing…'; }
 
-  let dayRows;
-  let modules = ['route', 'accommodation', 'resupply'];
-  if (kind === 'gpx') {
-    const days = Math.max(1, parseInt(document.getElementById('mDays').value, 10) || 1);
-    const parsed = parseGpx(await file.text());
-    if (parsed.pts.length < 2) { alert('Could not read any track points from this file.'); return; }
-    const kmPerDay = parsed.totalKm / days, ascentPerDay = parsed.totalAscent / days;
-    dayRows = Array.from({ length: days }, (_, i) => ({
-      day_number: i + 1, title: `Day ${i + 1}`, order_index: i + 1,
-      distance_km: Math.round(kmPerDay * 10) / 10, ascent_m: Math.round(ascentPerDay),
-    }));
-    modules = ['route', 'gpx', 'elevation', 'accommodation', 'resupply'];
-  } else {
-    const parsedDays = await parseTabularFile(file);
-    if (!parsedDays.length) { alert('Could not find any day rows in this file. Expected a header row with columns like day/date/title/distance/ascent/accommodation/notes.'); return; }
-    dayRows = parsedDays.map((d, i) => ({
-      day_number: d.day_number || i + 1, order_index: d.day_number || i + 1,
-      title: d.title || `Day ${d.day_number || i + 1}`, date: d.date || null,
-      distance_km: d.distance_km, ascent_m: d.ascent_m, notes: d.notes || d.description || null,
-    }));
+  try {
+    if (s.tab === 'spreadsheet') {
+      const file = document.getElementById('mSheet') && document.getElementById('mSheet').files[0];
+      if (!file) throw new Error('Choose a file first.');
+      const parsedDays = await parseTabularFile(file);
+      if (!parsedDays.length) throw new Error('No day rows found — check the header row has columns like day/date/title/distance.');
+      const dayRows = parsedDays.map((d, i) => ({
+        day_number: d.day_number || i + 1, order_index: d.day_number || i + 1,
+        title: d.title || `Day ${d.day_number || i + 1}`, date: d.date || null,
+        distance_km: d.distance_km, ascent_m: d.ascent_m, notes: d.notes || d.description || null,
+      }));
+      const { data: trip, error } = await db().from('trips').insert({ owner_id: currentUser.id, name, activity_type, slug: slugify(name), status: 'draft', enabled_modules: ['route','accommodation','resupply'] }).select('id').single();
+      if (error) throw error;
+      const { data: insertedDays } = await db().from('trip_days').insert(dayRows.map(d => ({ ...d, trip_id: trip.id }))).select('id, day_number');
+      if (insertedDays) {
+        const byNumber = {}; insertedDays.forEach(d => byNumber[d.day_number] = d.id);
+        const stays = parsedDays.filter(d => d.accommodation_name).map(d => ({ trip_id: trip.id, day_id: byNumber[d.day_number], name: d.accommodation_name })).filter(st => st.day_id);
+        if (stays.length) await db().from('accommodations').insert(stays);
+      }
+      closeAnyModal(); goTrip(trip.id);
+
+    } else if (s.tab === 'gpx' && s.gpxMode === 'multiday') {
+      if (!s.segments || !s.segments.length) throw new Error('Upload a GPX file first.');
+      const { data: trip, error } = await db().from('trips').insert({ owner_id: currentUser.id, name, activity_type, slug: slugify(name), status: 'draft', enabled_modules: ['route','gpx','elevation','accommodation','resupply'] }).select('id').single();
+      if (error) throw error;
+
+      let gpxUrl = null;
+      if (s.gpxFile) {
+        const path = `${trip.id}/route.gpx`;
+        const { error: upErr } = await db().storage.from('trip-gpx').upload(path, s.gpxFile, { contentType: 'application/gpx+xml', upsert: true });
+        if (!upErr) {
+          const { data: ud } = db().storage.from('trip-gpx').getPublicUrl(path);
+          gpxUrl = ud ? ud.publicUrl : null;
+        }
+      }
+
+      await db().from('trip_days').insert(
+        s.segments.map((seg, i) => ({ trip_id: trip.id, day_number: i + 1, order_index: i + 1, title: `Day ${i + 1}`, date: seg.date || null, distance_km: seg.totalKm, ascent_m: seg.totalAscent, gpx_url: gpxUrl }))
+      );
+      closeAnyModal(); goTrip(trip.id);
+
+    } else if (s.tab === 'gpx' && s.gpxMode === 'perday') {
+      if (!s.perDayFiles || !s.perDayFiles.length) throw new Error('Upload GPX files first.');
+      const { data: trip, error } = await db().from('trips').insert({ owner_id: currentUser.id, name, activity_type, slug: slugify(name), status: 'draft', enabled_modules: ['route','gpx','elevation','accommodation','resupply'] }).select('id').single();
+      if (error) throw error;
+
+      const dayRows = s.perDayFiles.map((f, i) => ({
+        trip_id: trip.id, day_number: i + 1, order_index: i + 1,
+        title: f.name.replace(/\.gpx$/i, '').replace(/[-_]+/g, ' ').trim() || `Day ${i + 1}`,
+        date: f.date || null, distance_km: f.totalKm, ascent_m: f.totalAscent,
+      }));
+      const { data: insertedDays } = await db().from('trip_days').insert(dayRows).select('id, day_number');
+
+      if (insertedDays && s.perDayFileObjects && s.perDayFileObjects.length) {
+        const byNumber = {}; insertedDays.forEach(d => byNumber[d.day_number] = d.id);
+        await Promise.all(s.perDayFileObjects.map(async (file, i) => {
+          const dayNum = i + 1;
+          const path = `${trip.id}/day-${dayNum}.gpx`;
+          const { error: upErr } = await db().storage.from('trip-gpx').upload(path, file, { contentType: 'application/gpx+xml', upsert: true });
+          if (!upErr && byNumber[dayNum]) {
+            const { data: ud } = db().storage.from('trip-gpx').getPublicUrl(path);
+            if (ud && ud.publicUrl) await db().from('trip_days').update({ gpx_url: ud.publicUrl }).eq('id', byNumber[dayNum]);
+          }
+        }));
+      }
+      closeAnyModal(); goTrip(trip.id);
+    }
+  } catch (e) {
+    alert('Import failed: ' + e.message);
+    if (btn) { btn.disabled = false; btn.textContent = 'Import & create trip'; }
   }
-
-  const { data: trip, error } = await db().from('trips').insert({ owner_id: currentUser.id, name, activity_type, slug: slugify(name), status: 'draft', enabled_modules: modules }).select('id').single();
-  if (error) { alert(error.message); return; }
-
-  const { data: insertedDays } = await db().from('trip_days').insert(dayRows.map(d => ({ ...d, trip_id: trip.id }))).select('id, day_number');
-  if (kind !== 'gpx' && insertedDays) {
-    const byNumber = {}; insertedDays.forEach(d => byNumber[d.day_number] = d.id);
-    const stays = (await parseTabularFile(file)).filter(d => d.accommodation_name).map(d => ({
-      trip_id: trip.id, day_id: byNumber[d.day_number], name: d.accommodation_name,
-    })).filter(s => s.day_id);
-    if (stays.length) await db().from('accommodations').insert(stays);
-  }
-  closeAnyModal(); goTrip(trip.id);
 }
-document.addEventListener('change', (e) => {
-  if (!(e.target && e.target.id === 'mGpx' && e.target.files[0])) return;
-  const file = e.target.files[0];
-  const kind = fileKind(file.name);
-  const el = document.getElementById('gpxPreview');
-  const daysField = document.getElementById('mDaysField');
-  if (daysField) daysField.style.display = kind === 'gpx' ? '' : 'none';
-  if (kind === 'gpx') {
-    file.text().then(t => {
-      const p = parseGpx(t);
-      if (el) el.textContent = p.pts.length ? `${p.totalKm.toFixed(1)} km · ${p.totalAscent} m ascent · ${p.pts.length} points` : 'No track points found.';
-    });
-  } else {
-    parseTabularFile(file).then(days => {
-      if (el) el.textContent = days.length ? `${days.length} day row(s) found.` : 'No day rows recognized — check the header row has columns like day/date/title/distance.';
-    }).catch(err => { if (el) el.textContent = 'Could not read this file: ' + err.message; });
+
+document.addEventListener('change', async (e) => {
+  if (!e.target) return;
+
+  if (e.target.id === 'mSheet' && e.target.files[0]) {
+    const days = await parseTabularFile(e.target.files[0]).catch(() => []);
+    const el = document.getElementById('iPreview');
+    if (el) el.textContent = days.length ? `${days.length} day row(s) found.` : 'No day rows recognized — check the header row.';
+  }
+
+  if (e.target.id === 'mGpxSingle' && e.target.files[0]) {
+    const file = e.target.files[0];
+    const text = await file.text();
+    _importState.gpxFile = file;
+    _importState.segments = parseGpxSegments(text);
+    _saveIM(); _renderIM();
+  }
+
+  if (e.target.id === 'mGpxMulti' && e.target.files.length) {
+    const files = Array.from(e.target.files);
+    _importState.perDayFileObjects = files;
+    _importState.perDayFiles = await Promise.all(files.map(async file => {
+      const stats = parseGpxSingle(await file.text());
+      return { name: file.name, ...stats };
+    }));
+    _saveIM(); _renderIM();
   }
 });
