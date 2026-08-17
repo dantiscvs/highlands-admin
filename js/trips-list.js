@@ -1,9 +1,11 @@
 function renderSidebarTripsList() {
+  const isAccount = parseRoute().view === 'account';
   document.getElementById('sidebar').innerHTML = `
     <div class="brand">🗺️ Trip Tracker</div>
-    <div class="navitem on" onclick="goTrips()"><span class="navicon">${NAV_ICONS.overview}</span><span>My trips</span></div>
+    <div class="navitem ${isAccount ? '' : 'on'}" onclick="goTrips()"><span class="navicon">${NAV_ICONS.overview}</span><span>My trips</span></div>
     <div class="sidebar-foot">
       ${themeToggleHtml()}
+      <div class="navitem ${isAccount ? 'on' : ''}" onclick="goAccount()"><span class="navicon">${NAV_ICONS.account}</span><span>Account</span></div>
       <div class="navitem" onclick="signOut()"><span class="navicon">${NAV_ICONS.logout}</span><span>Sign out</span></div>
     </div>
   `;

@@ -1,9 +1,12 @@
-// Minimal hash router. Routes: #/trips, #/trips/:id/:section, #/invite/:token
+// Minimal hash router. Routes: #/trips, #/trips/:id/:section, #/invite/:token, #/account
 function parseRoute() {
   const h = (location.hash || '#/trips').slice(2);
   const parts = h.split('/').filter(Boolean);
   if (parts[0] === 'invite' && parts[1]) {
     return { view: 'invite', token: parts[1] };
+  }
+  if (parts[0] === 'account') {
+    return { view: 'account' };
   }
   if (parts[0] === 'trips' && parts[1]) {
     return { view: 'trip', tripId: parts[1], section: parts[2] || 'overview' };
@@ -13,6 +16,7 @@ function parseRoute() {
 
 function goTrips() { location.hash = '#/trips'; }
 function goTrip(id, section) { location.hash = `#/trips/${id}/${section || 'overview'}`; }
+function goAccount() { location.hash = '#/account'; }
 
 window.addEventListener('hashchange', () => onSignedIn());
 
@@ -31,6 +35,9 @@ async function onSignedIn() {
   const route = parseRoute();
   if (route.view === 'invite') {
     await redeemInviteToken(route.token);
+  } else if (route.view === 'account') {
+    renderSidebarTripsList();
+    await renderAccountPage();
   } else if (route.view === 'trips') {
     renderSidebarTripsList();
     await renderTripsListPage();

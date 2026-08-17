@@ -24,6 +24,7 @@ const NAV_ICONS = {
   people: '<svg viewBox="0 0 18 18"><circle cx="6.5" cy="6" r="2.5" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M2.5 14.5c0-2.2 1.8-3.8 4-3.8s4 1.6 4 3.8" fill="none" stroke="currentColor" stroke-width="1.6"/><circle cx="12.7" cy="6.5" r="2" fill="none" stroke="currentColor" stroke-width="1.4"/><path d="M10.9 11c.5-.2 1.1-.3 1.7-.3 1.9 0 3.5 1.4 3.5 3.3" fill="none" stroke="currentColor" stroke-width="1.4"/></svg>',
   gear: '<svg viewBox="0 0 18 18"><circle cx="9" cy="9" r="2.3" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M9 2.8v1.8M9 13.4v1.8M15.2 9h-1.8M4.6 9H2.8M13.1 4.9l-1.3 1.3M6.2 11.9l-1.3 1.3M13.1 13.1l-1.3-1.3M6.2 6.1L4.9 4.8" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>',
   logout: '<svg viewBox="0 0 18 18"><path d="M8 3H4a1 1 0 0 0-1 1v10a1 1 0 0 0 1 1h4" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/><path d="M7 9h8m0 0-2.5-2.5M15 9l-2.5 2.5" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+  account: '<svg viewBox="0 0 18 18"><circle cx="9" cy="6.5" r="3" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M3 15c0-3 2.7-5 6-5s6 2 6 5" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>',
 };
 
 async function loadTrip(tripId) {
@@ -103,6 +104,7 @@ function renderTripSidebar(section) {
 
     <div class="sidebar-foot">
       ${themeToggleHtml()}
+      <div class="navitem" onclick="goAccount()"><span class="navicon">${NAV_ICONS.account}</span><span>Account</span></div>
       <div class="navitem" onclick="signOut()"><span class="navicon">${NAV_ICONS.logout}</span><span>Sign out</span></div>
     </div>
   `;
