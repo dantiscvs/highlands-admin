@@ -43,8 +43,7 @@ async function extractWithGroq(apiKey: string, text: string) {
     method: "POST",
     headers: { "content-type": "application/json", "authorization": `Bearer ${apiKey}` },
     body: JSON.stringify({
-      model: "llama-3.3-70b-versatile",
-      temperature: 0,
+      model: "groq/compound-mini",
       max_tokens: 4096,
       messages: [
         {
