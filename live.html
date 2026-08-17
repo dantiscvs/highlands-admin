@@ -24,21 +24,27 @@
   --p-warning: #A8721F;
   --p-warning-subtle: #F7EDD8;
   --p-danger: #AC3B31;
+  --p-danger-subtle: #F8E5E2;
   --p-shadow: 0 2px 10px rgba(35, 38, 31, 0.08);
 }
 * { box-sizing: border-box; margin: 0; padding: 0; }
 body { font-family: var(--font-ui); background: var(--p-bg); color: var(--p-text-primary); min-height: 100vh; }
 .wrap { max-width: 640px; margin: 0 auto; padding: 20px 16px 60px; }
 .card { background: var(--p-surface); border: 1px solid var(--p-border); border-radius: 14px; padding: 18px; margin-bottom: 14px; box-shadow: var(--p-shadow); }
+.card.today { background: var(--p-accent-subtle); border-color: var(--p-accent); }
 h1 { font-size: 26px; font-weight: 700; letter-spacing: -0.01em; }
 h2 { font-size: 15px; font-weight: 700; margin-bottom: 4px; }
 .muted { color: var(--p-text-secondary); font-size: 14px; }
 .eyebrow { font-size: 12px; font-weight: 600; letter-spacing: .04em; text-transform: uppercase; color: var(--p-text-secondary); margin-bottom: 10px; }
+.eyebrow.on-accent { color: var(--p-accent); }
 .progress-figure { font-family: var(--font-mono); font-weight: 600; font-size: 17px; }
 .dayrow { display: flex; gap: 14px; padding: 14px 0; border-top: 1px solid var(--p-border); }
 .dayrow:first-child { border-top: none; padding-top: 4px; }
+.dayrow.is-today { margin: 0 -12px; padding: 14px 12px; background: var(--p-accent-subtle); border-radius: 10px; border-top-color: transparent; }
+.dayrow.is-today + .dayrow { border-top-color: transparent; }
 .daynum { width: 30px; height: 30px; border-radius: 50%; display: flex; align-items: center; justify-content: center;
   font-weight: 700; font-family: var(--font-mono); font-size: 13px; color: var(--p-accent); background: var(--p-accent-subtle); flex-shrink: 0; }
+.dayrow.is-today .daynum { background: var(--p-accent); color: #fff; }
 .dayrow .daytitle { font-weight: 600; font-size: 16px; }
 .dayrow .daymeta { font-family: var(--font-mono); font-size: 13px; color: var(--p-text-secondary); margin-top: 2px; }
 .pbar { height: 6px; background: var(--p-accent-subtle); border-radius: 3px; overflow: hidden; margin-top: 10px; }
@@ -50,6 +56,14 @@ a:hover { color: var(--p-accent-secondary); }
 .gallery { display: grid; grid-template-columns: repeat(auto-fill, minmax(110px, 1fr)); gap: 8px; }
 .gallery img { width: 100%; height: 100px; object-fit: cover; border-radius: 10px; }
 .stay-note { font-size: 14px; margin-top: 4px; color: var(--p-text-primary); }
+.stat-row { display: flex; margin-top: 16px; padding-top: 16px; border-top: 1px solid var(--p-border); }
+.card.today .stat-row { border-top-color: rgba(46,83,57,0.18); }
+.stat { flex: 1; text-align: center; }
+.stat .stat-value { font-family: var(--font-mono); font-weight: 700; font-size: 17px; color: var(--p-text-primary); }
+.stat .stat-label { font-size: 11px; color: var(--p-text-secondary); margin-top: 2px; text-transform: uppercase; letter-spacing: .03em; }
+.stay-card { display: flex; justify-content: space-between; align-items: flex-start; gap: 10px; padding: 12px 0; border-top: 1px solid var(--p-border); }
+.stay-card:first-child { border-top: none; }
+.error-card { text-align: center; padding: 40px 20px; }
 input[type="password"] { font-family: var(--font-ui); font-size: 15px; padding: 10px 12px; width: 100%;
   background: var(--p-bg); border: 1px solid var(--p-border); border-radius: 8px; color: var(--p-text-primary); outline: none; }
 input[type="password"]:focus { border-color: var(--p-accent); }
@@ -65,20 +79,25 @@ const SB_KEY = 'sb_publishable_EBGf9roabpx5-brXuia6ug_YWkOVc4K';
 const sb = supabase.createClient(SB_URL, SB_KEY);
 
 function esc(s) { return (s==null?'':String(s)).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+function titleCase(s) { return s ? s.charAt(0).toUpperCase() + s.slice(1) : s; }
 
+let triedPasscode = false;
 async function load(passcode) {
+  if (passcode) triedPasscode = true;
   const params = new URLSearchParams(location.search);
   const token = params.get('t');
   const app = document.getElementById('app');
-  if (!token) { app.innerHTML = '<div class="card"><p>No trip link given.</p></div>'; return; }
+  if (!token) { app.innerHTML = '<div class="card error-card"><h2>No trip link given</h2><div class="muted" style="margin-top:6px;">Ask the organizer for the share link.</div></div>'; return; }
   const { data, error } = await sb.schema('app').rpc('public_trip_view', { p_token: token, p_passcode: passcode || null });
-  if (error) { app.innerHTML = '<div class="card"><p>Could not load this trip.</p></div>'; return; }
-  if (data.error === 'not_found') { app.innerHTML = '<div class="card"><p>This link is not active.</p></div>'; return; }
+  if (error) { app.innerHTML = '<div class="card error-card"><h2>Could not load this trip</h2><div class="muted" style="margin-top:6px;">Try refreshing the page.</div></div>'; return; }
+  if (data.error === 'not_found') { app.innerHTML = '<div class="card error-card"><h2>This link is not active</h2><div class="muted" style="margin-top:6px;">Ask the organizer for a current link.</div></div>'; return; }
   if (data.error === 'passcode_required') {
-    app.innerHTML = `<div class="card"><h2>This trip is passcode-protected</h2>
-      <div class="muted" style="margin:4px 0 12px;">Ask the organizer for the passcode.</div>
-      <input type="password" id="pcInput" placeholder="Passcode" style="margin-bottom:10px;">
+    app.innerHTML = `<div class="card">
+      <h2>This trip is passcode-protected</h2>
+      <div class="muted" style="margin:4px 0 12px;">${triedPasscode ? "That passcode didn't work — try again." : "Ask the organizer for the passcode."}</div>
+      <input type="password" id="pcInput" placeholder="Passcode" style="margin-bottom:10px;" onkeydown="if(event.key==='Enter')load(document.getElementById('pcInput').value)">
       <button onclick="load(document.getElementById('pcInput').value)">Unlock</button></div>`;
+    document.getElementById('pcInput').focus();
     return;
   }
   render(data);
@@ -87,8 +106,12 @@ async function load(passcode) {
 function render(data) {
   const t = data.trip;
   const days = data.days || [];
+  const stays = data.unlinkedStays || [];
   const doneKm = days.reduce((s,d) => s + (Number(d.riddenKm)||0), 0);
   const totalKm = days.reduce((s,d) => s + (Number(d.distanceKm)||0), 0);
+  const todayIso = new Date().toISOString().slice(0,10);
+  const todayDay = days.find(d => d.date === todayIso);
+
   document.getElementById('app').innerHTML = `
     <div class="card">
       <h1>${esc(t.name)}</h1>
@@ -96,6 +119,8 @@ function render(data) {
       ${totalKm ? `<div style="margin-top:14px;"><span class="progress-figure">${doneKm.toFixed(0)} / ${totalKm.toFixed(0)} km</span>
         <div class="pbar"><div style="width:${Math.min(100, totalKm ? doneKm/totalKm*100 : 0)}%;"></div></div></div>` : ''}
     </div>
+
+    ${todayDay ? todayCardHtml(todayDay, days.length) : ''}
 
     ${(data.trackingLinks||[]).length ? `<div class="card">
       <span class="badge"><span class="badge-dot"></span>Live tracking</span>
@@ -106,17 +131,22 @@ function render(data) {
 
     <div class="card">
       <div class="eyebrow">Route</div>
-      ${days.map(d => `
-        <div class="dayrow">
-          <div class="daynum">${d.dayNumber}</div>
-          <div style="flex:1;">
-            <div class="daytitle">${esc(d.titleEn || d.title || 'Day ' + d.dayNumber)}</div>
-            <div class="daymeta">${d.date||''}${d.distanceKm ? ' · ' + d.distanceKm + ' km' : ''}${d.ascentM ? ' · +' + d.ascentM + ' m' : ''}</div>
-            ${d.accommodationName ? `<div class="stay-note">${esc(d.accommodationName)}${d.accommodationAddress ? ' — ' + esc(d.accommodationAddress) : ''}</div>` : ''}
+      ${days.map(d => dayRowHtml(d, d.date === todayIso)).join('')}
+    </div>
+
+    ${stays.length ? `<div class="card">
+      <div class="eyebrow">Other stays</div>
+      ${stays.map(s => `
+        <div class="stay-card">
+          <div>
+            <div class="daytitle" style="font-size:14px;">${esc(s.name)}</div>
+            ${s.address ? `<div class="muted" style="margin-top:2px;">${esc(s.address)}</div>` : ''}
+            ${s.bookingReference ? `<div class="muted" style="margin-top:2px;">Ref: ${esc(s.bookingReference)}</div>` : ''}
           </div>
+          ${s.mapUrl ? `<a href="${esc(s.mapUrl)}" target="_blank" rel="noopener" style="white-space:nowrap;">Map ↗</a>` : ''}
         </div>
       `).join('')}
-    </div>
+    </div>` : ''}
 
     ${(data.photos||[]).length ? `<div class="card">
       <div class="eyebrow">Photos</div>
@@ -124,6 +154,40 @@ function render(data) {
         ${data.photos.map(p => `<img src="${esc(p.photoUrl)}" alt="${esc(p.caption||'')}" loading="lazy">`).join('')}
       </div>
     </div>` : ''}
+  `;
+}
+
+function todayCardHtml(d, totalDays) {
+  const stats = d.isRestDay
+    ? `<div class="stat-row"><div class="stat" style="flex:1;"><div class="stat-value">Rest day</div><div class="stat-label">no riding today</div></div></div>`
+    : `<div class="stat-row">
+        <div class="stat"><div class="stat-value">${d.distanceKm ? d.distanceKm + ' km' : '—'}</div><div class="stat-label">Distance</div></div>
+        <div class="stat"><div class="stat-value">${d.ascentM ? '+' + d.ascentM + ' m' : '—'}</div><div class="stat-label">Elevation</div></div>
+        <div class="stat"><div class="stat-value">${d.surface ? titleCase(d.surface) : '—'}</div><div class="stat-label">Surface</div></div>
+      </div>`;
+  return `
+    <div class="card today">
+      <div class="eyebrow on-accent">Today · Day ${d.dayNumber} of ${totalDays}</div>
+      <h2 style="font-size:20px;">${esc(d.titleEn || d.title || 'Day ' + d.dayNumber)}</h2>
+      ${stats}
+      ${d.accommodationName ? `<div class="stay-note" style="margin-top:14px;">
+          <strong>Tonight:</strong> ${esc(d.accommodationName)}
+          ${d.accommodationMapUrl ? ` · <a href="${esc(d.accommodationMapUrl)}" target="_blank" rel="noopener">Map ↗</a>` : (d.accommodationAddress ? ' — ' + esc(d.accommodationAddress) : '')}
+        </div>` : ''}
+    </div>
+  `;
+}
+
+function dayRowHtml(d, isToday) {
+  return `
+    <div class="dayrow${isToday ? ' is-today' : ''}">
+      <div class="daynum">${d.dayNumber}</div>
+      <div style="flex:1;">
+        <div class="daytitle">${esc(d.titleEn || d.title || 'Day ' + d.dayNumber)}</div>
+        <div class="daymeta">${d.date||''}${d.isRestDay ? ' · rest day' : ''}${d.distanceKm ? ' · ' + d.distanceKm + ' km' : ''}${d.ascentM ? ' · +' + d.ascentM + ' m' : ''}${d.surface ? ' · ' + titleCase(d.surface) : ''}</div>
+        ${d.accommodationName ? `<div class="stay-note">${esc(d.accommodationName)}${d.accommodationMapUrl ? ` · <a href="${esc(d.accommodationMapUrl)}" target="_blank" rel="noopener">Map ↗</a>` : (d.accommodationAddress ? ' — ' + esc(d.accommodationAddress) : '')}</div>` : ''}
+      </div>
+    </div>
   `;
 }
 load();

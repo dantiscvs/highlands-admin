@@ -89,13 +89,18 @@ async function renderAccommodationModule() {
     </div>
   `;
 }
+const PAY_STATUS_COLOR = { unpaid: 'badge-red', partial: 'badge-orange', paid: 'badge-green', free: 'badge-gray' };
 function accommodationCardHtml(a, days, dayLabel) {
   return `<div class="card" data-id="${a.id}">
     <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:flex-start;">
       <div style="flex:2;min-width:200px;">
         <input type="text" value="${esc(a.name)}" placeholder="Name" onblur="quickSave('accommodations','${a.id}','name',this.value,this)" ${isEditor()?'':'disabled'} style="font-weight:700;width:100%;margin-bottom:6px;">
         <input type="url" value="${esc(a.url||'')}" placeholder="Booking URL" onblur="quickSave('accommodations','${a.id}','url',this.value,this)" ${isEditor()?'':'disabled'} style="width:100%;margin-bottom:6px;">
-        <input type="text" value="${esc(a.address||'')}" placeholder="Address" onblur="quickSave('accommodations','${a.id}','address',this.value,this)" ${isEditor()?'':'disabled'} style="width:100%;">
+        <input type="text" value="${esc(a.address||'')}" placeholder="Address (optional)" onblur="quickSave('accommodations','${a.id}','address',this.value,this)" ${isEditor()?'':'disabled'} style="width:100%;margin-bottom:6px;">
+        <div style="display:flex;gap:6px;align-items:center;">
+          <input type="url" value="${esc(a.map_url||'')}" placeholder="Google Maps link" onblur="quickSave('accommodations','${a.id}','map_url',this.value,this)" ${isEditor()?'':'disabled'} style="flex:1;">
+          ${a.map_url ? `<a href="${esc(a.map_url)}" target="_blank" rel="noopener" class="btn btn-sm" title="Open in Google Maps">📍</a>` : ''}
+        </div>
       </div>
       <div style="flex:1;min-width:140px;">
         <label class="muted" style="font-size:11px;">Day</label>
@@ -103,14 +108,15 @@ function accommodationCardHtml(a, days, dayLabel) {
           <option value="">— unlinked —</option>
           ${(days||[]).map(d=>`<option value="${d.id}" ${d.id===a.day_id?'selected':''}>Day ${d.day_number}</option>`).join('')}
         </select>
-        <label class="muted" style="font-size:11px;">Pay status</label>
+        <label class="muted" style="font-size:11px;">Pay status <span style="font-weight:400;">(set manually any time)</span></label>
+        <span class="badge ${PAY_STATUS_COLOR[a.pay_status]||'badge-gray'}" style="margin-bottom:4px;display:inline-flex;">${esc(a.pay_status)}</span>
         ${selectCell(a.id, 'pay_status', a.pay_status, ['unpaid','partial','paid','free'], 'accommodations')}
       </div>
       <div style="flex:1;min-width:120px;">
-        <label class="muted" style="font-size:11px;">Cost</label>
+        <label class="muted" style="font-size:11px;">Cost <span style="font-weight:400;">(amount / currency)</span></label>
         <div style="display:flex;gap:4px;">
-          <input type="number" value="${a.cost??''}" onblur="quickSave('accommodations','${a.id}','cost',this.value,this)" ${isEditor()?'':'disabled'} style="width:70%;">
-          <input type="text" value="${esc(a.currency||'')}" maxlength="3" onblur="quickSave('accommodations','${a.id}','currency',this.value,this)" ${isEditor()?'':'disabled'} style="width:30%;">
+          <input type="number" value="${a.cost??''}" placeholder="0" onblur="quickSave('accommodations','${a.id}','cost',this.value,this)" ${isEditor()?'':'disabled'} style="width:70%;">
+          <input type="text" value="${esc(a.currency||'')}" placeholder="${esc(activeTrip.default_currency||'CUR')}" maxlength="3" onblur="quickSave('accommodations','${a.id}','currency',this.value.toUpperCase(),this)" ${isEditor()?'':'disabled'} style="width:30%;text-transform:uppercase;">
         </div>
         <label class="muted" style="font-size:11px;margin-top:6px;display:block;">Booking reference</label>
         <input type="text" value="${esc(a.booking_reference||'')}" onblur="quickSave('accommodations','${a.id}','booking_reference',this.value,this)" ${isEditor()?'':'disabled'} style="width:100%;">
@@ -121,7 +127,7 @@ function accommodationCardHtml(a, days, dayLabel) {
   </div>`;
 }
 async function addAccommodation() {
-  await db().from('accommodations').insert({ trip_id: activeTrip.id, name: 'New stay', pay_status: 'unpaid' });
+  await db().from('accommodations').insert({ trip_id: activeTrip.id, name: 'New stay', pay_status: 'unpaid', currency: activeTrip.default_currency || null });
   renderAccommodationModule();
 }
 
