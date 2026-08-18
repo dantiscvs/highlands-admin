@@ -1,8 +1,9 @@
-// The primary editing surface (spec 4.1): one row per day, inline editable,
-// keyboard nav, autosave-on-blur. Clicking the drawer icon opens the detail
-// drawer for the long-tail per-day fields.
+// Route & Days tab — inline-editable grid (table or card view), autosave-on-blur,
+// keyboard nav, day detail drawer. Card view is the default on narrow screens.
 let gridDays = [];
 let GRID_COLS = [];
+let gridViewMode = localStorage.getItem('gridViewMode') || 'table';
+
 function buildGridCols() {
   const cfg = activityConfig(activeTrip);
   const cols = [
@@ -23,50 +24,146 @@ async function renderDayGrid() {
   gridDays = data || [];
   const accByDay = {};
   if (moduleOn('accommodation')) {
-    const { data: accs } = await db().from('accommodations').select('day_id, name').eq('trip_id', activeTrip.id);
-    (accs || []).forEach(a => { if (a.day_id) accByDay[a.day_id] = a.name; });
+    const { data: accs } = await db().from('accommodations').select('day_id, name, map_url').eq('trip_id', activeTrip.id);
+    (accs || []).forEach(a => { if (a.day_id) accByDay[a.day_id] = a; });
   }
-  const poiCountByDay = {};
+  const poiByDay = {};
   if (moduleOn('poi')) {
-    const { data: pois } = await db().from('points_of_interest').select('day_id, category').eq('trip_id', activeTrip.id);
-    (pois || []).forEach(p => { poiCountByDay[p.day_id] = poiCountByDay[p.day_id] || { sight: 0, resupply: 0 }; poiCountByDay[p.day_id][p.category === 'resupply' || p.category === 'water' ? 'resupply' : 'sight']++; });
+    const { data: pois } = await db().from('points_of_interest').select('day_id, name, category, url, icon').eq('trip_id', activeTrip.id).order('order_index');
+    (pois || []).forEach(p => { (poiByDay[p.day_id] = poiByDay[p.day_id] || []).push(p); });
   }
 
   const main = document.getElementById('main');
-  main.innerHTML = `
-    <div class="pagehead">
-      <div><h1>Route &amp; Days</h1><div class="subtitle">Click any cell to edit. Tab/Enter/arrows move around. Changes save when you leave a cell.</div></div>
-      <div style="display:flex;align-items:center;gap:12px;">
-        <span id="gridSaveInd" class="saveIndicator"></span>
-        ${isEditor() ? `<button class="btn btn-sm" onclick="addGridDay()">+ Add day</button>` : ''}
+  const viewToggle = `
+    <div style="display:flex;gap:4px;background:var(--bg-recessed);border-radius:var(--radius-md);padding:3px;">
+      <button class="btn btn-sm ${gridViewMode==='table'?'btn-primary':''}" onclick="setGridView('table')" title="Table view">≡ Table</button>
+      <button class="btn btn-sm ${gridViewMode==='cards'?'btn-primary':''}" onclick="setGridView('cards')" title="Card view">⊟ Cards</button>
+    </div>`;
+
+  if (gridViewMode === 'cards') {
+    main.innerHTML = `
+      <div class="pagehead">
+        <div><h1>Route &amp; Days</h1><div class="subtitle">Tap a day to expand. Click ⋯ to edit all details.</div></div>
+        <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;">
+          ${viewToggle}
+          ${isEditor() ? `<button class="btn btn-sm" onclick="addGridDay()">+ Add day</button>` : ''}
+        </div>
       </div>
-    </div>
-    <div class="gridWrap">
-      <table class="daygrid" id="dayGridTable">
-        <thead><tr>
-          <th class="rownum">#</th>
-          ${GRID_COLS.map(c => `<th style="min-width:${c.w}px;">${c.label}</th>`).join('')}
-          ${moduleOn('accommodation') ? '<th style="min-width:140px;">Accommodation</th>' : ''}
-          ${moduleOn('poi') ? '<th style="min-width:90px;">Sights / Resupply</th>' : ''}
-          <th class="opencol"></th>
-          ${isEditor() ? '<th class="opencol"></th>' : ''}
-        </tr></thead>
-        <tbody>
-          ${gridDays.map((d, i) => gridRowHtml(d, i, accByDay, poiCountByDay)).join('')}
-        </tbody>
-      </table>
-    </div>
-  `;
-  wireGridEvents();
+      <div id="dayCardList" style="display:flex;flex-direction:column;gap:10px;">
+        ${gridDays.map((d, i) => dayCardHtml(d, i, accByDay, poiByDay)).join('')}
+        ${gridDays.length === 0 ? '<p class="muted">No days yet — add one above.</p>' : ''}
+      </div>
+    `;
+  } else {
+    const poiCountByDay = {};
+    if (moduleOn('poi')) {
+      Object.entries(poiByDay).forEach(([dayId, pois]) => {
+        poiCountByDay[dayId] = { sight: pois.filter(p => p.category !== 'resupply' && p.category !== 'water').length, resupply: pois.filter(p => p.category === 'resupply' || p.category === 'water').length };
+      });
+    }
+    main.innerHTML = `
+      <div class="pagehead">
+        <div><h1>Route &amp; Days</h1><div class="subtitle">Click any cell to edit. Tab/Enter/arrows move around. Changes save when you leave a cell.</div></div>
+        <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;">
+          <span id="gridSaveInd" class="saveIndicator"></span>
+          ${viewToggle}
+          ${isEditor() ? `<button class="btn btn-sm" onclick="addGridDay()">+ Add day</button>` : ''}
+        </div>
+      </div>
+      <div class="gridWrap">
+        <table class="daygrid" id="dayGridTable">
+          <thead><tr>
+            <th class="rownum">#</th>
+            ${GRID_COLS.map(c => `<th style="min-width:${c.w}px;">${c.label}</th>`).join('')}
+            ${moduleOn('accommodation') ? '<th style="min-width:140px;">Accommodation</th>' : ''}
+            ${moduleOn('poi') ? '<th style="min-width:90px;">Sights / Resupply</th>' : ''}
+            <th class="opencol"></th>
+            ${isEditor() ? '<th class="opencol"></th>' : ''}
+          </tr></thead>
+          <tbody>
+            ${gridDays.map((d, i) => gridRowHtml(d, i, accByDay, poiCountByDay)).join('')}
+          </tbody>
+        </table>
+      </div>
+    `;
+    wireGridEvents();
+  }
 }
+
+function setGridView(mode) {
+  gridViewMode = mode;
+  localStorage.setItem('gridViewMode', mode);
+  renderDayGrid();
+}
+
+// ---- Card view ----
+
+function dayCardHtml(d, i, accByDay, poiByDay) {
+  const acc = accByDay[d.id];
+  const pois = poiByDay[d.id] || [];
+  const cfg = activityConfig(activeTrip);
+  const meta = [];
+  if (d.date) meta.push(fmtDate(d.date));
+  if (d.distance_km) meta.push(d.distance_km + ' km');
+  if (cfg.showAscent && d.ascent_m) meta.push('+' + d.ascent_m + ' m');
+  if (cfg.showSurface && d.surface) meta.push(d.surface);
+  if (d.is_rest_day) meta.push('Rest day');
+
+  const sightPois = pois.filter(p => p.category !== 'resupply' && p.category !== 'water');
+  const resupplyPois = pois.filter(p => p.category === 'resupply' || p.category === 'water');
+
+  return `<details class="daycard ${d.is_rest_day ? 'daycard-rest' : ''}">
+    <summary class="daycard-summary">
+      <span class="daynum-chip">${i + 1}</span>
+      <div style="flex:1;min-width:0;">
+        <div class="daycard-title">${esc(d.title || 'Day ' + (i + 1))}</div>
+        <div class="daycard-meta">${meta.join(' · ') || 'No details yet'}</div>
+      </div>
+      <div style="display:flex;gap:6px;align-items:center;flex-shrink:0;">
+        ${d.start_point && d.end_point ? `<span class="muted" style="font-size:11px;">${esc(d.start_point)} → ${esc(d.end_point)}</span>` : ''}
+        <button class="btn btn-sm" onclick="event.stopPropagation();openDayDrawer('${d.id}')" title="Edit day details">⋯</button>
+        ${isEditor() ? `<button class="btn btn-sm btn-danger" onclick="event.stopPropagation();deleteGridDay('${d.id}')" title="Remove day">🗑</button>` : ''}
+      </div>
+    </summary>
+    <div class="daycard-body">
+      ${d.description ? `<p style="color:var(--text-secondary);font-size:var(--text-sm);margin-bottom:10px;">${esc(d.description)}</p>` : ''}
+      ${d.notes ? `<p style="color:var(--text-tertiary);font-size:var(--text-sm);font-style:italic;margin-bottom:10px;">${esc(d.notes)}</p>` : ''}
+
+      <div style="display:flex;gap:16px;flex-wrap:wrap;margin-bottom:${acc || pois.length ? '12px' : '0'};">
+        ${d.start_point ? `<span class="muted" style="font-size:12px;">📍 Start: <strong style="color:var(--text-primary);">${esc(d.start_point)}</strong></span>` : ''}
+        ${d.end_point ? `<span class="muted" style="font-size:12px;">🏁 End: <strong style="color:var(--text-primary);">${esc(d.end_point)}</strong></span>` : ''}
+      </div>
+
+      ${acc ? `<div style="padding:8px 12px;background:var(--bg-recessed);border-radius:var(--radius-md);margin-bottom:10px;font-size:var(--text-sm);">
+        🏠 <strong>${esc(acc.name)}</strong>
+        ${acc.map_url ? ` · <a href="${esc(acc.map_url)}" target="_blank" rel="noopener">Map ↗</a>` : ''}
+      </div>` : ''}
+
+      ${sightPois.length ? `<div style="margin-bottom:8px;">
+        <div class="muted" style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.04em;margin-bottom:4px;">Sights</div>
+        ${sightPois.map(p => `<div style="font-size:13px;padding:3px 0;">${esc(p.icon || '📍')} ${p.url ? `<a href="${esc(p.url)}" target="_blank" rel="noopener">${esc(p.name)}</a>` : esc(p.name)}</div>`).join('')}
+      </div>` : ''}
+
+      ${resupplyPois.length ? `<div style="margin-bottom:8px;">
+        <div class="muted" style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.04em;margin-bottom:4px;">Resupply / Water</div>
+        ${resupplyPois.map(p => `<div style="font-size:13px;padding:3px 0;">${esc(p.icon || '🛒')} ${p.url ? `<a href="${esc(p.url)}" target="_blank" rel="noopener">${esc(p.name)}</a>` : esc(p.name)}</div>`).join('')}
+      </div>` : ''}
+
+      ${d.map_embed_url ? `<div style="margin-top:8px;"><a href="${esc(d.map_embed_url)}" target="_blank" rel="noopener" class="btn btn-sm">🗺️ View map ↗</a></div>` : ''}
+    </div>
+  </details>`;
+}
+
+// ---- Table view ----
 
 function gridRowHtml(d, i, accByDay, poiCountByDay) {
   const poi = poiCountByDay[d.id] || { sight: 0, resupply: 0 };
+  const acc = accByDay[d.id];
   return `
     <tr class="${d.is_rest_day ? 'restday' : ''}" data-day-id="${d.id}">
       <td class="rownum">${i + 1}</td>
       ${GRID_COLS.map(c => `<td data-col="${c.key}">${gridCellHtml(d, c, i)}</td>`).join('')}
-      ${moduleOn('accommodation') ? `<td><div class="cell muted" style="cursor:pointer;" onclick="goTrip(activeTrip.id,'accommodation')">${accByDay[d.id] ? esc(accByDay[d.id]) : '— none —'}</div></td>` : ''}
+      ${moduleOn('accommodation') ? `<td><div class="cell muted" style="cursor:pointer;" onclick="goTrip(activeTrip.id,'accommodation')">${acc ? esc(acc.name) : '— none —'}</div></td>` : ''}
       ${moduleOn('poi') ? `<td><div class="cell muted" style="cursor:pointer;font-size:12px;" onclick="goTrip(activeTrip.id,'poi')">🏰${poi.sight} · 🛒${poi.resupply}</div></td>` : ''}
       <td class="opencol" title="Open day details" onclick="openDayDrawer('${d.id}')">⋯</td>
       ${isEditor() ? `<td class="opencol" title="Remove day" onclick="deleteGridDay('${d.id}')">🗑</td>` : ''}
@@ -89,7 +186,7 @@ function wireGridEvents() {
     el.addEventListener('keydown', onGridCellKeydown);
   });
 }
-let lastGridEdit = null; // {dayId, field, prevValue} for a tiny one-step undo
+let lastGridEdit = null;
 async function onGridCellCommit(e) {
   const el = e.target;
   const rowIdx = +el.dataset.row, field = el.dataset.field;
@@ -110,11 +207,6 @@ async function onGridCellCommit(e) {
   if (field === 'date') syncTripDateRange();
 }
 
-// Fix for reported bug: the trip's start/end date were only ever set once at
-// creation time and never followed actual per-day dates entered afterwards
-// (e.g. creating "5 days" then dating out a 7-day span). Whenever a day's date
-// changes or the day count changes, re-derive the trip's date range from the
-// actual trip_days rows instead of leaving the stale creation-time guess.
 async function syncTripDateRange() {
   const dates = gridDays.map(d => d.date).filter(Boolean).sort();
   if (!dates.length) return;
@@ -212,6 +304,7 @@ function poiRowHtml(p) {
     <span>${esc(p.icon||(p.category==='resupply'?'🛒':'📍'))}</span>
     <div style="flex:1;">
       <div style="font-weight:600;font-size:13px;">${esc(p.name)}</div>
+      ${p.url ? `<a href="${esc(p.url)}" target="_blank" rel="noopener" style="font-size:11px;">${esc(p.url)}</a>` : ''}
       <div class="muted" style="font-size:11px;">${esc(p.description||'')}</div>
     </div>
     <button class="btn btn-sm" onclick="deletePoi('${p.id}')">✕</button>
@@ -245,10 +338,8 @@ async function saveDayDrawer(dayId) {
   ind.textContent = '✓ Saved'; ind.className = 'saveIndicator saved';
 }
 async function addPoiFromDrawer(dayId) {
-  const name = prompt('Place name:'); if (!name) return;
-  const category = confirm('Is this a resupply stop (shop/water)? Cancel = sight.') ? 'resupply' : 'sight';
-  await db().from('points_of_interest').insert({ trip_id: activeTrip.id, day_id: dayId, name, category, order_index: 999 });
-  openDayDrawer(dayId);
+  closeDayDrawer();
+  openPoiModal(dayId, () => openDayDrawer(dayId));
 }
 async function deletePoi(id) {
   await db().from('points_of_interest').delete().eq('id', id);

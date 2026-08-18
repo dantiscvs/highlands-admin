@@ -114,48 +114,128 @@ function renderTripSidebar(section) {
   `;
 }
 
+const OVERVIEW_MODULE_NAV = [
+  { mod: 'route',         section: 'grid',          label: 'Route & Days',      icon: '📅' },
+  { mod: 'transport',     section: 'logistics',      label: 'Logistics',         icon: '✈️' },
+  { mod: 'accommodation', section: 'accommodation',  label: 'Accommodation',     icon: '🏠' },
+  { mod: 'poi',           section: 'poi',            label: 'Sights & Resupply', icon: '🏰' },
+  { mod: 'packing',       section: 'packing',        label: 'Packing',           icon: '🎒' },
+  { mod: 'tasks',         section: 'tasks',          label: 'Tasks',             icon: '✅' },
+  { mod: 'expenses',      section: 'expenses',       label: 'Expenses',          icon: '💸' },
+  { mod: 'photos',        section: 'photos',         label: 'Photos',            icon: '📷' },
+];
+
 async function renderTripOverview() {
-  const [{ data: days }, { count: photoCount }] = await Promise.all([
+  const cfg = activityConfig(activeTrip);
+
+  const fetches = [
     db().from('trip_days').select('*').eq('trip_id', activeTrip.id).order('order_index'),
-    db().from('updates').select('*', { count: 'exact', head: true }).eq('trip_id', activeTrip.id),
-  ]);
+    db().rpc('trip_readiness', { p_trip_id: activeTrip.id }),
+  ];
+  if (!cfg.showAscent && moduleOn('expenses')) {
+    fetches.push(db().from('expenses').select('amount,currency').eq('trip_id', activeTrip.id));
+  }
+  const results = await Promise.all(fetches);
+  const [{ data: days }, readiness] = results;
+  const expensesData = results[2]?.data || null;
+
   const totalKm = (days || []).reduce((s, d) => s + (Number(d.distance_km) || 0), 0);
   const totalEl = (days || []).reduce((s, d) => s + (Number(d.ascent_m) || 0), 0);
-  const readiness = await db().rpc('trip_readiness', { p_trip_id: activeTrip.id });
   const pct = readiness.data ? readiness.data.completePct : 0;
+
+  // 3rd metric: ascent for outdoor activities, total cost for driving/transport trips
+  let metric3Val, metric3Label;
+  if (cfg.showAscent) {
+    metric3Val = totalEl.toFixed(0);
+    metric3Label = cfg.ascentLabel || 'm ascent';
+  } else if (expensesData && expensesData.length) {
+    const cur = activeTrip.default_currency || '';
+    const total = expensesData.reduce((s, e) => s + Number(e.amount), 0);
+    metric3Val = total.toFixed(0) + (cur ? ' ' + cur : '');
+    metric3Label = 'total cost';
+  } else {
+    const restDays = (days || []).filter(d => d.is_rest_day).length;
+    metric3Val = restDays;
+    metric3Label = 'rest days';
+  }
+
+  // Map preview: first day with a map embed URL
+  const daysWithMaps = (days || []).filter(d => d.map_embed_url);
+  const mapPreviewDay = daysWithMaps[0] || null;
+
+  // Enabled module quick-access cards
+  const navCards = OVERVIEW_MODULE_NAV.filter(m => moduleOn(m.mod));
 
   document.getElementById('main').innerHTML = `
     <div class="pagehead">
-      <div><h1>${esc(activeTrip.name)}</h1><div class="subtitle">${activeTrip.start_date ? fmtDate(activeTrip.start_date) + ' – ' + fmtDate(activeTrip.end_date) : 'No dates set yet'} · ${activeTrip.timezone}</div></div>
-      <div style="display:flex;gap:8px;">
+      <div>
+        <h1>${esc(activeTrip.name)}</h1>
+        <div class="subtitle">${activeTrip.start_date ? fmtDate(activeTrip.start_date) + ' – ' + fmtDate(activeTrip.end_date) : 'No dates set yet'} · ${activeTrip.timezone}</div>
+        <div style="margin-top:8px;">${activityBadgeHtml(activeTrip)}</div>
+      </div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;">
         <button class="btn" onclick="goTrip(activeTrip.id,'settings')">⚙️ Settings</button>
         <button class="btn" onclick="goTrip(activeTrip.id,'share')">🔗 Share</button>
       </div>
     </div>
+
     <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:24px;">
-      <div class="card" style="text-align:center;"><div style="font-size:22px;font-weight:800;">${(days||[]).length}</div><div class="muted" style="font-size:12px;">days</div></div>
-      <div class="card" style="text-align:center;"><div style="font-size:22px;font-weight:800;">${totalKm.toFixed(0)}</div><div class="muted" style="font-size:12px;">km</div></div>
-      <div class="card" style="text-align:center;"><div style="font-size:22px;font-weight:800;">${totalEl.toFixed(0)}</div><div class="muted" style="font-size:12px;">m ascent</div></div>
-      <div class="card" style="text-align:center;"><div style="font-size:22px;font-weight:800;">${pct}%</div><div class="muted" style="font-size:12px;">ready</div></div>
+      <div class="statcard"><div class="stat-value">${(days||[]).length}</div><div class="stat-label">Days</div></div>
+      <div class="statcard"><div class="stat-value">${totalKm.toFixed(0)}</div><div class="stat-label">km</div></div>
+      <div class="statcard"><div class="stat-value">${metric3Val}</div><div class="stat-label">${metric3Label}</div></div>
+      <div class="statcard"><div class="stat-value">${pct}%</div><div class="stat-label">Ready</div></div>
     </div>
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
-      <div class="card">
-        <h2>Enabled modules</h2>
-        <div style="display:flex;flex-wrap:wrap;gap:6px;">
-          ${(activeTrip.enabled_modules || []).map(m => `<span class="badge badge-gray">${MODULE_LABELS[m] || m}</span>`).join('') || '<span class="muted">None yet</span>'}
+
+    ${mapPreviewDay ? `
+      <div class="card" style="margin-bottom:24px;">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;flex-wrap:wrap;gap:8px;">
+          <h2 style="margin:0;">Route map${daysWithMaps.length > 1 ? 's' : ''}</h2>
+          <div style="display:flex;gap:6px;flex-wrap:wrap;">
+            ${daysWithMaps.map(d => `<button class="btn btn-sm" data-url="${esc(d.map_embed_url)}" onclick="overviewShowMap(${d.day_number},this.dataset.url)">Day ${d.day_number}</button>`).join('')}
+          </div>
         </div>
-        <button class="btn btn-sm" style="margin-top:12px;" onclick="goTrip(activeTrip.id,'settings')">Manage modules</button>
+        <iframe id="overviewMapFrame" src="${esc(mapPreviewDay.map_embed_url)}" width="100%" height="300"
+          frameborder="0" style="border-radius:var(--radius-md);display:block;border:1px solid var(--border-hairline);"
+          loading="lazy" allowfullscreen></iframe>
       </div>
-      <div class="card">
-        <h2>Quick links</h2>
-        <div style="display:flex;flex-direction:column;gap:8px;">
-          <a href="#" onclick="event.preventDefault();goTrip(activeTrip.id,'grid');">📅 Open the day grid</a>
-          <a href="#" onclick="event.preventDefault();goTrip(activeTrip.id,'readiness');">☑️ Review readiness checklist</a>
-          <a href="#" onclick="event.preventDefault();goTrip(activeTrip.id,'imports');">📥 Import bookings from email/document</a>
+    ` : ''}
+
+    ${navCards.length ? `
+      <div class="card" style="margin-bottom:16px;">
+        <h2>Quick access</h2>
+        <div class="entrypoints" style="grid-template-columns:repeat(auto-fill,minmax(130px,1fr));">
+          ${navCards.map(m => `
+            <div class="entrypoint" onclick="goTrip(activeTrip.id,'${m.section}')">
+              <div class="ico">${m.icon}</div>
+              <div class="ttl">${m.label}</div>
+            </div>
+          `).join('')}
+          <div class="entrypoint" onclick="goTrip(activeTrip.id,'participants')">
+            <div class="ico">👥</div><div class="ttl">Participants</div>
+          </div>
+          <div class="entrypoint" onclick="goTrip(activeTrip.id,'readiness')">
+            <div class="ico">☑️</div><div class="ttl">Readiness</div>
+          </div>
+          <div class="entrypoint" onclick="goTrip(activeTrip.id,'imports')">
+            <div class="ico">📥</div><div class="ttl">Imports</div>
+          </div>
+          <div class="entrypoint" onclick="goTrip(activeTrip.id,'share')">
+            <div class="ico">🔗</div><div class="ttl">Share & Live</div>
+          </div>
         </div>
       </div>
-    </div>
+    ` : `
+      <div class="card">
+        <h2>Get started</h2>
+        <p class="muted" style="margin-bottom:10px;">Enable modules in Settings to start planning your trip.</p>
+        <button class="btn btn-primary btn-sm" onclick="goTrip(activeTrip.id,'settings')">Open Settings</button>
+      </div>
+    `}
   `;
+}
+
+function overviewShowMap(dayNum, url) {
+  document.getElementById('overviewMapFrame').src = url;
 }
 
 async function renderTripSettings() {

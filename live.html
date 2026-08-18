@@ -123,6 +123,8 @@ function render(data) {
   const stays = data.unlinkedStays || [];
   const doneKm = days.reduce((s,d) => s + (Number(d.riddenKm)||0), 0);
   const totalKm = days.reduce((s,d) => s + (Number(d.distanceKm)||0), 0);
+  const totalAscent = days.reduce((s,d) => s + (Number(d.ascentM)||0), 0);
+  const daysWithData = days.filter(d => d.distanceKm || d.ascentM || d.isRestDay);
   const todayIso = new Date().toISOString().slice(0,10);
   const todayDay = days.find(d => d.date === todayIso);
 
@@ -130,8 +132,11 @@ function render(data) {
     <div class="card">
       <h1>${esc(t.name)}</h1>
       <div class="muted" style="margin-top:4px;">${t.startDate||''} ${t.endDate ? '– ' + t.endDate : ''}</div>
-      ${totalKm ? `<div style="margin-top:14px;"><span class="progress-figure">${doneKm.toFixed(0)} / ${totalKm.toFixed(0)} km</span>
-        <div class="pbar"><div style="width:${Math.min(100, totalKm ? doneKm/totalKm*100 : 0)}%;"></div></div></div>` : ''}
+      ${totalKm ? `<div style="margin-top:14px;">
+        <span class="progress-figure">${doneKm.toFixed(0)} / ${totalKm.toFixed(0)} km</span>
+        <div class="pbar"><div style="width:${Math.min(100, totalKm ? doneKm/totalKm*100 : 0)}%;"></div></div>
+      </div>` : ''}
+      ${totalAscent ? `<div style="margin-top:8px;font-size:13px;color:var(--p-text-secondary);">Total ascent: <strong style="color:var(--p-text-primary);">+${totalAscent.toLocaleString()} m</strong></div>` : ''}
     </div>
 
     ${todayDay ? todayCardHtml(todayDay, days.length) : ''}
@@ -142,6 +147,8 @@ function render(data) {
         ${data.trackingLinks.map(l => `<a href="${esc(l.url)}" target="_blank" rel="noopener">${esc(l.label)} ↗</a>`).join('')}
       </div>
     </div>` : ''}
+
+    ${daysWithData.length > 1 ? elevationChartHtml(days) : ''}
 
     <div class="card">
       <div class="eyebrow">Route</div>
@@ -181,6 +188,48 @@ function render(data) {
   `);
 }
 
+function elevationChartHtml(days) {
+  const maxAscent = Math.max(...days.map(d => Number(d.ascentM)||0), 1);
+  const maxDist   = Math.max(...days.map(d => Number(d.distanceKm)||0), 1);
+  const barW = Math.max(20, Math.min(40, Math.floor(580 / days.length) - 4));
+  const gap = 4;
+  const chartH = 80;
+  const labelH = 20;
+  const svgW = days.length * (barW + gap);
+  const bars = days.map((d, i) => {
+    const x = i * (barW + gap);
+    // ascent bar (green)
+    const asH = d.ascentM ? Math.max(3, Math.round((Number(d.ascentM) / maxAscent) * chartH)) : 0;
+    // km bar (blue/teal overlay)
+    const kmH = d.distanceKm ? Math.max(3, Math.round((Number(d.distanceKm) / maxDist) * chartH * 0.6)) : 0;
+    const isToday = d.date === new Date().toISOString().slice(0,10);
+    const fill = isToday ? '#2E5339' : (d.isRestDay ? '#E3DFD3' : '#7FB587');
+    const kmFill = isToday ? '#C1602E' : '#A9CBB0';
+    return `
+      ${asH ? `<rect x="${x}" y="${chartH - asH}" width="${barW}" height="${asH}" rx="3" fill="${fill}" opacity="${isToday?1:.75}">
+        <title>Day ${d.dayNumber}: +${d.ascentM} m ascent</title></rect>` : ''}
+      ${kmH ? `<rect x="${x}" y="${chartH - kmH}" width="${barW}" height="${kmH}" rx="3" fill="${kmFill}" opacity=".45">
+        <title>Day ${d.dayNumber}: ${d.distanceKm} km</title></rect>` : ''}
+      <text x="${x + barW/2}" y="${chartH + labelH - 4}" text-anchor="middle" font-size="9" fill="currentColor" opacity=".55">${d.dayNumber}</text>
+      ${isToday ? `<rect x="${x - 1}" y="${chartH - (asH||4) - 3}" width="${barW + 2}" height="${(asH||4) + 4}" rx="4" fill="none" stroke="#2E5339" stroke-width="1.5"/>` : ''}
+    `;
+  }).join('');
+
+  return `<div class="card" style="margin-bottom:14px;">
+    <div class="eyebrow" style="margin-bottom:12px;">Elevation &amp; distance per day</div>
+    <div style="overflow-x:auto;-webkit-overflow-scrolling:touch;">
+      <svg viewBox="0 0 ${svgW} ${chartH + labelH}" width="${svgW}" height="${chartH + labelH}" style="min-width:${svgW}px;display:block;color:var(--p-text-secondary);">
+        ${bars}
+      </svg>
+    </div>
+    <div style="display:flex;gap:14px;margin-top:8px;font-size:11px;color:var(--p-text-secondary);">
+      <span><span style="display:inline-block;width:10px;height:10px;background:#7FB587;border-radius:2px;margin-right:4px;vertical-align:middle;"></span>Ascent (m)</span>
+      <span><span style="display:inline-block;width:10px;height:10px;background:#A9CBB0;border-radius:2px;margin-right:4px;vertical-align:middle;opacity:.7;"></span>Distance (km, scaled)</span>
+      <span style="margin-left:auto;">Day ${days.findIndex(d=>d.date===new Date().toISOString().slice(0,10))+1 || '?'} highlighted</span>
+    </div>
+  </div>`;
+}
+
 function todayCardHtml(d, totalDays) {
   const stats = d.isRestDay
     ? `<div class="stat-row"><div class="stat" style="flex:1;"><div class="stat-value">Rest day</div><div class="stat-label">no riding today</div></div></div>`
@@ -189,26 +238,32 @@ function todayCardHtml(d, totalDays) {
         <div class="stat"><div class="stat-value">${d.ascentM ? '+' + d.ascentM + ' m' : '—'}</div><div class="stat-label">Elevation</div></div>
         <div class="stat"><div class="stat-value">${d.surface ? titleCase(d.surface) : '—'}</div><div class="stat-label">Surface</div></div>
       </div>`;
+  const mapIframe = d.mapEmbedUrl ? `<div style="margin-top:14px;"><iframe src="${esc(d.mapEmbedUrl)}" width="100%" height="220" frameborder="0" style="border-radius:8px;display:block;" loading="lazy" allowfullscreen></iframe></div>` : '';
+  const desc = (d.descriptionEn || d.description) ? `<div style="margin-top:10px;font-size:14px;color:var(--p-text-primary);opacity:.8;line-height:1.5;">${esc(d.descriptionEn || d.description)}</div>` : '';
   return `
     <div class="card today">
       <div class="eyebrow on-accent">Today · Day ${d.dayNumber} of ${totalDays}</div>
       <h2 style="font-size:20px;">${esc(d.titleEn || d.title || 'Day ' + d.dayNumber)}</h2>
       ${stats}
+      ${desc}
       ${d.accommodationName ? `<div class="stay-note" style="margin-top:14px;">
           <strong>Tonight:</strong> ${esc(d.accommodationName)}
           ${d.accommodationMapUrl ? ` · <a href="${esc(d.accommodationMapUrl)}" target="_blank" rel="noopener">Map ↗</a>` : (d.accommodationAddress ? ' — ' + esc(d.accommodationAddress) : '')}
         </div>` : ''}
+      ${mapIframe}
     </div>
   `;
 }
 
 function dayRowHtml(d, isToday) {
+  const desc = (d.descriptionEn || d.description) ? `<div style="font-size:12px;color:var(--p-text-secondary);margin-top:3px;opacity:.8;">${esc((d.descriptionEn||d.description).slice(0,100))}${(d.descriptionEn||d.description).length>100?'…':''}</div>` : '';
   return `
     <div class="dayrow${isToday ? ' is-today' : ''}">
       <div class="daynum">${d.dayNumber}</div>
-      <div style="flex:1;">
+      <div style="flex:1;min-width:0;">
         <div class="daytitle">${esc(d.titleEn || d.title || 'Day ' + d.dayNumber)}</div>
         <div class="daymeta">${d.date||''}${d.isRestDay ? ' · rest day' : ''}${d.distanceKm ? ' · ' + d.distanceKm + ' km' : ''}${d.ascentM ? ' · +' + d.ascentM + ' m' : ''}${d.surface ? ' · ' + titleCase(d.surface) : ''}</div>
+        ${desc}
         ${d.accommodationName ? `<div class="stay-note">${esc(d.accommodationName)}${d.accommodationMapUrl ? ` · <a href="${esc(d.accommodationMapUrl)}" target="_blank" rel="noopener">Map ↗</a>` : (d.accommodationAddress ? ' — ' + esc(d.accommodationAddress) : '')}</div>` : ''}
       </div>
     </div>

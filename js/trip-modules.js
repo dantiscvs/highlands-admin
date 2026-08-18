@@ -4,8 +4,24 @@ function moduleGate(key) {
   return true;
 }
 
+// ---- Shared helpers ----
+function toDatetimeLocal(iso) {
+  if (!iso) return '';
+  const d = new Date(iso);
+  if (isNaN(d)) return '';
+  return d.toISOString().slice(0, 16);
+}
+function fmtDatetime(iso) {
+  if (!iso) return '';
+  const d = new Date(iso);
+  if (isNaN(d)) return iso;
+  return d.toLocaleString([], { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
+}
+
 // ---------------- Logistics / transport legs ----------------
 const TRANSPORT_TYPES = ['flight','train','bus','ferry','boat','car','campervan','transfer','bike_shipping','other'];
+const TRANSPORT_ICONS = { flight:'✈️', train:'🚂', bus:'🚌', ferry:'⛴️', boat:'🛥️', car:'🚗', campervan:'🚐', transfer:'🚕', bike_shipping:'📦', other:'🚦' };
+
 async function renderLogistics() {
   if (moduleGate('transport')) return;
   const [{ data: legs }, { data: days }] = await Promise.all([
@@ -13,28 +29,99 @@ async function renderLogistics() {
     db().from('trip_days').select('id, day_number').eq('trip_id', activeTrip.id).order('order_index'),
   ]);
   document.getElementById('main').innerHTML = `
-    <div class="pagehead"><div><h1>Logistics</h1><div class="subtitle">Flights, trains, buses, ferries, transfers, bike shipping — for the trip overall or a mid-trip leg between locations (e.g. "Day 3: train Delhi → Mumbai").</div></div>
-      ${isEditor() ? `<button class="btn btn-primary btn-sm" onclick="addTransportLeg()" title="Tip: legs you add here can also be filled in automatically — see the Imports tab to paste a booking confirmation email or document.">+ Add leg</button>` : ''}
+    <div class="pagehead"><div><h1>Logistics</h1><div class="subtitle">Flights, trains, buses, ferries, transfers, bike shipping — for the trip overall or a specific day.</div></div>
+      ${isEditor() ? `<button class="btn btn-primary btn-sm" onclick="addTransportLeg()" title="Or use Imports to auto-extract from a booking email.">+ Add leg</button>` : ''}
     </div>
-    ${isEditor() ? `<div class="muted" style="font-size:11px;margin:-6px 0 12px;">💡 Got a booking confirmation email or PDF? <a href="#" onclick="event.preventDefault();goTrip(activeTrip.id,'imports');">Paste/upload it in Imports</a> instead of typing legs by hand — we'll extract the details and you just review &amp; accept.</div>` : ''}
-    <div class="gridWrap"><table class="simple">
-      <thead><tr><th>Type</th><th title="When this leg happens: at the very start/end of the trip, or on a specific day mid-trip">When</th><th>Carrier</th><th>Reference</th><th>Departs</th><th>Arrives</th><th>Cost</th><th></th></tr></thead>
-      <tbody>${(legs||[]).map(l => transportRowHtml(l, days)).join('') || '<tr><td colspan="8" class="muted">No transport legs yet.</td></tr>'}</tbody>
-    </table></div>
+    ${isEditor() ? `<div class="muted" style="font-size:11px;margin:-6px 0 16px;">💡 Got a booking confirmation email or PDF? <a href="#" onclick="event.preventDefault();goTrip(activeTrip.id,'imports');">Paste/upload it in Imports</a> — we'll extract the details automatically.</div>` : ''}
+    <div style="display:flex;flex-direction:column;gap:12px;">
+      ${(legs||[]).map(l => transportCardHtml(l, days)).join('') || `
+        <div class="empty-state">
+          <div class="empty-title">No transport legs yet</div>
+          <div class="empty-desc">${isEditor() ? 'Add a leg above, or use <a href="#" onclick="event.preventDefault();goTrip(activeTrip.id,\'imports\');">Imports</a> to extract from a booking email.' : 'No transport legs have been added yet.'}</div>
+        </div>`}
+    </div>
   `;
 }
-function transportRowHtml(l, days) {
-  return `<tr data-id="${l.id}">
-    <td>${selectCell(l.id, 'type', l.type, TRANSPORT_TYPES, 'transport_legs')}</td>
-    <td>${anchorDayCell(l, days)}</td>
-    <td>${textCell(l.id, 'carrier', l.carrier, 'transport_legs')}</td>
-    <td>${textCell(l.id, 'reference', l.reference, 'transport_legs')}</td>
-    <td>${textCell(l.id, 'departure_place', l.departure_place, 'transport_legs')}</td>
-    <td>${textCell(l.id, 'arrival_place', l.arrival_place, 'transport_legs')}</td>
-    <td>${textCell(l.id, 'cost', l.cost, 'transport_legs', 'number')} ${esc(l.currency||'')}</td>
-    <td><button class="btn btn-sm btn-danger" onclick="deleteRow('transport_legs','${l.id}', renderLogistics)">✕</button></td>
-  </tr>`;
+
+function transportCardHtml(l, days) {
+  const icon = TRANSPORT_ICONS[l.type] || '🚦';
+  const anchorLabel = l.anchor === 'trip_start' ? 'Trip start' : l.anchor === 'trip_end' ? 'Trip end' : (() => { const d = (days||[]).find(x=>x.id===l.day_id); return d ? 'Day ' + d.day_number : 'Day ?'; })();
+  const depTime = fmtDatetime(l.departure_time);
+  const arrTime = fmtDatetime(l.arrival_time);
+  const cur = esc(l.currency || activeTrip.default_currency || '');
+
+  return `<div class="card" data-id="${l.id}">
+    <!-- Header row -->
+    <div style="display:flex;gap:10px;align-items:flex-start;flex-wrap:wrap;margin-bottom:12px;">
+      <div style="flex:1;min-width:0;">
+        <div style="display:flex;gap:8px;align-items:center;margin-bottom:8px;flex-wrap:wrap;">
+          <span style="font-size:18px;">${icon}</span>
+          ${selectCell(l.id,'type',l.type,TRANSPORT_TYPES,'transport_legs')}
+          <span class="badge badge-gray">${esc(anchorLabel)}</span>
+          ${isEditor() ? `<select onchange="saveTransportAnchor('${l.id}', this.value)" style="border:1px solid var(--border-strong);border-radius:var(--radius-sm);padding:4px 24px 4px 8px;font-size:12px;">
+            <option value="trip_start" ${l.anchor==='trip_start'?'selected':''}>Trip start</option>
+            <option value="trip_end" ${l.anchor==='trip_end'?'selected':''}>Trip end</option>
+            ${(days||[]).map(d=>`<option value="day:${d.id}" ${l.day_id===d.id?'selected':''}>Day ${d.day_number}</option>`).join('')}
+          </select>` : ''}
+        </div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:8px;">
+          <input type="text" value="${esc(l.carrier||'')}" placeholder="Carrier / airline / operator"
+            onblur="quickSave('transport_legs','${l.id}','carrier',this.value,this)"
+            ${isEditor()?'':'disabled'} style="flex:1;min-width:140px;">
+          <input type="text" value="${esc(l.reference||'')}" placeholder="Booking reference"
+            onblur="quickSave('transport_legs','${l.id}','reference',this.value,this)"
+            ${isEditor()?'':'disabled'} style="flex:1;min-width:120px;">
+        </div>
+      </div>
+      ${isEditor() ? `<button class="btn btn-sm btn-danger" onclick="deleteRow('transport_legs','${l.id}', renderLogistics)" style="flex-shrink:0;">✕</button>` : ''}
+    </div>
+
+    <!-- Route rows -->
+    <div style="display:grid;grid-template-columns:1fr auto;gap:6px 10px;margin-bottom:10px;">
+      <input type="text" value="${esc(l.departure_place||'')}" placeholder="Departure city / airport / station"
+        onblur="quickSave('transport_legs','${l.id}','departure_place',this.value,this)"
+        ${isEditor()?'':'disabled'}>
+      <input type="datetime-local" value="${toDatetimeLocal(l.departure_time)}"
+        onblur="quickSave('transport_legs','${l.id}','departure_time',this.value||null,this)"
+        ${isEditor()?'':'disabled'} style="width:auto;">
+      <input type="text" value="${esc(l.arrival_place||'')}" placeholder="Arrival city / airport / station"
+        onblur="quickSave('transport_legs','${l.id}','arrival_place',this.value,this)"
+        ${isEditor()?'':'disabled'}>
+      <input type="datetime-local" value="${toDatetimeLocal(l.arrival_time)}"
+        onblur="quickSave('transport_legs','${l.id}','arrival_time',this.value||null,this)"
+        ${isEditor()?'':'disabled'} style="width:auto;">
+    </div>
+
+    <!-- Bottom row: seats, cost, notes -->
+    <div style="display:flex;gap:10px;flex-wrap:wrap;">
+      <div style="flex:1;min-width:140px;">
+        <label class="muted" style="font-size:11px;display:block;margin-bottom:4px;">Seat(s)</label>
+        <input type="text" value="${esc(l.seat_number||'')}" placeholder="e.g. 14A, 15B"
+          onblur="quickSave('transport_legs','${l.id}','seat_number',this.value,this)"
+          ${isEditor()?'':'disabled'} style="width:100%;">
+      </div>
+      <div style="min-width:120px;">
+        <label class="muted" style="font-size:11px;display:block;margin-bottom:4px;">Cost</label>
+        <div style="display:flex;gap:4px;">
+          <input type="number" value="${l.cost??''}" placeholder="0"
+            onblur="quickSave('transport_legs','${l.id}','cost',this.value,this)"
+            ${isEditor()?'':'disabled'} style="width:80px;">
+          <input type="text" value="${cur}" placeholder="CUR" maxlength="3"
+            onblur="quickSave('transport_legs','${l.id}','currency',this.value.toUpperCase(),this)"
+            ${isEditor()?'':'disabled'} style="width:52px;text-transform:uppercase;">
+        </div>
+      </div>
+      <div style="flex:2;min-width:180px;">
+        <label class="muted" style="font-size:11px;display:block;margin-bottom:4px;">Notes</label>
+        <textarea onblur="quickSave('transport_legs','${l.id}','notes',this.value,this)"
+          placeholder="Visa required, check-in deadline, luggage notes…"
+          ${isEditor()?'':'disabled'}
+          style="width:100%;min-height:36px;resize:vertical;">${esc(l.notes||'')}</textarea>
+      </div>
+    </div>
+  </div>`;
 }
+
 function anchorDayCell(l, days) {
   const value = l.anchor === 'custom' && l.day_id ? 'day:' + l.day_id : l.anchor;
   const dayOptions = (days||[]).map(d => `<option value="day:${d.id}" ${value==='day:'+d.id?'selected':''}>Day ${d.day_number}</option>`).join('');
@@ -136,38 +223,158 @@ async function renderPoiModule() {
   if (moduleGate('poi')) return;
   const [{ data: pois }, { data: days }] = await Promise.all([
     db().from('points_of_interest').select('*').eq('trip_id', activeTrip.id).order('order_index'),
-    db().from('trip_days').select('id, day_number').eq('trip_id', activeTrip.id).order('order_index'),
+    db().from('trip_days').select('id, day_number, title').eq('trip_id', activeTrip.id).order('order_index'),
   ]);
   const byDay = {};
   (pois||[]).forEach(p => { (byDay[p.day_id] = byDay[p.day_id] || []).push(p); });
+
   document.getElementById('main').innerHTML = `
-    <div class="pagehead"><div><h1>Sights &amp; resupply</h1><div class="subtitle">Castles, viewpoints, water refills, shops — anything worth marking on a day.</div></div></div>
+    <div class="pagehead">
+      <div><h1>Sights &amp; resupply</h1><div class="subtitle">Castles, viewpoints, water refills, shops — anything worth marking on a day.</div></div>
+    </div>
     ${(days||[]).map(d => `
       <div class="card" style="margin-bottom:12px;">
-        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
-          <strong>Day ${d.day_number}</strong>
-          ${isEditor() ? `<button class="btn btn-sm" onclick="addPoiForDay('${d.id}')">+ Add</button>` : ''}
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;flex-wrap:wrap;gap:6px;">
+          <strong>Day ${d.day_number}${d.title ? ' — ' + esc(d.title) : ''}</strong>
+          ${isEditor() ? `<button class="btn btn-sm" onclick="openPoiModal('${d.id}', renderPoiModule)">+ Add place</button>` : ''}
         </div>
-        ${(byDay[d.id]||[]).map(p => `
-          <div style="display:flex;gap:8px;align-items:center;padding:6px 0;border-top:1px solid var(--border-hairline);">
-            <span>${esc(p.icon||'📍')}</span>
-            <input type="text" value="${esc(p.name)}" onblur="quickSave('points_of_interest','${p.id}','name',this.value,this)" ${isEditor()?'':'disabled'} style="flex:1;min-width:120px;">
-            ${selectCell(p.id, 'category', p.category, ['sight','resupply','water','other'], 'points_of_interest')}
-            <input type="text" placeholder="opening hours" value="${esc(p.opening_hours||'')}" onblur="quickSave('points_of_interest','${p.id}','opening_hours',this.value,this)" ${isEditor()?'':'disabled'} style="width:120px;">
-            <button class="btn btn-sm btn-danger" onclick="deleteRow('points_of_interest','${p.id}', renderPoiModule)">✕</button>
-          </div>
-        `).join('') || '<p class="muted" style="font-size:12px;">Nothing yet.</p>'}
+        <div id="poiList_${d.id}">
+          ${(byDay[d.id]||[]).map(p => poiListRowHtml(p)).join('') || '<p class="muted" style="font-size:12px;">Nothing yet.</p>'}
+        </div>
       </div>
     `).join('')}
   `;
+  if (isEditor()) wirePoiDragDrop();
 }
+
+function poiListRowHtml(p) {
+  return `<div class="poi-row" data-poi-id="${p.id}" data-day-id="${p.day_id}" draggable="${isEditor()}" style="display:flex;gap:8px;align-items:flex-start;padding:8px 0;border-top:1px solid var(--border-hairline);">
+    ${isEditor() ? '<span class="drag-handle" title="Drag to reorder">⠿</span>' : ''}
+    <span>${esc(p.icon||(p.category==='resupply'?'🛒':p.category==='water'?'💧':'📍'))}</span>
+    <div style="flex:1;min-width:0;">
+      <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap;">
+        <input type="text" value="${esc(p.name)}"
+          onblur="quickSave('points_of_interest','${p.id}','name',this.value,this)"
+          ${isEditor()?'':'disabled'} style="flex:1;min-width:120px;">
+        ${selectCell(p.id,'category',p.category,['sight','resupply','water','other'],'points_of_interest')}
+      </div>
+      <div style="display:flex;gap:6px;align-items:center;margin-top:4px;flex-wrap:wrap;">
+        <input type="url" value="${esc(p.url||'')}" placeholder="Website / maps URL"
+          onblur="quickSave('points_of_interest','${p.id}','url',this.value,this)"
+          ${isEditor()?'':'disabled'} style="flex:1;min-width:120px;font-size:12px;">
+        ${p.url ? `<a href="${esc(p.url)}" target="_blank" rel="noopener" class="btn btn-sm" title="Open link">↗</a>` : ''}
+        <input type="text" placeholder="opening hours" value="${esc(p.opening_hours||'')}"
+          onblur="quickSave('points_of_interest','${p.id}','opening_hours',this.value,this)"
+          ${isEditor()?'':'disabled'} style="width:130px;font-size:12px;">
+      </div>
+    </div>
+    ${isEditor() ? `<button class="btn btn-sm btn-danger" onclick="deleteRow('points_of_interest','${p.id}', renderPoiModule)">✕</button>` : ''}
+  </div>`;
+}
+
+// Custom POI add modal
+let _poiModalCallback = null;
+function openPoiModal(dayId, callback) {
+  _poiModalCallback = callback || renderPoiModule;
+  const existing = document.getElementById('poiModalOverlay');
+  if (existing) existing.remove();
+  document.body.insertAdjacentHTML('beforeend', `
+    <div class="modal-ov" id="poiModalOverlay" onclick="closePoiModal(event)">
+      <div class="modal" onclick="event.stopPropagation();" style="max-width:440px;">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:18px;">
+          <h2 style="margin:0;">Add place</h2>
+          <button class="btn btn-sm" onclick="closePoiModal()">✕</button>
+        </div>
+        <input type="hidden" id="pmDayId" value="${esc(dayId)}">
+        <div class="field">
+          <label>Name</label>
+          <input id="pmName" type="text" placeholder="Urquhart Castle, Tesco, etc." autofocus style="width:100%;">
+        </div>
+        <div class="field">
+          <label>Category</label>
+          <select id="pmCat" style="width:100%;">
+            <option value="sight">🏰 Sight / attraction</option>
+            <option value="resupply">🛒 Resupply (shop)</option>
+            <option value="water">💧 Water refill</option>
+            <option value="other">📍 Other</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>Website / maps link <span class="muted" style="font-weight:400;">(optional)</span></label>
+          <input id="pmUrl" type="url" placeholder="https://..." style="width:100%;">
+        </div>
+        <div class="field">
+          <label>Description <span class="muted" style="font-weight:400;">(optional)</span></label>
+          <input id="pmDesc" type="text" placeholder="Short note about this place" style="width:100%;">
+        </div>
+        <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:4px;">
+          <button class="btn" onclick="closePoiModal()">Cancel</button>
+          <button class="btn btn-primary" onclick="submitPoiModal()">Add place</button>
+        </div>
+      </div>
+    </div>
+  `);
+  document.getElementById('pmName').focus();
+  document.getElementById('pmName').addEventListener('keydown', e => { if (e.key === 'Enter') submitPoiModal(); });
+}
+function closePoiModal(e) {
+  if (e && e.target !== document.getElementById('poiModalOverlay')) return;
+  const el = document.getElementById('poiModalOverlay');
+  if (el) el.remove();
+  _poiModalCallback = null;
+}
+async function submitPoiModal() {
+  const name = document.getElementById('pmName').value.trim();
+  if (!name) { document.getElementById('pmName').focus(); return; }
+  const dayId = document.getElementById('pmDayId').value;
+  const category = document.getElementById('pmCat').value;
+  const url = document.getElementById('pmUrl').value.trim() || null;
+  const description = document.getElementById('pmDesc').value.trim() || null;
+  const { error } = await db().from('points_of_interest').insert({ trip_id: activeTrip.id, day_id: dayId, name, category, url, description, order_index: 9999 });
+  if (error) { alert(error.message); return; }
+  const el = document.getElementById('poiModalOverlay');
+  if (el) el.remove();
+  if (_poiModalCallback) { _poiModalCallback(); _poiModalCallback = null; }
+}
+
 async function addPoiForDay(dayId) {
-  const name = prompt('Place name:'); if (!name) return;
-  await db().from('points_of_interest').insert({ trip_id: activeTrip.id, day_id: dayId, name, category: 'sight', order_index: 999 });
-  renderPoiModule();
+  openPoiModal(dayId, renderPoiModule);
+}
+
+// Drag-and-drop reorder for POI rows
+let _dragPoiId = null, _dragDayId = null;
+function wirePoiDragDrop() {
+  document.querySelectorAll('.poi-row').forEach(row => {
+    row.addEventListener('dragstart', e => {
+      _dragPoiId = row.dataset.poiId;
+      _dragDayId = row.dataset.dayId;
+      e.dataTransfer.effectAllowed = 'move';
+      row.style.opacity = '0.5';
+    });
+    row.addEventListener('dragend', () => { row.style.opacity = ''; });
+    row.addEventListener('dragover', e => { e.preventDefault(); e.dataTransfer.dropEffect = 'move'; });
+    row.addEventListener('drop', async e => {
+      e.preventDefault();
+      if (!_dragPoiId || row.dataset.poiId === _dragPoiId) return;
+      const list = document.getElementById('poiList_' + _dragDayId);
+      if (!list) return;
+      const rows = [...list.querySelectorAll('.poi-row')];
+      const dragIdx = rows.findIndex(r => r.dataset.poiId === _dragPoiId);
+      const dropIdx = rows.findIndex(r => r === row);
+      if (dragIdx === -1 || dropIdx === -1) return;
+      // Reorder in DOM
+      const dragged = rows[dragIdx];
+      if (dragIdx < dropIdx) row.after(dragged); else row.before(dragged);
+      // Persist new order_index values
+      const newOrder = [...list.querySelectorAll('.poi-row')];
+      await Promise.all(newOrder.map((r, i) => db().from('points_of_interest').update({ order_index: i }).eq('id', r.dataset.poiId)));
+      _dragPoiId = null; _dragDayId = null;
+    });
+  });
 }
 
 // ---------------- Tasks / Packing (shared shape) ----------------
+let currentChecklistKind = null;
 async function renderChecklistModule(kind) {
   if (moduleGate(kind)) return;
   currentChecklistKind = kind;
@@ -182,29 +389,64 @@ async function renderChecklistModule(kind) {
   const itemIds = new Set((items||[]).map(i=>i.id));
   const checksByItem = {};
   (checks||[]).filter(c => itemIds.has(c[fk])).forEach(c => { (checksByItem[c[fk]] = checksByItem[c[fk]] || []).push(c); });
+  const membersById = {};
+  (members||[]).forEach(m => membersById[m.id] = m);
 
   document.getElementById('main').innerHTML = `
-    <div class="pagehead"><div><h1>${kind === 'tasks' ? 'Tasks' : 'Packing list'}</h1><div class="subtitle">Manage the list here. Riders check things off from their own view.</div></div>
-      ${isEditor() ? `<div style="display:flex;gap:6px;"><input id="newItemInput" type="text" placeholder="Add item…" style="width:220px;"><button class="btn btn-primary btn-sm" onclick="addChecklistItem('${table}')">+ Add</button></div>` : ''}
+    <div class="pagehead">
+      <div><h1>${kind === 'tasks' ? 'Tasks' : 'Packing list'}</h1>
+        <div class="subtitle">Manage the list here. Members check things off from their own view. Items can be assigned to everyone or just specific people.</div>
+      </div>
+      ${isEditor() ? `<div style="display:flex;gap:6px;align-items:center;"><input id="newItemInput" type="text" placeholder="Add item…" style="width:220px;" onkeydown="if(event.key==='Enter')addChecklistItem('${table}')"><button class="btn btn-primary btn-sm" onclick="addChecklistItem('${table}')">+ Add</button></div>` : ''}
     </div>
     <div class="gridWrap"><table class="simple">
-      <thead><tr><th>Item</th>${(members||[]).map(m=>`<th style="text-align:center;">${avatarChip(m.display_name,'sm')}</th>`).join('')}<th></th></tr></thead>
+      <thead><tr>
+        <th>Item</th>
+        <th style="min-width:90px;">Assigned to</th>
+        ${(members||[]).map(m=>`<th style="text-align:center;">${avatarChip(m.display_name,'sm')}</th>`).join('')}
+        <th></th>
+      </tr></thead>
       <tbody>
-        ${(items||[]).map(i => `<tr>
-          <td>${textCell(i.id, 'title', i.title, table)}</td>
-          ${(members||[]).map(m => {
-            const rec = (checksByItem[i.id]||[]).find(c => c.membership_id === m.id);
-            const on = rec && rec.checked;
-            const isMe = activeMembership && m.id === activeMembership.id;
-            return `<td style="text-align:center;${isMe?'cursor:pointer;':''}" ${isMe?`onclick="toggleOwnCheck('${checkTable}','${fk}','${i.id}','${m.id}',${!on})"`:''} title="${isMe?'Click to toggle':''}">${on ? '✅' : (isMe ? '☐' : '—')}</td>`;
-          }).join('')}
-          <td>${isEditor() ? `<button class="btn btn-sm btn-danger" onclick="deleteRow('${table}','${i.id}', () => renderChecklistModule('${kind}'))">✕</button>` : ''}</td>
-        </tr>`).join('') || `<tr><td colspan="99" class="muted">Nothing yet.</td></tr>`}
+        ${(items||[]).map(i => checklistRowHtml(i, members, checksByItem, fk, checkTable, table)).join('') || `<tr><td colspan="99" class="muted" style="padding:20px;text-align:center;">Nothing yet — add your first item above.</td></tr>`}
       </tbody>
     </table></div>
   `;
 }
-let currentChecklistKind = null;
+
+function isAssignedTo(item, member) {
+  // null assigned_to = everyone; array = specific members
+  return !item.assigned_to || item.assigned_to.includes(member.id);
+}
+
+function checklistRowHtml(item, members, checksByItem, fk, checkTable, table) {
+  const assignedAll = !item.assigned_to || item.assigned_to.length === 0;
+  const assignedChips = assignedAll ? '' : (item.assigned_to || []).map(id => {
+    const m = members.find(m => m.id === id);
+    return m ? avatarChip(m.display_name, 'sm') : '';
+  }).join('');
+
+  const assignCell = isEditor() ? `
+    <span class="assignment-pill" onclick="openAssignmentPicker('${item.id}','${table}',event)" title="Click to change assignment" style="cursor:pointer;">
+      ${assignedAll ? '<span class="badge badge-gray">All</span>' : assignedChips}
+    </span>` : `${assignedAll ? '<span class="badge badge-gray">All</span>' : assignedChips}`;
+
+  const memberCells = (members||[]).map(m => {
+    const assigned = isAssignedTo(item, m);
+    if (!assigned) return `<td style="text-align:center;color:var(--text-tertiary);" title="Not assigned to ${esc(m.display_name)}">—</td>`;
+    const rec = (checksByItem[item.id]||[]).find(c => c.membership_id === m.id);
+    const on = rec && rec.checked;
+    const isMe = activeMembership && m.id === activeMembership.id;
+    return `<td style="text-align:center;${isMe?'cursor:pointer;':''}" ${isMe?`onclick="toggleOwnCheck('${checkTable}','${fk}','${item.id}','${m.id}',${!on})"`:''} title="${isMe?'Click to toggle':esc(m.display_name)}">${on ? '✅' : (isMe ? '☐' : '—')}</td>`;
+  }).join('');
+
+  return `<tr data-item-id="${item.id}">
+    <td>${textCell(item.id, 'title', item.title, table)}</td>
+    <td>${assignCell}</td>
+    ${memberCells}
+    <td>${isEditor() ? `<button class="btn btn-sm btn-danger" onclick="deleteRow('${table}','${item.id}', () => renderChecklistModule('${currentChecklistKind}'))">✕</button>` : ''}</td>
+  </tr>`;
+}
+
 async function toggleOwnCheck(checkTable, fk, itemId, membershipId, checked) {
   const { error } = await db().from(checkTable).upsert({ [fk]: itemId, membership_id: membershipId, checked }, { onConflict: `${fk},membership_id` });
   if (error) { alert(error.message); return; }
@@ -215,6 +457,58 @@ async function addChecklistItem(table) {
   const title = input.value.trim(); if (!title) return;
   await db().from(table).insert({ trip_id: activeTrip.id, title, order_index: 9999 });
   renderChecklistModule(table === 'tasks' ? 'tasks' : 'packing');
+}
+
+// Assignment picker popup
+let _assignPickerItemId = null, _assignPickerTable = null;
+async function openAssignmentPicker(itemId, table, evt) {
+  evt.stopPropagation();
+  // Remove any existing picker
+  document.querySelectorAll('.assign-picker').forEach(el => el.remove());
+
+  const { data: members } = await db().from('trip_memberships').select('*').eq('trip_id', activeTrip.id).eq('is_on_trip', true);
+  const { data: item } = await db().from(table).select('assigned_to').eq('id', itemId).single();
+  const assignedTo = item?.assigned_to || null;
+
+  const picker = document.createElement('div');
+  picker.className = 'assign-picker';
+  picker.style.cssText = 'position:fixed;background:var(--bg-card);border:1px solid var(--border-strong);border-radius:var(--radius-md);box-shadow:var(--shadow-e3);padding:10px 14px;z-index:500;min-width:180px;';
+  const rect = evt.target.getBoundingClientRect();
+  picker.style.top = (rect.bottom + 6) + 'px';
+  picker.style.left = rect.left + 'px';
+  picker.innerHTML = `
+    <div style="font-size:11px;font-weight:600;color:var(--text-tertiary);text-transform:uppercase;letter-spacing:.04em;margin-bottom:8px;">Assigned to</div>
+    <label style="display:flex;align-items:center;gap:8px;padding:4px 0;cursor:pointer;">
+      <input type="radio" name="ap" value="all" ${!assignedTo||assignedTo.length===0?'checked':''}> Everyone
+    </label>
+    ${(members||[]).map(m => `
+      <label style="display:flex;align-items:center;gap:8px;padding:4px 0;cursor:pointer;">
+        <input type="checkbox" class="ap-member" value="${m.id}" ${assignedTo && assignedTo.includes(m.id)?'checked':''}> ${esc(m.display_name)}
+      </label>
+    `).join('')}
+    <div style="display:flex;gap:6px;margin-top:10px;">
+      <button class="btn btn-primary btn-sm" onclick="saveAssignment('${itemId}','${table}')">Save</button>
+      <button class="btn btn-sm" onclick="this.closest('.assign-picker').remove()">Cancel</button>
+    </div>
+  `;
+  document.body.appendChild(picker);
+  // Close on outside click
+  setTimeout(() => document.addEventListener('click', function closeP(e) {
+    if (!picker.contains(e.target)) { picker.remove(); document.removeEventListener('click', closeP); }
+  }), 0);
+}
+async function saveAssignment(itemId, table) {
+  const picker = document.querySelector('.assign-picker');
+  const allRadio = picker.querySelector('[name="ap"][value="all"]');
+  let assigned_to = null;
+  if (!allRadio.checked) {
+    assigned_to = [...picker.querySelectorAll('.ap-member:checked')].map(el => el.value);
+    if (assigned_to.length === 0) assigned_to = null; // fallback to all if none selected
+  }
+  const { error } = await db().from(table).update({ assigned_to }).eq('id', itemId);
+  if (error) { alert(error.message); return; }
+  picker.remove();
+  renderChecklistModule(currentChecklistKind);
 }
 
 // ---------------- Expenses ----------------
