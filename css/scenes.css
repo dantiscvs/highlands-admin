@@ -17,8 +17,19 @@
     linear-gradient(180deg, rgba(16,20,14,.72) 0%, rgba(16,20,14,.55) 45%, rgba(16,20,14,.80) 100%),
     linear-gradient(100deg, rgba(46,83,57,.42) 0%, rgba(46,83,57,0) 60%); }
 .hero-photo .wrap { position: relative; z-index: 2; }
-.hero-photo .hero-inner { padding: clamp(64px, 10vw, 132px) 0 clamp(56px, 8vw, 104px); max-width: 680px; }
-.hero-photo h1 { color: #FBFAF6; margin-bottom: 18px; text-wrap: balance; }
+.hero-photo .hero-inner { padding: clamp(64px, 10vw, 132px) 0 clamp(56px, 8vw, 104px); max-width: 960px; }
+/* Sized for a two-sentence headline: at the global h1 max of 58px this one
+   cannot fit two lines, and balance splits it into three. 50px lets it
+   break at the sentence, which is where it wants to break. */
+.hero-photo h1 { color: #FBFAF6; margin-bottom: 18px; text-wrap: balance;
+  font-size: clamp(31px, 4.6vw, 50px); }
+/* Once each sentence fits a line, break between them. Left to itself,
+   text-wrap:balance evens the line lengths and splits "moving / parts",
+   which reads worse than an uneven but meaningful break. */
+@media (min-width: 900px) {
+  .hero-photo h1 { text-wrap: initial; }
+  .hero-photo h1 .s1 { display: block; }
+}
 .hero-photo .lede { color: rgba(251,250,246,.86); font-size: clamp(17px, 2vw, 21px); max-width: 540px; }
 .hero-photo .eyebrow { color: #B9D9BE; }
 .hero-photo .hero-cta .btn { border-color: transparent; }
