@@ -6,6 +6,7 @@
 <title>Trip Tracker — live</title>
 <meta name="theme-color" content="#FCFBF8">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="js/trip-elevation.js"></script>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500;600&display=swap');
 :root {
@@ -83,6 +84,9 @@ input[type="password"] { font-family: var(--font-ui); font-size: 15px; padding: 
 input[type="password"]:focus { border-color: var(--p-accent); }
 button { font-family: var(--font-ui); font-weight: 600; font-size: 14px; padding: 10px 16px; background: var(--p-accent);
   border: none; border-radius: 8px; color: #fff; cursor: pointer; }
+.epbtn { font-family: var(--font-ui); font-weight: 600; font-size: 12px; padding: 5px 11px; background: var(--p-surface);
+  border: 1px solid var(--p-border); border-radius: 999px; color: var(--p-text-secondary); cursor: pointer; }
+.epbtn.on { background: var(--p-accent-subtle); border-color: var(--p-accent); color: var(--p-accent); }
 </style>
 </head>
 <body>
@@ -150,6 +154,18 @@ function render(data) {
 
     ${daysWithData.length > 1 ? elevationChartHtml(days) : ''}
 
+    ${days.some(d => d.gpxUrl) ? `<div class="card">
+      <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:8px;">
+        <div class="eyebrow" style="margin:0;">Elevation profile</div>
+        <div style="display:flex;gap:6px;flex-wrap:wrap;" id="epBtns">
+          <button class="epbtn on" data-ep="all" onclick="showEp('all')">Whole trip</button>
+          ${days.filter(d=>d.gpxUrl).map(d=>`<button class="epbtn" data-ep="${d.dayNumber}" onclick="showEp(${d.dayNumber})">Day ${d.dayNumber}</button>`).join('')}
+        </div>
+      </div>
+      <div id="epMeta" class="muted" style="font-size:12px;margin-bottom:8px;">Loading tracks…</div>
+      <div style="overflow-x:auto;-webkit-overflow-scrolling:touch;"><div id="epChart"></div></div>
+    </div>` : ''}
+
     <div class="card">
       <div class="eyebrow">Route</div>
       ${days.map(d => dayRowHtml(d, d.date === todayIso)).join('')}
@@ -176,6 +192,8 @@ function render(data) {
       </div>
     </div>` : ''}
   `;
+  window._epDays = days.filter(d => d.gpxUrl);
+  if (window._epDays.length) showEp('all');
   window._lbPhotos = (data.photos||[]);
   document.getElementById('app').insertAdjacentHTML('beforeend', `
     <div id="lb" onclick="handleLbClick(event)">
@@ -269,6 +287,47 @@ function dayRowHtml(d, isToday) {
     </div>
   `;
 }
+// Elevation profile switcher. Colours are passed explicitly because the shared
+// module defaults to the admin app's tokens, and this page uses --p-* ones.
+const EP_COLORS = { stroke:'var(--p-accent)', fill:'var(--p-accent)', grid:'var(--p-border)', text:'var(--p-text-secondary)' };
+async function showEp(which) {
+  const chart = document.getElementById('epChart');
+  const meta = document.getElementById('epMeta');
+  if (!chart) return;
+  document.querySelectorAll('#epBtns .epbtn').forEach(b => b.classList.toggle('on', b.dataset.ep === String(which)));
+  chart.innerHTML = ''; meta.textContent = 'Loading…';
+  const dayList = window._epDays || [];
+
+  if (which === 'all') {
+    const profiles = await Promise.all(dayList.map(d => fetchProfile(d.gpxUrl)));
+    const good = profiles.filter(p => p && p.hasEle);
+    if (!good.length) { meta.textContent = 'No elevation data available.'; return; }
+    const merged = { dist: [], ele: [], gain: [], hasEle: true };
+    let kmOff = 0, gainOff = 0;
+    good.forEach(p => {
+      for (let i = 0; i < p.dist.length; i++) {
+        merged.dist.push(kmOff + p.dist[i]); merged.ele.push(p.ele[i]); merged.gain.push(gainOff + p.gain[i]);
+      }
+      kmOff += p.totalKm; gainOff += p.totalGain;
+    });
+    merged.totalKm = kmOff; merged.totalGain = gainOff;
+    merged.minEle = Math.min(...merged.ele); merged.maxEle = Math.max(...merged.ele);
+    chart.innerHTML = buildElevationSvg(merged, Object.assign({ height: 190 }, EP_COLORS));
+    meta.textContent = `${merged.totalKm.toFixed(0)} km · +${Math.round(merged.totalGain)} m climbed · ${merged.minEle.toFixed(0)}–${merged.maxEle.toFixed(0)} m`;
+    return;
+  }
+
+  const day = dayList.find(d => d.dayNumber === which);
+  const p = day ? await fetchProfile(day.gpxUrl) : null;
+  if (!p || !p.hasEle) { meta.textContent = 'No elevation data for that day.'; return; }
+  // If the day is in progress, mark how far along the route they are.
+  const ridden = Number(day.riddenKm) || 0;
+  const frac = p.totalKm ? Math.min(1, ridden / p.totalKm) : 0;
+  chart.innerHTML = buildElevationSvg(p, Object.assign({ height: 190, showMarker: ridden > 0, frac, markerColor: 'var(--p-accent-secondary)' }, EP_COLORS));
+  meta.textContent = `Day ${day.dayNumber} · ${p.totalKm.toFixed(1)} km · +${Math.round(p.totalGain)} m · ${p.minEle.toFixed(0)}–${p.maxEle.toFixed(0)} m`
+    + (ridden > 0 ? ` · ${ridden.toFixed(1)} km done` : '');
+}
+
 let _lbIdx = 0;
 function openLb(i) {
   _lbIdx = i;

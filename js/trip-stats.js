@@ -106,6 +106,8 @@ async function renderStatsSection() {
   const ovrRows = withWindow.map(x => ({ day: label(x.d), label: x.s.requiredOverall.toFixed(1), value: x.s.requiredOverall, color: bandColor(x.s.requiredOverall, OVERALL_PACE_BANDS) }));
 
   const maxOf = rows => Math.max(...rows.map(r => r.value), 1) * 1.08;
+  const gpxDays = (days || []).filter(d => d.gpx_url);
+  _elevDays = gpxDays;
 
   document.getElementById('main').innerHTML = `
     <div class="pagehead"><div><h1>Statistics</h1><div class="subtitle">Daily effort, pace and elevation across the trip.</div></div></div>
@@ -155,11 +157,76 @@ async function renderStatsSection() {
       <div class="chartnote">Distance across the whole stage window, so you can sanity-check progress mid-day.<br>&lt;8 relaxed · 8–10 solid · 10–12 watch the clock · 12+ risk of running late</div>
     </div>` : ''}
 
+    ${gpxDays.length ? `
+      <div class="card" style="margin-bottom:16px;">
+        <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:6px;">
+          <h2 style="margin:0;">📈 Elevation profile</h2>
+          <div style="display:flex;gap:6px;flex-wrap:wrap;" id="elevDayBtns">
+            <button class="btn btn-sm btn-primary" data-elev="all" onclick="showElevProfile('all')">Whole trip</button>
+            ${gpxDays.map(d => `<button class="btn btn-sm" data-elev="${d.id}" onclick="showElevProfile('${d.id}')">Day ${d.day_number}</button>`).join('')}
+          </div>
+        </div>
+        <div id="elevMeta" class="muted" style="font-size:var(--text-xs);margin-bottom:8px;">Loading tracks…</div>
+        <div style="overflow-x:auto;-webkit-overflow-scrolling:touch;"><div id="elevChart"></div></div>
+      </div>
+    ` : `
+      <div class="card" style="margin-bottom:16px;">
+        <h2>📈 Elevation profile</h2>
+        <p class="muted" style="font-size:var(--text-sm);">No GPX tracks attached yet. Add one per day in <a href="#" onclick="event.preventDefault();goTrip(activeTrip.id,'grid');">Route &amp; Days</a> (open a day with ⋯ and upload a .gpx) and the real elevation profile will appear here.</p>
+      </div>
+    `}
+
     <h2 style="margin-top:24px;">Daily breakdown</h2>
     <div style="display:flex;flex-direction:column;gap:10px;">
       ${stats.map(x => dailyBreakdownCard(x.d, x.s)).join('')}
     </div>
   `;
+
+  if (gpxDays.length) showElevProfile('all');
+}
+
+// ---- Elevation profile switcher ----
+let _elevDays = [];
+async function showElevProfile(which) {
+  const chart = document.getElementById('elevChart');
+  const meta = document.getElementById('elevMeta');
+  if (!chart) return;
+  document.querySelectorAll('#elevDayBtns [data-elev]').forEach(b => {
+    b.classList.toggle('btn-primary', b.dataset.elev === String(which));
+  });
+  chart.innerHTML = '';
+  meta.textContent = 'Loading…';
+
+  if (which === 'all') {
+    // One continuous profile: each day's track appended end-to-end, so the
+    // x-axis is cumulative trip distance rather than per-stage distance.
+    const profiles = await Promise.all(_elevDays.map(d => fetchProfile(d.gpx_url)));
+    const good = profiles.filter(p => p && p.hasEle);
+    if (!good.length) { meta.textContent = 'No elevation data in the attached tracks.'; return; }
+    const merged = { dist: [], ele: [], gain: [], hasEle: true };
+    let kmOff = 0, gainOff = 0;
+    good.forEach(p => {
+      for (let i = 0; i < p.dist.length; i++) {
+        merged.dist.push(kmOff + p.dist[i]);
+        merged.ele.push(p.ele[i]);
+        merged.gain.push(gainOff + p.gain[i]);
+      }
+      kmOff += p.totalKm; gainOff += p.totalGain;
+    });
+    merged.totalKm = kmOff; merged.totalGain = gainOff;
+    merged.minEle = Math.min(...merged.ele); merged.maxEle = Math.max(...merged.ele);
+    chart.innerHTML = buildElevationSvg(merged, { height: 190 });
+    meta.textContent = `${merged.totalKm.toFixed(0)} km · +${Math.round(merged.totalGain)} m total · ${merged.minEle.toFixed(0)}–${merged.maxEle.toFixed(0)} m`
+      + (good.length < _elevDays.length ? ` · ${_elevDays.length - good.length} track(s) had no elevation data` : '');
+    return;
+  }
+
+  const day = _elevDays.find(d => d.id === which);
+  const p = day ? await fetchProfile(day.gpx_url) : null;
+  if (!p) { meta.textContent = 'Could not load that track.'; return; }
+  if (!p.hasEle) { meta.textContent = 'That track has no elevation data.'; return; }
+  chart.innerHTML = buildElevationSvg(p, { height: 190 });
+  meta.textContent = `Day ${day.day_number} · ${p.totalKm.toFixed(1)} km · +${Math.round(p.totalGain)} m · ${p.minEle.toFixed(0)}–${p.maxEle.toFixed(0)} m`;
 }
 
 function dailyBreakdownCard(d, s) {

@@ -126,6 +126,12 @@ async function renderTodaySection() {
       ${!s.hasWindow ? `<div class="muted" style="font-size:var(--text-xs);margin-top:8px;">Set a start and target finish time for this day ${isEditor() ? '(Route &amp; Days → ⋯)' : ''} to get a live "pace needed" figure.</div>` : ''}
     </div>` : ''}
 
+    ${day.gpx_url && !day.is_rest_day ? `<div class="card" style="margin-bottom:14px;">
+      <h2>📈 Elevation profile</h2>
+      <div id="todayElevMeta" class="muted" style="font-size:var(--text-xs);margin-bottom:8px;">Loading track…</div>
+      <div style="overflow-x:auto;-webkit-overflow-scrolling:touch;"><div id="todayElevChart"></div></div>
+    </div>` : ''}
+
     ${todayLegs.length ? `<div class="card" style="margin-bottom:14px;">
       <h2>Transport today</h2>
       <div style="display:flex;flex-direction:column;gap:10px;">
@@ -165,6 +171,25 @@ async function renderTodaySection() {
       </div>
     </div>` : ''}
   `;
+
+  if (day.gpx_url && !day.is_rest_day) loadTodayElevation(day.gpx_url, riddenKm);
+}
+
+// Draw the day's profile with a marker at how far along the rider is, and
+// report the climbing still ahead — the number that actually matters mid-stage.
+async function loadTodayElevation(gpxUrl, riddenKm) {
+  const chart = document.getElementById('todayElevChart');
+  const meta = document.getElementById('todayElevMeta');
+  if (!chart) return;
+  const p = await fetchProfile(gpxUrl);
+  if (!p) { meta.textContent = 'Could not load the GPX track.'; return; }
+  if (!p.hasEle) { meta.textContent = 'This track has no elevation data.'; return; }
+  const frac = p.totalKm ? Math.min(1, (riddenKm || 0) / p.totalKm) : 0;
+  const idx = Math.max(0, Math.min(p.gain.length - 1, Math.round(frac * (p.gain.length - 1))));
+  const climbLeft = Math.round(p.totalGain - p.gain[idx]);
+  chart.innerHTML = buildElevationSvg(p, { height: 190, showMarker: riddenKm > 0, frac });
+  meta.textContent = `${p.totalKm.toFixed(1)} km · +${Math.round(p.totalGain)} m · ${p.minEle.toFixed(0)}–${p.maxEle.toFixed(0)} m`
+    + (riddenKm > 0 ? ` · ${climbLeft} m of climbing still ahead` : '');
 }
 
 function canLogProgress() {
