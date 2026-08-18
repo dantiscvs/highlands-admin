@@ -27,6 +27,7 @@ const NAV_ICONS = {
   logout: '<svg viewBox="0 0 18 18"><path d="M8 3H4a1 1 0 0 0-1 1v10a1 1 0 0 0 1 1h4" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/><path d="M7 9h8m0 0-2.5-2.5M15 9l-2.5 2.5" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>',
   account: '<svg viewBox="0 0 18 18"><circle cx="9" cy="6.5" r="3" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M3 15c0-3 2.7-5 6-5s6 2 6 5" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>',
   camera: '<svg viewBox="0 0 18 18"><rect x="2" y="6" width="14" height="10" rx="2" fill="none" stroke="currentColor" stroke-width="1.6"/><circle cx="9" cy="11" r="2.5" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M6 6V5a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v1" fill="none" stroke="currentColor" stroke-width="1.5"/></svg>',
+  eye: '<svg viewBox="0 0 18 18"><path d="M1.5 9S4.5 4 9 4s7.5 5 7.5 5-3 5-7.5 5S1.5 9 1.5 9Z" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/><circle cx="9" cy="9" r="2.2" fill="none" stroke="currentColor" stroke-width="1.5"/></svg>',
 };
 
 async function loadTrip(tripId) {
@@ -37,8 +38,47 @@ async function loadTrip(tripId) {
   activeMembership = mem;
   return trip;
 }
-function isEditor() { return activeMembership && (activeMembership.role === 'owner' || activeMembership.role === 'editor'); }
+// "Preview as participant" — a view-only lens over every tab, so an organiser
+// can see exactly what a rider/viewer sees without a second account. It only
+// suppresses editing affordances in the UI; RLS is still the real authority.
+let previewAsParticipant = false;
+function realRole() { return activeMembership ? activeMembership.role : null; }
+function isEditor() {
+  if (previewAsParticipant) return false;
+  return activeMembership && (activeMembership.role === 'owner' || activeMembership.role === 'editor');
+}
+// Photos: any member on the trip may post (RLS allows owner/editor/rider).
+function canPostPhotos() {
+  if (previewAsParticipant) return ['owner','editor','rider'].includes(realRole());
+  return ['owner','editor','rider'].includes(realRole());
+}
+function canTogglePreview() { return ['owner','editor'].includes(realRole()); }
+function togglePreviewMode() {
+  previewAsParticipant = !previewAsParticipant;
+  const route = parseRoute();
+  renderTripShell(route.tripId, route.section);
+}
+function previewBannerHtml() {
+  if (!previewAsParticipant) return '';
+  return `<div class="preview-banner">
+    <span>👁️ Participant preview — editing is hidden. This is what riders and viewers see.</span>
+    <button class="btn btn-sm" style="margin-left:auto;" onclick="togglePreviewMode()">Exit preview</button>
+  </div>`;
+}
+
 function moduleOn(key) { return (activeTrip.enabled_modules || []).includes(key); }
+
+// ---- Mobile sidebar ----
+function toggleSidebar() {
+  const sb = document.getElementById('sidebar');
+  const sc = document.getElementById('sidebarScrim');
+  const open = sb.classList.toggle('open');
+  sc.classList.toggle('show', open);
+}
+function closeSidebar() {
+  document.getElementById('sidebar').classList.remove('open');
+  document.getElementById('sidebarScrim').classList.remove('show');
+}
 
 async function renderTripShell(tripId, section) {
   const trip = await loadTrip(tripId);
@@ -65,7 +105,12 @@ async function renderTripShell(tripId, section) {
   };
   const fn = renderers[section] || renderTripOverview;
   main.innerHTML = '<p class="muted">Loading…</p>';
+  closeSidebar();
+  const mt = document.getElementById('mobileTitle');
+  if (mt) mt.textContent = trip.name;
   await fn();
+  // Preview banner is injected after render so each tab doesn't have to know.
+  if (previewAsParticipant) main.insertAdjacentHTML('afterbegin', previewBannerHtml());
 }
 
 function navRow(iconKey, label, section, currentSection, count) {
@@ -107,6 +152,9 @@ function renderTripSidebar(section) {
     ${isEditor() ? navRow('gear','Settings','settings',section) : ''}
 
     <div class="sidebar-foot">
+      ${canTogglePreview() || previewAsParticipant ? `<div class="navitem" onclick="togglePreviewMode()" title="See every tab exactly as a rider or viewer sees it">
+        <span class="navicon">${NAV_ICONS.eye}</span><span>${previewAsParticipant ? 'Exit preview' : 'Preview as participant'}</span>
+      </div>` : ''}
       ${themeToggleHtml()}
       <div class="navitem" onclick="goAccount()"><span class="navicon">${NAV_ICONS.account}</span><span>Account</span></div>
       <div class="navitem" onclick="signOut()"><span class="navicon">${NAV_ICONS.logout}</span><span>Sign out</span></div>
@@ -159,7 +207,9 @@ async function renderTripOverview() {
     metric3Label = 'rest days';
   }
 
-  // Map preview: first day with a map embed URL
+  // Whole-trip map: every day's GPX drawn on one canvas. Falls back to
+  // per-day embeds when no GPX exists yet.
+  const gpxDays = (days || []).filter(d => d.gpx_url);
   const daysWithMaps = (days || []).filter(d => d.map_embed_url);
   const mapPreviewDay = daysWithMaps[0] || null;
 
@@ -179,14 +229,23 @@ async function renderTripOverview() {
       </div>
     </div>
 
-    <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:24px;">
+    <div class="statgrid" style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:24px;">
       <div class="statcard"><div class="stat-value">${(days||[]).length}</div><div class="stat-label">Days</div></div>
       <div class="statcard"><div class="stat-value">${totalKm.toFixed(0)}</div><div class="stat-label">km</div></div>
       <div class="statcard"><div class="stat-value">${metric3Val}</div><div class="stat-label">${metric3Label}</div></div>
       <div class="statcard"><div class="stat-value">${pct}%</div><div class="stat-label">Ready</div></div>
     </div>
 
-    ${mapPreviewDay ? `
+    ${gpxDays.length ? `
+      <div class="card" style="margin-bottom:24px;">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;flex-wrap:wrap;gap:8px;">
+          <h2 style="margin:0;">Whole route</h2>
+          <span id="tripMapStatus" class="muted" style="font-size:var(--text-xs);">Loading tracks…</span>
+        </div>
+        <div id="tripMap"></div>
+        <div class="maplegend" id="tripMapLegend"></div>
+      </div>
+    ` : mapPreviewDay ? `
       <div class="card" style="margin-bottom:24px;">
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;flex-wrap:wrap;gap:8px;">
           <h2 style="margin:0;">Route map${daysWithMaps.length > 1 ? 's' : ''}</h2>
@@ -232,10 +291,104 @@ async function renderTripOverview() {
       </div>
     `}
   `;
+
+  if (gpxDays.length) renderTripMap(gpxDays);
 }
 
 function overviewShowMap(dayNum, url) {
   document.getElementById('overviewMapFrame').src = url;
+}
+
+// ---- Whole-trip map: all day GPX tracks on one Leaflet canvas ----
+const DAY_TRACK_COLORS = ['#2E5339','#C1602E','#35637F','#7B4B94','#A8721F','#2E6B45','#AC3B31','#4A6FA5','#8C6D1F','#5C4033'];
+let _tripMap = null;
+
+// Parse <trkpt lat lon> into per-<trkseg> arrays. A multi-day export is one
+// file with several segments; a per-day file is normally a single segment.
+function parseGpxSegments(text) {
+  // lat/lon are read as independent attributes: XML does not guarantee
+  // attribute order, and some exporters emit lon before lat.
+  const pointsIn = (chunk) => {
+    const pts = [];
+    const tagRe = /<trkpt\b([^>]*)>/g;
+    let t;
+    while ((t = tagRe.exec(chunk)) !== null) {
+      const la = /\blat\s*=\s*["'](-?[\d.]+)["']/.exec(t[1]);
+      const lo = /\blon\s*=\s*["'](-?[\d.]+)["']/.exec(t[1]);
+      if (la && lo) pts.push([parseFloat(la[1]), parseFloat(lo[1])]);
+    }
+    return pts;
+  };
+  const segs = [];
+  const segRe = /<trkseg[^>]*>([\s\S]*?)<\/trkseg>/g;
+  let m;
+  while ((m = segRe.exec(text)) !== null) {
+    const pts = pointsIn(m[1]);
+    if (pts.length > 1) segs.push(pts);
+  }
+  if (!segs.length) { // no <trkseg> wrapper — take every point in the file
+    const pts = pointsIn(text);
+    if (pts.length > 1) segs.push(pts);
+  }
+  return segs;
+}
+
+async function renderTripMap(days) {
+  const el = document.getElementById('tripMap');
+  const status = document.getElementById('tripMapStatus');
+  if (!el || typeof L === 'undefined') return;
+  if (_tripMap) { _tripMap.remove(); _tripMap = null; }
+
+  _tripMap = L.map(el, { scrollWheelZoom: false });
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    maxZoom: 18, attribution: '&copy; OpenStreetMap contributors',
+  }).addTo(_tripMap);
+
+  // Several days can share one multi-day GPX URL — fetch each file once.
+  const byUrl = new Map();
+  days.forEach(d => { if (!byUrl.has(d.gpx_url)) byUrl.set(d.gpx_url, []); byUrl.get(d.gpx_url).push(d); });
+
+  const drawn = [];
+  const allBounds = [];
+  let failed = 0;
+
+  await Promise.all([...byUrl.entries()].map(async ([url, daysForUrl]) => {
+    try {
+      const res = await fetch(url);
+      if (!res.ok) throw new Error('HTTP ' + res.status);
+      const segs = parseGpxSegments(await res.text());
+      if (!segs.length) throw new Error('no track points');
+      segs.forEach((pts, i) => {
+        // One shared file with N segments maps segment i → that trip day.
+        const day = segs.length === daysForUrl.length ? daysForUrl[i] : daysForUrl[0];
+        const idx = day ? (day.day_number - 1) : i;
+        const color = DAY_TRACK_COLORS[idx % DAY_TRACK_COLORS.length];
+        const line = L.polyline(pts, { color, weight: 4, opacity: .85 }).addTo(_tripMap);
+        line.bindPopup(`<strong>Day ${day ? day.day_number : i + 1}</strong>${day && day.title ? '<br>' + esc(day.title) : ''}`);
+        allBounds.push(line.getBounds());
+        drawn.push({ dayNumber: day ? day.day_number : i + 1, title: day ? day.title : null, color });
+      });
+    } catch (e) { failed++; }
+  }));
+
+  if (allBounds.length) {
+    let b = allBounds[0];
+    allBounds.slice(1).forEach(x => { b = b.extend(x); });
+    _tripMap.fitBounds(b, { padding: [24, 24] });
+    if (status) status.textContent = `${drawn.length} track${drawn.length === 1 ? '' : 's'}${failed ? ` · ${failed} file(s) unreadable` : ''}`;
+  } else {
+    _tripMap.setView([54, -4], 5);
+    if (status) status.textContent = 'No readable GPX tracks';
+  }
+
+  const legend = document.getElementById('tripMapLegend');
+  if (legend) {
+    legend.innerHTML = drawn
+      .sort((a, b2) => a.dayNumber - b2.dayNumber)
+      .map(t => `<span class="lg"><span class="sw" style="background:${t.color};"></span>Day ${t.dayNumber}${t.title ? ' · ' + esc(t.title.slice(0, 22)) : ''}</span>`)
+      .join('');
+  }
+  setTimeout(() => _tripMap && _tripMap.invalidateSize(), 60);
 }
 
 async function renderTripSettings() {

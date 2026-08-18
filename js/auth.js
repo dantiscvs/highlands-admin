@@ -15,13 +15,16 @@ async function initAuth() {
 function renderAuthGate() {
   const gate = document.getElementById('authGate');
   const shell = document.getElementById('appShell');
+  // Visibility is toggled by class, not inline style: the responsive layout
+  // needs to switch #appShell between flex (desktop) and block (mobile), and
+  // an inline display would win over the media query.
   if (currentUser) {
     gate.style.display = 'none';
-    shell.style.display = 'flex';
+    shell.classList.add('show');
     onSignedIn();
   } else {
     gate.style.display = 'flex';
-    shell.style.display = 'none';
+    shell.classList.remove('show');
   }
 }
 

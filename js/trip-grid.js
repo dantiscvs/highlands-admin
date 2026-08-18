@@ -2,7 +2,9 @@
 // keyboard nav, day detail drawer. Card view is the default on narrow screens.
 let gridDays = [];
 let GRID_COLS = [];
-let gridViewMode = localStorage.getItem('gridViewMode') || 'table';
+// Cards are the default: the table needs horizontal scrolling on a phone and
+// hides the per-day detail people actually read.
+let gridViewMode = localStorage.getItem('gridViewMode') || 'cards';
 
 function buildGridCols() {
   const cfg = activityConfig(activeTrip);
@@ -24,12 +26,16 @@ async function renderDayGrid() {
   gridDays = data || [];
   const accByDay = {};
   if (moduleOn('accommodation')) {
-    const { data: accs } = await db().from('accommodations').select('day_id, name, map_url').eq('trip_id', activeTrip.id);
+    const { data: accs } = await db().from('accommodations')
+      .select('day_id, name, url, address, map_url, phone, breakfast_info, breakfast_url, cancellation_policy, booking_reference, cost, currency, pay_status, notes')
+      .eq('trip_id', activeTrip.id);
     (accs || []).forEach(a => { if (a.day_id) accByDay[a.day_id] = a; });
   }
   const poiByDay = {};
   if (moduleOn('poi')) {
-    const { data: pois } = await db().from('points_of_interest').select('day_id, name, category, url, icon').eq('trip_id', activeTrip.id).order('order_index');
+    const { data: pois } = await db().from('points_of_interest')
+      .select('day_id, name, category, url, icon, description, opening_hours')
+      .eq('trip_id', activeTrip.id).order('order_index');
     (pois || []).forEach(p => { (poiByDay[p.day_id] = poiByDay[p.day_id] || []).push(p); });
   }
 
@@ -77,8 +83,7 @@ async function renderDayGrid() {
             ${GRID_COLS.map(c => `<th style="min-width:${c.w}px;">${c.label}</th>`).join('')}
             ${moduleOn('accommodation') ? '<th style="min-width:140px;">Accommodation</th>' : ''}
             ${moduleOn('poi') ? '<th style="min-width:90px;">Sights / Resupply</th>' : ''}
-            <th class="opencol"></th>
-            ${isEditor() ? '<th class="opencol"></th>' : ''}
+            ${isEditor() ? '<th class="opencol"></th><th class="opencol"></th>' : ''}
           </tr></thead>
           <tbody>
             ${gridDays.map((d, i) => gridRowHtml(d, i, accByDay, poiCountByDay)).join('')}
@@ -98,10 +103,33 @@ function setGridView(mode) {
 
 // ---- Card view ----
 
+const POI_GROUPS = [
+  { key: 'food',     label: 'Food',              icon: '🍽️', match: c => c === 'food' },
+  { key: 'sight',    label: 'Sights',            icon: '🏰', match: c => c === 'sight' || c === 'other' || !c },
+  { key: 'resupply', label: 'Resupply / water',  icon: '🛒', match: c => c === 'resupply' || c === 'water' },
+];
+
+function poiLineHtml(p) {
+  const name = p.url
+    ? `<a href="${esc(p.url)}" target="_blank" rel="noopener" style="font-weight:600;">${esc(p.name)}</a>`
+    : `<span style="font-weight:600;">${esc(p.name)}</span>`;
+  const bits = [];
+  if (p.opening_hours) bits.push(`🕐 ${esc(p.opening_hours)}`);
+  if (p.description) bits.push(esc(p.description));
+  return `<div style="display:flex;gap:8px;align-items:flex-start;padding:4px 0;">
+    <span style="flex:none;">${esc(p.icon || (p.category === 'resupply' ? '🛒' : p.category === 'water' ? '💧' : p.category === 'food' ? '🍽️' : '📍'))}</span>
+    <div style="flex:1;min-width:0;">
+      ${name}
+      ${bits.length ? `<div class="sub" style="color:var(--text-secondary);font-size:var(--text-xs);margin-top:1px;">${bits.join(' · ')}</div>` : ''}
+    </div>
+  </div>`;
+}
+
 function dayCardHtml(d, i, accByDay, poiByDay) {
   const acc = accByDay[d.id];
   const pois = poiByDay[d.id] || [];
   const cfg = activityConfig(activeTrip);
+
   const meta = [];
   if (d.date) meta.push(fmtDate(d.date));
   if (d.distance_km) meta.push(d.distance_km + ' km');
@@ -109,8 +137,87 @@ function dayCardHtml(d, i, accByDay, poiByDay) {
   if (cfg.showSurface && d.surface) meta.push(d.surface);
   if (d.is_rest_day) meta.push('Rest day');
 
-  const sightPois = pois.filter(p => p.category !== 'resupply' && p.category !== 'water');
-  const resupplyPois = pois.filter(p => p.category === 'resupply' || p.category === 'water');
+  // --- Mini stats: distance / ascent / speed / time, per the legacy day card ---
+  const pace = d.is_rest_day ? null : computeDayPace(d, activeTrip.pace_assumptions);
+  const tiles = [];
+  if (d.distance_km) tiles.push({ v: d.distance_km, l: 'km' });
+  if (cfg.showAscent && d.ascent_m) tiles.push({ v: '+' + d.ascent_m, l: 'm ⛰️' });
+  if (pace) {
+    tiles.push({ v: pace.speedKmh.toFixed(1), l: 'km/h avg' });
+    tiles.push({ v: pace.totalHours.toFixed(1) + 'h', l: 'est. total' });
+  }
+  const statsHtml = tiles.length
+    ? `<div class="ministats" style="grid-template-columns:repeat(${tiles.length},1fr);">
+        ${tiles.map(t => `<div class="ministat"><div class="mv">${esc(String(t.v))}</div><div class="ml">${t.l}</div></div>`).join('')}
+      </div>`
+    : '';
+
+  // --- Map + GPX buttons ---
+  const gpxHref = d.gpx_url || '';
+  const mapButtons = (d.map_embed_url || gpxHref) ? `<div class="map-row">
+      ${d.map_embed_url ? `<a href="${esc(d.map_embed_url)}" target="_blank" rel="noopener" class="btn btn-sm">🗺️ Open full map ↗</a>` : ''}
+      ${gpxHref ? `<a href="${esc(gpxHref)}" download class="btn btn-sm">⬇️ Download GPX</a>` : ''}
+    </div>` : '';
+  const mapEmbed = d.map_embed_url
+    ? `<iframe class="day-map" src="${esc(d.map_embed_url)}" loading="lazy" allowfullscreen referrerpolicy="no-referrer-when-downgrade"></iframe>`
+    : '';
+  const mapBlock = (mapButtons || mapEmbed) ? `<div style="margin-bottom:12px;">${mapButtons}${mapEmbed}</div>` : '';
+
+  // --- Info rows ---
+  const rows = [];
+  if (d.start_point || d.end_point) {
+    rows.push(`<div class="irow"><div class="ico">📍</div><div class="ilbl">Route</div>
+      <div class="ival">${esc(d.start_point || '?')} → ${esc(d.end_point || '?')}</div></div>`);
+  }
+  if (acc && acc.breakfast_info) {
+    rows.push(`<div class="irow"><div class="ico">🍳</div><div class="ilbl">Breakfast</div>
+      <div class="ival">${acc.breakfast_url
+        ? `<a href="${esc(acc.breakfast_url)}" target="_blank" rel="noopener">${esc(acc.breakfast_info)}</a>`
+        : esc(acc.breakfast_info)}</div></div>`);
+  }
+  POI_GROUPS.forEach(g => {
+    const list = pois.filter(p => g.match(p.category));
+    if (!list.length) return;
+    rows.push(`<div class="irow" style="flex-direction:column;align-items:stretch;">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:5px;">
+        <div class="ico">${g.icon}</div><div class="ilbl">${g.label}</div>
+        <div style="flex:1;font-size:var(--text-xs);color:var(--text-tertiary);">${list.length}</div>
+      </div>
+      <div style="padding-left:30px;">${list.map(poiLineHtml).join('')}</div>
+    </div>`);
+  });
+  if (acc) {
+    const accSub = [];
+    if (acc.address) accSub.push(esc(acc.address));
+    if (acc.phone) accSub.push(`📞 <a href="tel:${esc(acc.phone)}">${esc(acc.phone)}</a>`);
+    if (acc.booking_reference) accSub.push(`Ref: ${esc(acc.booking_reference)}`);
+    if (acc.cost) accSub.push(`${acc.cost} ${esc(acc.currency || activeTrip.default_currency || '')}`);
+    const links = [];
+    if (acc.url) links.push(`<a href="${esc(acc.url)}" target="_blank" rel="noopener">Booking ↗</a>`);
+    if (acc.map_url) links.push(`<a href="${esc(acc.map_url)}" target="_blank" rel="noopener">Map ↗</a>`);
+    rows.push(`<div class="irow"><div class="ico">🏠</div><div class="ilbl">Stay</div>
+      <div class="ival">
+        <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+          <strong>${esc(acc.name)}</strong>
+          <span class="badge ${PAY_STATUS_COLOR[acc.pay_status] || 'badge-gray'}">${esc(acc.pay_status || '')}</span>
+          ${links.join(' · ')}
+        </div>
+        ${accSub.length ? `<div class="sub">${accSub.join(' · ')}</div>` : ''}
+        ${acc.cancellation_policy ? `<div class="sub">⚠️ ${esc(acc.cancellation_policy)}</div>` : ''}
+      </div></div>`);
+  } else if (moduleOn('accommodation') && !d.is_rest_day) {
+    rows.push(`<div class="irow"><div class="ico">🏠</div><div class="ilbl">Stay</div>
+      <div class="ival muted">Not booked yet${isEditor() ? ` — <a href="#" onclick="event.preventDefault();goTrip(activeTrip.id,'accommodation');">add one</a>` : ''}</div></div>`);
+  }
+  if (pace) {
+    rows.push(`<div class="irow"><div class="ico">⏱️</div><div class="ilbl">Pace</div>
+      <div class="ival">${pace.movingHours.toFixed(1)}h moving · ${pace.totalHours.toFixed(1)}h with stops
+        <div class="sub">Assuming ${esc(pace.assumptionNote)}</div></div></div>`);
+  }
+  if (d.notes) {
+    rows.push(`<div class="irow"><div class="ico">📝</div><div class="ilbl">Notes</div>
+      <div class="ival" style="white-space:pre-wrap;">${esc(d.notes)}</div></div>`);
+  }
 
   return `<details class="daycard ${d.is_rest_day ? 'daycard-rest' : ''}">
     <summary class="daycard-summary">
@@ -120,36 +227,15 @@ function dayCardHtml(d, i, accByDay, poiByDay) {
         <div class="daycard-meta">${meta.join(' · ') || 'No details yet'}</div>
       </div>
       <div style="display:flex;gap:6px;align-items:center;flex-shrink:0;">
-        ${d.start_point && d.end_point ? `<span class="muted" style="font-size:11px;">${esc(d.start_point)} → ${esc(d.end_point)}</span>` : ''}
-        <button class="btn btn-sm" onclick="event.stopPropagation();openDayDrawer('${d.id}')" title="Edit day details">⋯</button>
+        ${isEditor() ? `<button class="btn btn-sm" onclick="event.stopPropagation();openDayDrawer('${d.id}')" title="Edit day details">⋯</button>` : ''}
         ${isEditor() ? `<button class="btn btn-sm btn-danger" onclick="event.stopPropagation();deleteGridDay('${d.id}')" title="Remove day">🗑</button>` : ''}
       </div>
     </summary>
     <div class="daycard-body">
       ${d.description ? `<p style="color:var(--text-secondary);font-size:var(--text-sm);margin-bottom:10px;">${esc(d.description)}</p>` : ''}
-      ${d.notes ? `<p style="color:var(--text-tertiary);font-size:var(--text-sm);font-style:italic;margin-bottom:10px;">${esc(d.notes)}</p>` : ''}
-
-      <div style="display:flex;gap:16px;flex-wrap:wrap;margin-bottom:${acc || pois.length ? '12px' : '0'};">
-        ${d.start_point ? `<span class="muted" style="font-size:12px;">📍 Start: <strong style="color:var(--text-primary);">${esc(d.start_point)}</strong></span>` : ''}
-        ${d.end_point ? `<span class="muted" style="font-size:12px;">🏁 End: <strong style="color:var(--text-primary);">${esc(d.end_point)}</strong></span>` : ''}
-      </div>
-
-      ${acc ? `<div style="padding:8px 12px;background:var(--bg-recessed);border-radius:var(--radius-md);margin-bottom:10px;font-size:var(--text-sm);">
-        🏠 <strong>${esc(acc.name)}</strong>
-        ${acc.map_url ? ` · <a href="${esc(acc.map_url)}" target="_blank" rel="noopener">Map ↗</a>` : ''}
-      </div>` : ''}
-
-      ${sightPois.length ? `<div style="margin-bottom:8px;">
-        <div class="muted" style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.04em;margin-bottom:4px;">Sights</div>
-        ${sightPois.map(p => `<div style="font-size:13px;padding:3px 0;">${esc(p.icon || '📍')} ${p.url ? `<a href="${esc(p.url)}" target="_blank" rel="noopener">${esc(p.name)}</a>` : esc(p.name)}</div>`).join('')}
-      </div>` : ''}
-
-      ${resupplyPois.length ? `<div style="margin-bottom:8px;">
-        <div class="muted" style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.04em;margin-bottom:4px;">Resupply / Water</div>
-        ${resupplyPois.map(p => `<div style="font-size:13px;padding:3px 0;">${esc(p.icon || '🛒')} ${p.url ? `<a href="${esc(p.url)}" target="_blank" rel="noopener">${esc(p.name)}</a>` : esc(p.name)}</div>`).join('')}
-      </div>` : ''}
-
-      ${d.map_embed_url ? `<div style="margin-top:8px;"><a href="${esc(d.map_embed_url)}" target="_blank" rel="noopener" class="btn btn-sm">🗺️ View map ↗</a></div>` : ''}
+      ${statsHtml}
+      ${mapBlock}
+      ${rows.join('')}
     </div>
   </details>`;
 }
@@ -165,7 +251,7 @@ function gridRowHtml(d, i, accByDay, poiCountByDay) {
       ${GRID_COLS.map(c => `<td data-col="${c.key}">${gridCellHtml(d, c, i)}</td>`).join('')}
       ${moduleOn('accommodation') ? `<td><div class="cell muted" style="cursor:pointer;" onclick="goTrip(activeTrip.id,'accommodation')">${acc ? esc(acc.name) : '— none —'}</div></td>` : ''}
       ${moduleOn('poi') ? `<td><div class="cell muted" style="cursor:pointer;font-size:12px;" onclick="goTrip(activeTrip.id,'poi')">🏰${poi.sight} · 🛒${poi.resupply}</div></td>` : ''}
-      <td class="opencol" title="Open day details" onclick="openDayDrawer('${d.id}')">⋯</td>
+      ${isEditor() ? `<td class="opencol" title="Open day details" onclick="openDayDrawer('${d.id}')">⋯</td>` : ''}
       ${isEditor() ? `<td class="opencol" title="Remove day" onclick="deleteGridDay('${d.id}')">🗑</td>` : ''}
     </tr>
   `;

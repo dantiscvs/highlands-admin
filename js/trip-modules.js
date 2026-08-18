@@ -34,13 +34,71 @@ async function renderLogistics() {
     </div>
     ${isEditor() ? `<div class="muted" style="font-size:11px;margin:-6px 0 16px;">💡 Got a booking confirmation email or PDF? <a href="#" onclick="event.preventDefault();goTrip(activeTrip.id,'imports');">Paste/upload it in Imports</a> — we'll extract the details automatically.</div>` : ''}
     <div style="display:flex;flex-direction:column;gap:12px;">
-      ${(legs||[]).map(l => transportCardHtml(l, days)).join('') || `
+      ${(legs||[]).map(l => isEditor() ? transportCardHtml(l, days) : transportReadonlyHtml(l, days)).join('') || `
         <div class="empty-state">
           <div class="empty-title">No transport legs yet</div>
           <div class="empty-desc">${isEditor() ? 'Add a leg above, or use <a href="#" onclick="event.preventDefault();goTrip(activeTrip.id,\'imports\');">Imports</a> to extract from a booking email.' : 'No transport legs have been added yet.'}</div>
         </div>`}
     </div>
   `;
+}
+
+// Read-only presentation for riders/viewers (and organisers in participant
+// preview): a boarding-pass style card rather than a row of input boxes.
+function transportReadonlyHtml(l, days) {
+  const icon = TRANSPORT_ICONS[l.type] || '🚦';
+  const typeLabel = (l.type || 'other').replace(/_/g, ' ');
+  const anchorLabel = l.anchor === 'trip_start' ? 'Trip start'
+    : l.anchor === 'trip_end' ? 'Trip end'
+    : (() => { const d = (days||[]).find(x => x.id === l.day_id); return d ? 'Day ' + d.day_number : null; })();
+
+  const dep = l.departure_time ? new Date(l.departure_time) : null;
+  const arr = l.arrival_time ? new Date(l.arrival_time) : null;
+  const hhmm = dt => dt && !isNaN(dt) ? String(dt.getHours()).padStart(2,'0') + ':' + String(dt.getMinutes()).padStart(2,'0') : '—';
+  const dstr = dt => dt && !isNaN(dt) ? dt.toLocaleDateString([], { weekday:'short', day:'numeric', month:'short' }) : '';
+
+  let dur = '';
+  if (dep && arr && !isNaN(dep) && !isNaN(arr) && arr > dep) {
+    const mins = Math.round((arr - dep) / 60000);
+    dur = `${Math.floor(mins/60)}h ${String(mins%60).padStart(2,'0')}m`;
+  }
+  // Flag an arrival that lands on a later calendar day than departure.
+  const overnight = dep && arr && !isNaN(dep) && !isNaN(arr) && arr.toDateString() !== dep.toDateString();
+
+  const facts = [];
+  if (l.reference)   facts.push({ k: 'Reference',  v: esc(l.reference), mono: true });
+  if (l.seat_number) facts.push({ k: 'Seat(s)',    v: esc(l.seat_number), mono: true });
+  if (l.cost)        facts.push({ k: 'Cost',       v: `${l.cost} ${esc(l.currency || activeTrip.default_currency || '')}`, mono: true });
+
+  return `<div class="leg-card">
+    <div class="leg-head">
+      <span style="font-size:17px;">${icon}</span>
+      <span class="badge badge-gray" style="text-transform:capitalize;">${esc(typeLabel)}</span>
+      ${anchorLabel ? `<span class="badge badge-blue">${esc(anchorLabel)}</span>` : ''}
+      <span class="leg-sub">${[esc(l.carrier || ''), dstr(dep)].filter(Boolean).join(' · ')}</span>
+    </div>
+    <div class="leg-body">
+      <div class="leg-route">
+        <div class="leg-end">
+          <div class="leg-time">${hhmm(dep)}</div>
+          <div class="leg-place">${esc(l.departure_place || '—')}</div>
+        </div>
+        <div class="leg-mid">
+          ${dur ? `<div class="leg-dur">${dur}</div>` : ''}
+          <div class="leg-line"></div>
+        </div>
+        <div class="leg-end arr">
+          <div class="leg-time">${hhmm(arr)}</div>
+          <div class="leg-place">${esc(l.arrival_place || '—')}</div>
+          ${overnight ? `<div style="font-size:var(--text-xs);color:var(--accent-secondary);margin-top:2px;">${dstr(arr)}</div>` : ''}
+        </div>
+      </div>
+      ${facts.length ? `<div class="leg-facts">
+        ${facts.map(f => `<div class="leg-fact"><div class="fk">${f.k}</div><div class="fv${f.mono?' mono':''}">${f.v}</div></div>`).join('')}
+      </div>` : ''}
+      ${l.notes ? `<div style="margin-top:12px;padding:10px 12px;background:var(--bg-recessed);border-radius:var(--radius-md);font-size:var(--text-sm);white-space:pre-wrap;">${esc(l.notes)}</div>` : ''}
+    </div>
+  </div>`;
 }
 
 function transportCardHtml(l, days) {
@@ -172,9 +230,38 @@ async function renderAccommodationModule() {
     </div>
     ${isEditor() ? `<div class="muted" style="font-size:11px;margin:-6px 0 12px;">💡 Got a booking confirmation email or PDF? <a href="#" onclick="event.preventDefault();goTrip(activeTrip.id,'imports');">Paste/upload it in Imports</a> instead of typing stays by hand — we'll extract the details and you just review &amp; accept.</div>` : ''}
     <div style="display:flex;flex-direction:column;gap:10px;">
-      ${(accs||[]).map(a => accommodationCardHtml(a, days, dayLabel)).join('') || '<p class="muted">No accommodation added yet.</p>'}
+      ${(accs||[]).map(a => isEditor() ? accommodationCardHtml(a, days, dayLabel) : accommodationReadonlyHtml(a, dayLabel)).join('') || '<p class="muted">No accommodation added yet.</p>'}
     </div>
   `;
+}
+
+function accommodationReadonlyHtml(a, dayLabel) {
+  const links = [];
+  if (a.url) links.push(`<a href="${esc(a.url)}" target="_blank" rel="noopener">Booking ↗</a>`);
+  if (a.map_url) links.push(`<a href="${esc(a.map_url)}" target="_blank" rel="noopener">Map ↗</a>`);
+  const facts = [];
+  if (a.booking_reference) facts.push({ k: 'Reference', v: esc(a.booking_reference), mono: true });
+  if (a.phone) facts.push({ k: 'Phone', v: `<a href="tel:${esc(a.phone)}">${esc(a.phone)}</a>` });
+  if (a.cost) facts.push({ k: 'Cost', v: `${a.cost} ${esc(a.currency || activeTrip.default_currency || '')}`, mono: true });
+  return `<div class="leg-card">
+    <div class="leg-head">
+      <span style="font-size:17px;">🏠</span>
+      <span class="badge badge-gray">${esc(a.day_id ? dayLabel(a.day_id) : 'Unlinked')}</span>
+      <span class="badge ${PAY_STATUS_COLOR[a.pay_status] || 'badge-gray'}">${esc(a.pay_status || '')}</span>
+    </div>
+    <div class="leg-body">
+      <div style="font-weight:600;font-size:var(--text-md);">${esc(a.name)}</div>
+      ${a.address ? `<div class="muted" style="font-size:var(--text-sm);margin-top:3px;">${esc(a.address)}</div>` : ''}
+      ${links.length ? `<div style="margin-top:8px;display:flex;gap:12px;flex-wrap:wrap;font-size:var(--text-sm);">${links.join('')}</div>` : ''}
+      ${a.breakfast_info ? `<div class="irow" style="margin-top:10px;"><div class="ico">🍳</div><div class="ilbl">Breakfast</div>
+        <div class="ival">${a.breakfast_url ? `<a href="${esc(a.breakfast_url)}" target="_blank" rel="noopener">${esc(a.breakfast_info)}</a>` : esc(a.breakfast_info)}</div></div>` : ''}
+      ${a.cancellation_policy ? `<div class="irow"><div class="ico">⚠️</div><div class="ilbl">Cancellation</div><div class="ival">${esc(a.cancellation_policy)}</div></div>` : ''}
+      ${facts.length ? `<div class="leg-facts">
+        ${facts.map(f => `<div class="leg-fact"><div class="fk">${f.k}</div><div class="fv${f.mono?' mono':''}">${f.v}</div></div>`).join('')}
+      </div>` : ''}
+      ${a.notes ? `<div style="margin-top:12px;padding:10px 12px;background:var(--bg-recessed);border-radius:var(--radius-md);font-size:var(--text-sm);white-space:pre-wrap;">${esc(a.notes)}</div>` : ''}
+    </div>
+  </div>`;
 }
 const PAY_STATUS_COLOR = { unpaid: 'badge-red', partial: 'badge-orange', paid: 'badge-green', free: 'badge-gray' };
 function accommodationCardHtml(a, days, dayLabel) {
@@ -210,7 +297,26 @@ function accommodationCardHtml(a, days, dayLabel) {
       </div>
       <button class="btn btn-sm btn-danger" onclick="deleteRow('accommodations','${a.id}', renderAccommodationModule)">✕</button>
     </div>
-    <textarea placeholder="Cancellation policy / breakfast info / notes" onblur="quickSave('accommodations','${a.id}','notes',this.value,this)" ${isEditor()?'':'disabled'} style="width:100%;margin-top:8px;min-height:40px;">${esc(a.notes||'')}</textarea>
+    <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:10px;padding-top:10px;border-top:1px solid var(--border-hairline);">
+      <div style="flex:2;min-width:200px;">
+        <label class="muted" style="font-size:11px;display:block;margin-bottom:4px;">🍳 Breakfast <span style="font-weight:400;">(shown on the day card)</span></label>
+        <div style="display:flex;gap:6px;">
+          <input type="text" value="${esc(a.breakfast_info||'')}" placeholder="e.g. 07:30–09:00, included"
+            onblur="quickSave('accommodations','${a.id}','breakfast_info',this.value,this)" ${isEditor()?'':'disabled'} style="flex:2;min-width:120px;">
+          <input type="url" value="${esc(a.breakfast_url||'')}" placeholder="Menu / cafe link"
+            onblur="quickSave('accommodations','${a.id}','breakfast_url',this.value,this)" ${isEditor()?'':'disabled'} style="flex:1;min-width:100px;">
+        </div>
+      </div>
+      <div style="flex:1;min-width:140px;">
+        <label class="muted" style="font-size:11px;display:block;margin-bottom:4px;">📞 Phone</label>
+        <input type="tel" value="${esc(a.phone||'')}" placeholder="+44 …"
+          onblur="quickSave('accommodations','${a.id}','phone',this.value,this)" ${isEditor()?'':'disabled'} style="width:100%;">
+      </div>
+    </div>
+    <label class="muted" style="font-size:11px;display:block;margin:10px 0 4px;">⚠️ Cancellation policy</label>
+    <input type="text" value="${esc(a.cancellation_policy||'')}" placeholder="e.g. free until 3 days before"
+      onblur="quickSave('accommodations','${a.id}','cancellation_policy',this.value,this)" ${isEditor()?'':'disabled'} style="width:100%;">
+    <textarea placeholder="Other notes" onblur="quickSave('accommodations','${a.id}','notes',this.value,this)" ${isEditor()?'':'disabled'} style="width:100%;margin-top:8px;min-height:40px;">${esc(a.notes||'')}</textarea>
   </div>`;
 }
 async function addAccommodation() {
@@ -256,7 +362,7 @@ function poiListRowHtml(p) {
         <input type="text" value="${esc(p.name)}"
           onblur="quickSave('points_of_interest','${p.id}','name',this.value,this)"
           ${isEditor()?'':'disabled'} style="flex:1;min-width:120px;">
-        ${selectCell(p.id,'category',p.category,['sight','resupply','water','other'],'points_of_interest')}
+        ${selectCell(p.id,'category',p.category,['sight','food','resupply','water','other'],'points_of_interest')}
       </div>
       <div style="display:flex;gap:6px;align-items:center;margin-top:4px;flex-wrap:wrap;">
         <input type="url" value="${esc(p.url||'')}" placeholder="Website / maps URL"
@@ -294,6 +400,7 @@ function openPoiModal(dayId, callback) {
           <label>Category</label>
           <select id="pmCat" style="width:100%;">
             <option value="sight">🏰 Sight / attraction</option>
+            <option value="food">🍽️ Restaurant / cafe / pub</option>
             <option value="resupply">🛒 Resupply (shop)</option>
             <option value="water">💧 Water refill</option>
             <option value="other">📍 Other</option>
@@ -581,8 +688,8 @@ async function renderPhotosModule() {
     db().from('trip_days').select('id, day_number, title').eq('trip_id', activeTrip.id).order('order_index'),
   ]);
   document.getElementById('main').innerHTML = `
-    <div class="pagehead"><div><h1>Photos</h1><div class="subtitle">Photos shown on the participant live page (when showPhotos is enabled in visibility settings).</div></div></div>
-    ${isEditor() ? `<div class="card" style="margin-bottom:16px;">
+    <div class="pagehead"><div><h1>Photos</h1><div class="subtitle">Photos shown on the participant live page (when showPhotos is enabled in visibility settings). Anyone on the trip can add photos.</div></div></div>
+    ${canPostPhotos() ? `<div class="card" style="margin-bottom:16px;">
       <h2>Upload photo</h2>
       <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px;align-items:center;">
         <input id="photoFile" type="file" accept="image/*" style="flex:1;min-width:180px;">
@@ -603,9 +710,9 @@ async function renderPhotosModule() {
             onclick="adminOpenLightbox('${esc(u.photo_url)}','${esc(u.caption||'')}')">
           ${u.caption ? `<div style="font-size:12px;margin-top:6px;color:var(--text-secondary);">${esc(u.caption)}</div>` : ''}
           <div style="font-size:11px;color:var(--text-tertiary);margin-top:3px;">${u.created_at ? new Date(u.created_at).toLocaleDateString() : ''}</div>
-          ${isEditor() ? `<button class="btn btn-sm btn-danger" style="position:absolute;top:8px;right:8px;padding:2px 7px;font-size:11px;line-height:1.4;" onclick="deletePhoto('${u.id}','${esc(u.photo_url)}')">✕</button>` : ''}
+          ${(isEditor() || (activeMembership && u.membership_id === activeMembership.id)) ? `<button class="btn btn-sm btn-danger" style="position:absolute;top:8px;right:8px;padding:2px 7px;font-size:11px;line-height:1.4;" onclick="deletePhoto('${u.id}','${esc(u.photo_url)}')">✕</button>` : ''}
         </div>
-      `).join('') || '<p class="muted">No photos yet. Upload one above.</p>'}
+      `).join('') || `<p class="muted">No photos yet.${canPostPhotos() ? ' Upload one above.' : ''}</p>`}
     </div>
     <div id="admin-lb" onclick="adminCloseLightbox()" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.88);z-index:9999;align-items:center;justify-content:center;cursor:zoom-out;flex-direction:column;gap:12px;">
       <img id="admin-lb-img" src="" style="max-width:90vw;max-height:85vh;border-radius:12px;object-fit:contain;box-shadow:0 8px 40px rgba(0,0,0,.5);">
