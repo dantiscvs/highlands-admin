@@ -56,7 +56,7 @@ async function renderDayGrid() {
         </div>
       </div>
       <div id="dayCardList" style="display:flex;flex-direction:column;gap:10px;">
-        ${gridDays.map((d, i) => dayCardHtml(d, i, accByDay, poiByDay)).join('')}
+        ${gridDays.map((d, i) => dayCardHtml(d, i, accByDay, poiByDay, i > 0 ? accByDay[gridDays[i-1].id] : null)).join('')}
         ${gridDays.length === 0 ? '<p class="muted">No days yet — add one above.</p>' : ''}
       </div>
     `;
@@ -125,7 +125,9 @@ function poiLineHtml(p) {
   </div>`;
 }
 
-function dayCardHtml(d, i, accByDay, poiByDay) {
+// `prevAcc` is where you slept the night *before* this day — that's whose
+// breakfast you eat this morning, not tonight's stay.
+function dayCardHtml(d, i, accByDay, poiByDay, prevAcc) {
   const acc = accByDay[d.id];
   const pois = poiByDay[d.id] || [];
   const cfg = activityConfig(activeTrip);
@@ -169,11 +171,13 @@ function dayCardHtml(d, i, accByDay, poiByDay) {
     rows.push(`<div class="irow"><div class="ico">📍</div><div class="ilbl">Route</div>
       <div class="ival">${esc(d.start_point || '?')} → ${esc(d.end_point || '?')}</div></div>`);
   }
-  if (acc && acc.breakfast_info) {
+  if (prevAcc && prevAcc.breakfast_info) {
     rows.push(`<div class="irow"><div class="ico">🍳</div><div class="ilbl">Breakfast</div>
-      <div class="ival">${acc.breakfast_url
-        ? `<a href="${esc(acc.breakfast_url)}" target="_blank" rel="noopener">${esc(acc.breakfast_info)}</a>`
-        : esc(acc.breakfast_info)}</div></div>`);
+      <div class="ival">${prevAcc.breakfast_url
+        ? `<a href="${esc(prevAcc.breakfast_url)}" target="_blank" rel="noopener">${esc(prevAcc.breakfast_info)}</a>`
+        : esc(prevAcc.breakfast_info)}
+        <div class="sub">At ${esc(prevAcc.name)} — last night's stay.</div>
+      </div></div>`);
   }
   POI_GROUPS.forEach(g => {
     const list = pois.filter(p => g.match(p.category));
@@ -188,6 +192,7 @@ function dayCardHtml(d, i, accByDay, poiByDay) {
   });
   if (acc) {
     const accSub = [];
+    if (acc.room_type) accSub.push('🛏️ ' + esc(acc.room_type));
     if (acc.address) accSub.push(esc(acc.address));
     if (acc.phone) accSub.push(`📞 <a href="tel:${esc(acc.phone)}">${esc(acc.phone)}</a>`);
     if (acc.booking_reference) accSub.push(`Ref: ${esc(acc.booking_reference)}`);
@@ -361,8 +366,19 @@ async function openDayDrawer(dayId) {
     <div class="field"><label>Map embed URL</label><input id="dwMap" type="url" value="${esc(day.map_embed_url||'')}" placeholder="https://...">
       <div class="muted" style="font-size:11px;margin-top:4px;">Paste a Komoot/RideWithGPS/Google Maps link — we detect the provider automatically. <a href="#" onclick="event.preventDefault();alert('Embed help: open your route on the provider, look for a Share or Embed button, and copy the link it gives you.')">How do I get this?</a></div>
     </div>
-    <div class="field"><label>GPX URL</label><input id="dwGpx" type="text" value="${esc(day.gpx_url||'')}"></div>
-    <div class="field"><label>Actual/planned start time</label><input id="dwStart" type="time" value="${esc(day.actual_start_time||'')}"></div>
+    <div class="field"><label>GPX track</label>
+      <input id="dwGpx" type="text" value="${esc(day.gpx_url||'')}" placeholder="https://… or upload below">
+      <div style="display:flex;gap:6px;align-items:center;margin-top:6px;">
+        <input id="dwGpxFile" type="file" accept=".gpx" style="flex:1;min-width:0;">
+        <button class="btn btn-sm" onclick="uploadDayGpx('${dayId}')">Upload</button>
+      </div>
+      <div class="muted" style="font-size:11px;margin-top:4px;">Uploading stores the file and fills in the URL. The whole-trip map on Overview needs a reachable URL — a relative path from another site won't load.</div>
+      <span id="dwGpxInd" class="saveIndicator"></span>
+    </div>
+    <div class="field"><label>Planned start time</label><input id="dwStart" type="time" value="${esc(day.actual_start_time||'')}"></div>
+    <div class="field"><label>Target finish time</label><input id="dwEnd" type="time" value="${esc(day.target_end_time||'')}">
+      <div class="muted" style="font-size:11px;margin-top:4px;">Start + finish give the stage window, which unlocks the required-pace figures on Statistics and the live "pace needed" on Today.</div>
+    </div>
     <div class="field"><label>Pace &amp; ETA</label><div class="card" style="padding:10px;">${paceSummaryHtml(day)}</div></div>
     <div class="field"><label>Notes</label><textarea id="dwNotes">${esc(day.notes||'')}</textarea></div>
     <div class="field">
@@ -416,6 +432,7 @@ async function saveDayDrawer(dayId) {
     notes: document.getElementById('dwNotes').value.trim() || null,
     is_rest_day: document.getElementById('dwRest').checked,
     actual_start_time: document.getElementById('dwStart').value || null,
+    target_end_time: document.getElementById('dwEnd').value || null,
     locked_fields: Array.from(locked),
   };
   const { error } = await db().from('trip_days').update(patch).eq('id', dayId);
@@ -423,6 +440,25 @@ async function saveDayDrawer(dayId) {
   Object.assign(day, patch);
   ind.textContent = '✓ Saved'; ind.className = 'saveIndicator saved';
 }
+async function uploadDayGpx(dayId) {
+  const ind = document.getElementById('dwGpxInd');
+  const file = document.getElementById('dwGpxFile').files[0];
+  if (!file) { ind.textContent = 'Pick a .gpx file first'; ind.className = 'saveIndicator'; return; }
+  const day = gridDays.find(d => d.id === dayId);
+  ind.textContent = 'Uploading…'; ind.className = 'saveIndicator saving';
+  const path = `${activeTrip.id}/day-${day ? day.day_number : Date.now()}.gpx`;
+  const { error: upErr } = await db().storage.from('trip-gpx').upload(path, file, { contentType: 'application/gpx+xml', upsert: true });
+  if (upErr) { ind.textContent = 'Upload failed: ' + upErr.message; ind.className = 'saveIndicator'; return; }
+  const { data: pub } = db().storage.from('trip-gpx').getPublicUrl(path);
+  const url = pub ? pub.publicUrl : null;
+  if (!url) { ind.textContent = 'Could not resolve public URL'; ind.className = 'saveIndicator'; return; }
+  const { error } = await db().from('trip_days').update({ gpx_url: url }).eq('id', dayId);
+  if (error) { ind.textContent = 'Save failed: ' + error.message; ind.className = 'saveIndicator'; return; }
+  document.getElementById('dwGpx').value = url;
+  if (day) day.gpx_url = url;
+  ind.textContent = '✓ Uploaded'; ind.className = 'saveIndicator saved';
+}
+
 async function addPoiFromDrawer(dayId) {
   closeDayDrawer();
   openPoiModal(dayId, () => openDayDrawer(dayId));

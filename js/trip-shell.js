@@ -28,6 +28,8 @@ const NAV_ICONS = {
   account: '<svg viewBox="0 0 18 18"><circle cx="9" cy="6.5" r="3" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M3 15c0-3 2.7-5 6-5s6 2 6 5" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>',
   camera: '<svg viewBox="0 0 18 18"><rect x="2" y="6" width="14" height="10" rx="2" fill="none" stroke="currentColor" stroke-width="1.6"/><circle cx="9" cy="11" r="2.5" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M6 6V5a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v1" fill="none" stroke="currentColor" stroke-width="1.5"/></svg>',
   eye: '<svg viewBox="0 0 18 18"><path d="M1.5 9S4.5 4 9 4s7.5 5 7.5 5-3 5-7.5 5S1.5 9 1.5 9Z" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/><circle cx="9" cy="9" r="2.2" fill="none" stroke="currentColor" stroke-width="1.5"/></svg>',
+  today: '<svg viewBox="0 0 18 18"><rect x="2.5" y="3.5" width="13" height="11" rx="1.8" fill="none" stroke="currentColor" stroke-width="1.6"/><line x1="2.5" y1="7" x2="15.5" y2="7" stroke="currentColor" stroke-width="1.6"/><line x1="6" y1="2" x2="6" y2="5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/><line x1="12" y1="2" x2="12" y2="5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/><circle cx="9" cy="10.8" r="1.5" fill="currentColor"/></svg>',
+  chart: '<svg viewBox="0 0 18 18"><line x1="3" y1="15" x2="15" y2="15" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/><rect x="4" y="9" width="2.6" height="5" fill="currentColor"/><rect x="8" y="5.5" width="2.6" height="8.5" fill="currentColor"/><rect x="12" y="7.5" width="2.6" height="6.5" fill="currentColor"/></svg>',
 };
 
 async function loadTrip(tripId) {
@@ -89,6 +91,8 @@ async function renderTripShell(tripId, section) {
 
   const renderers = {
     overview: renderTripOverview,
+    today: renderTodaySection,
+    stats: renderStatsSection,
     grid: renderDayGrid,
     logistics: renderLogistics,
     accommodation: () => renderAccommodationModule(),
@@ -131,7 +135,9 @@ function renderTripSidebar(section) {
 
     <div class="navgroup">Plan</div>
     ${navRow('overview','Overview','overview',section)}
+    ${moduleOn('route') ? navRow('today','Today','today',section) : ''}
     ${moduleOn('route') ? navRow('grid','Route & Days','grid',section) : ''}
+    ${moduleOn('route') ? navRow('chart','Statistics','stats',section) : ''}
     ${moduleOn('transport') ? navRow('route','Logistics','logistics',section) : ''}
 
     <div class="navgroup">Modules</div>
@@ -223,13 +229,13 @@ async function renderTripOverview() {
         <div class="subtitle">${activeTrip.start_date ? fmtDate(activeTrip.start_date) + ' – ' + fmtDate(activeTrip.end_date) : 'No dates set yet'} · ${activeTrip.timezone}</div>
         <div style="margin-top:8px;">${activityBadgeHtml(activeTrip)}</div>
       </div>
-      <div style="display:flex;gap:8px;flex-wrap:wrap;">
-        <button class="btn" onclick="goTrip(activeTrip.id,'settings')">⚙️ Settings</button>
-        <button class="btn" onclick="goTrip(activeTrip.id,'share')">🔗 Share</button>
+      <div class="headactions">
+        <button class="btn iconbtn" onclick="goTrip(activeTrip.id,'settings')" title="Settings" aria-label="Settings">⚙️<span class="btnlabel"> Settings</span></button>
+        <button class="btn iconbtn" onclick="goTrip(activeTrip.id,'share')" title="Share" aria-label="Share">🔗<span class="btnlabel"> Share</span></button>
       </div>
     </div>
 
-    <div class="statgrid" style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:24px;">
+    <div class="statgrid statgrid-4">
       <div class="statcard"><div class="stat-value">${(days||[]).length}</div><div class="stat-label">Days</div></div>
       <div class="statcard"><div class="stat-value">${totalKm.toFixed(0)}</div><div class="stat-label">km</div></div>
       <div class="statcard"><div class="stat-value">${metric3Val}</div><div class="stat-label">${metric3Label}</div></div>
@@ -262,25 +268,14 @@ async function renderTripOverview() {
     ${navCards.length ? `
       <div class="card" style="margin-bottom:16px;">
         <h2>Quick access</h2>
-        <div class="entrypoints" style="grid-template-columns:repeat(auto-fill,minmax(130px,1fr));">
-          ${navCards.map(m => `
-            <div class="entrypoint" onclick="goTrip(activeTrip.id,'${m.section}')">
-              <div class="ico">${m.icon}</div>
-              <div class="ttl">${m.label}</div>
-            </div>
-          `).join('')}
-          <div class="entrypoint" onclick="goTrip(activeTrip.id,'participants')">
-            <div class="ico">👥</div><div class="ttl">Participants</div>
-          </div>
-          <div class="entrypoint" onclick="goTrip(activeTrip.id,'readiness')">
-            <div class="ico">☑️</div><div class="ttl">Readiness</div>
-          </div>
-          <div class="entrypoint" onclick="goTrip(activeTrip.id,'imports')">
-            <div class="ico">📥</div><div class="ttl">Imports</div>
-          </div>
-          <div class="entrypoint" onclick="goTrip(activeTrip.id,'share')">
-            <div class="ico">🔗</div><div class="ttl">Share & Live</div>
-          </div>
+        <div class="quicklinks">
+          ${moduleOn('route') ? `<div class="qlink" onclick="goTrip(activeTrip.id,'today')"><span class="qico">🎯</span><span>Today</span></div>` : ''}
+          ${navCards.map(m => `<div class="qlink" onclick="goTrip(activeTrip.id,'${m.section}')"><span class="qico">${m.icon}</span><span>${m.label}</span></div>`).join('')}
+          ${moduleOn('route') ? `<div class="qlink" onclick="goTrip(activeTrip.id,'stats')"><span class="qico">📊</span><span>Statistics</span></div>` : ''}
+          <div class="qlink" onclick="goTrip(activeTrip.id,'participants')"><span class="qico">👥</span><span>Participants</span></div>
+          <div class="qlink" onclick="goTrip(activeTrip.id,'readiness')"><span class="qico">☑️</span><span>Readiness</span></div>
+          <div class="qlink" onclick="goTrip(activeTrip.id,'imports')"><span class="qico">📥</span><span>Imports</span></div>
+          <div class="qlink" onclick="goTrip(activeTrip.id,'share')"><span class="qico">🔗</span><span>Share &amp; Live</span></div>
         </div>
       </div>
     ` : `
@@ -375,10 +370,22 @@ async function renderTripMap(days) {
     let b = allBounds[0];
     allBounds.slice(1).forEach(x => { b = b.extend(x); });
     _tripMap.fitBounds(b, { padding: [24, 24] });
-    if (status) status.textContent = `${drawn.length} track${drawn.length === 1 ? '' : 's'}${failed ? ` · ${failed} file(s) unreadable` : ''}`;
+    if (status) {
+      status.textContent = `${drawn.length} track${drawn.length === 1 ? '' : 's'}${failed ? ` · ${failed} file(s) could not be loaded` : ''}`;
+      status.style.color = failed ? 'var(--color-warning)' : '';
+    }
   } else {
-    _tripMap.setView([54, -4], 5);
-    if (status) status.textContent = 'No readable GPX tracks';
+    _tripMap.setView([20, 0], 2);
+    // Distinguish "nothing fetched" from "fetched but empty" — the usual cause
+    // is a gpx_url that isn't a reachable absolute URL (e.g. a relative path
+    // carried over from another site).
+    const relative = [...byUrl.keys()].filter(u => !/^https?:\/\//i.test(u));
+    if (status) {
+      status.style.color = 'var(--color-danger)';
+      status.textContent = relative.length
+        ? `${relative.length} day(s) have a GPX path that isn't a full URL — re-upload the file in Route & Days → ⋯`
+        : 'Could not load any GPX track (files unreachable or blocked)';
+    }
   }
 
   const legend = document.getElementById('tripMapLegend');

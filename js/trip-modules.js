@@ -4,6 +4,26 @@ function moduleGate(key) {
   return true;
 }
 
+// ---- Per-tab Cards/Edit view toggle ----
+// Editing is dense and form-like on purpose (it's faster), but that's a poor
+// default for reading. Each module tab therefore opens in card view and lets
+// an editor flip to the edit form; the choice is remembered per tab.
+const moduleView = (tab) => localStorage.getItem('moduleView_' + tab) || 'cards';
+function setModuleView(tab, mode, rerender) {
+  localStorage.setItem('moduleView_' + tab, mode);
+  rerender();
+}
+function viewToggleHtml(tab, rerenderName) {
+  if (!isEditor()) return '';
+  const v = moduleView(tab);
+  return `<div class="viewtoggle">
+    <button class="btn btn-sm ${v==='cards'?'btn-primary':''}" onclick="setModuleView('${tab}','cards',${rerenderName})">👁 Cards</button>
+    <button class="btn btn-sm ${v==='edit'?'btn-primary':''}" onclick="setModuleView('${tab}','edit',${rerenderName})">✎ Edit</button>
+  </div>`;
+}
+// Cards unless the user is an editor who explicitly chose the edit form.
+function showEditForm(tab) { return isEditor() && moduleView(tab) === 'edit'; }
+
 // ---- Shared helpers ----
 function toDatetimeLocal(iso) {
   if (!iso) return '';
@@ -28,13 +48,17 @@ async function renderLogistics() {
     db().from('transport_legs').select('*').eq('trip_id', activeTrip.id).order('order_index'),
     db().from('trip_days').select('id, day_number').eq('trip_id', activeTrip.id).order('order_index'),
   ]);
+  const edit = showEditForm('logistics');
   document.getElementById('main').innerHTML = `
     <div class="pagehead"><div><h1>Logistics</h1><div class="subtitle">Flights, trains, buses, ferries, transfers, bike shipping — for the trip overall or a specific day.</div></div>
-      ${isEditor() ? `<button class="btn btn-primary btn-sm" onclick="addTransportLeg()" title="Or use Imports to auto-extract from a booking email.">+ Add leg</button>` : ''}
+      <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+        ${viewToggleHtml('logistics','renderLogistics')}
+        ${isEditor() ? `<button class="btn btn-primary btn-sm" onclick="openLegModal()">+ Add leg</button>` : ''}
+      </div>
     </div>
     ${isEditor() ? `<div class="muted" style="font-size:11px;margin:-6px 0 16px;">💡 Got a booking confirmation email or PDF? <a href="#" onclick="event.preventDefault();goTrip(activeTrip.id,'imports');">Paste/upload it in Imports</a> — we'll extract the details automatically.</div>` : ''}
     <div style="display:flex;flex-direction:column;gap:12px;">
-      ${(legs||[]).map(l => isEditor() ? transportCardHtml(l, days) : transportReadonlyHtml(l, days)).join('') || `
+      ${(legs||[]).map(l => edit ? transportCardHtml(l, days) : transportReadonlyHtml(l, days, true)).join('') || `
         <div class="empty-state">
           <div class="empty-title">No transport legs yet</div>
           <div class="empty-desc">${isEditor() ? 'Add a leg above, or use <a href="#" onclick="event.preventDefault();goTrip(activeTrip.id,\'imports\');">Imports</a> to extract from a booking email.' : 'No transport legs have been added yet.'}</div>
@@ -43,9 +67,103 @@ async function renderLogistics() {
   `;
 }
 
+// Add-leg modal — a new row appended silently at the bottom of a long list is
+// effectively invisible, so new items are created through a real form.
+function openLegModal() {
+  db().from('trip_days').select('id, day_number').eq('trip_id', activeTrip.id).order('order_index').then(({ data: days }) => {
+    openFormModal({
+      title: 'Add transport leg',
+      fields: [
+        { id: 'lgType', label: 'Type', type: 'select', options: TRANSPORT_TYPES.map(t => ({ v: t, l: `${TRANSPORT_ICONS[t]||''} ${t.replace(/_/g,' ')}` })) },
+        { id: 'lgWhen', label: 'When', type: 'select', options: [
+            { v: 'trip_start', l: 'Trip start' }, { v: 'trip_end', l: 'Trip end' },
+            ...(days||[]).map(d => ({ v: 'day:' + d.id, l: 'Day ' + d.day_number })),
+          ] },
+        { id: 'lgCarrier', label: 'Carrier / operator', placeholder: 'Ryanair, ScotRail…' },
+        { id: 'lgFrom', label: 'From', placeholder: 'Gdańsk (GDN)' },
+        { id: 'lgDep', label: 'Departs', type: 'datetime-local' },
+        { id: 'lgTo', label: 'To', placeholder: 'Edinburgh (EDI)' },
+        { id: 'lgArr', label: 'Arrives', type: 'datetime-local' },
+        { id: 'lgRef', label: 'Reference', placeholder: 'Booking ref' },
+        { id: 'lgSeat', label: 'Seat(s)', placeholder: '14A, 15B' },
+      ],
+      submitLabel: 'Add leg',
+      onSubmit: async (v) => {
+        const when = v.lgWhen;
+        const isDay = when.startsWith('day:');
+        const { error } = await db().from('transport_legs').insert({
+          trip_id: activeTrip.id, type: v.lgType || 'other',
+          anchor: isDay ? 'custom' : when, day_id: isDay ? when.slice(4) : null,
+          carrier: v.lgCarrier || null, reference: v.lgRef || null, seat_number: v.lgSeat || null,
+          departure_place: v.lgFrom || null, arrival_place: v.lgTo || null,
+          departure_time: v.lgDep || null, arrival_time: v.lgArr || null,
+          currency: activeTrip.default_currency || null, order_index: 999,
+        });
+        if (error) return error.message;
+        renderLogistics();
+      },
+    });
+  });
+}
+
+// ---- Generic form modal (used for "add" flows across modules) ----
+let _formModalSubmit = null;
+function openFormModal({ title, fields, submitLabel, onSubmit }) {
+  document.getElementById('formModalOverlay')?.remove();
+  _formModalSubmit = onSubmit;
+  const fieldHtml = fields.map(f => {
+    if (f.type === 'select') {
+      return `<div class="field"><label>${esc(f.label)}</label>
+        <select id="${f.id}" style="width:100%;">${f.options.map(o => `<option value="${esc(o.v)}">${esc(o.l)}</option>`).join('')}</select></div>`;
+    }
+    if (f.type === 'textarea') {
+      return `<div class="field"><label>${esc(f.label)}</label><textarea id="${f.id}" placeholder="${esc(f.placeholder||'')}" style="width:100%;"></textarea></div>`;
+    }
+    return `<div class="field"><label>${esc(f.label)}</label>
+      <input id="${f.id}" type="${f.type||'text'}" placeholder="${esc(f.placeholder||'')}" style="width:100%;"></div>`;
+  }).join('');
+  document.body.insertAdjacentHTML('beforeend', `
+    <div class="modal-ov" id="formModalOverlay" onclick="closeFormModal(event)">
+      <div class="modal" onclick="event.stopPropagation();">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
+          <h2 style="margin:0;">${esc(title)}</h2>
+          <button class="btn btn-sm" onclick="closeFormModal()">✕</button>
+        </div>
+        ${fieldHtml}
+        <div id="formModalErr" style="color:var(--color-danger);font-size:var(--text-sm);margin-bottom:8px;"></div>
+        <div style="display:flex;gap:8px;justify-content:flex-end;">
+          <button class="btn" onclick="closeFormModal()">Cancel</button>
+          <button class="btn btn-primary" onclick="submitFormModal(this)">${esc(submitLabel||'Save')}</button>
+        </div>
+      </div>
+    </div>`);
+  const first = document.getElementById(fields[0].id);
+  if (first) first.focus();
+}
+function closeFormModal(e) {
+  if (e && e.target !== document.getElementById('formModalOverlay')) return;
+  document.getElementById('formModalOverlay')?.remove();
+  _formModalSubmit = null;
+}
+async function submitFormModal(btn) {
+  const ov = document.getElementById('formModalOverlay');
+  if (!ov || !_formModalSubmit) return;
+  const values = {};
+  ov.querySelectorAll('input, select, textarea').forEach(el => { if (el.id) values[el.id] = el.value.trim ? el.value.trim() : el.value; });
+  btn.disabled = true; btn.textContent = 'Saving…';
+  const err = await _formModalSubmit(values);
+  if (err) {
+    document.getElementById('formModalErr').textContent = err;
+    btn.disabled = false; btn.textContent = 'Save';
+    return;
+  }
+  ov.remove();
+  _formModalSubmit = null;
+}
+
 // Read-only presentation for riders/viewers (and organisers in participant
 // preview): a boarding-pass style card rather than a row of input boxes.
-function transportReadonlyHtml(l, days) {
+function transportReadonlyHtml(l, days, allowEdit) {
   const icon = TRANSPORT_ICONS[l.type] || '🚦';
   const typeLabel = (l.type || 'other').replace(/_/g, ' ');
   const anchorLabel = l.anchor === 'trip_start' ? 'Trip start'
@@ -76,6 +194,7 @@ function transportReadonlyHtml(l, days) {
       <span class="badge badge-gray" style="text-transform:capitalize;">${esc(typeLabel)}</span>
       ${anchorLabel ? `<span class="badge badge-blue">${esc(anchorLabel)}</span>` : ''}
       <span class="leg-sub">${[esc(l.carrier || ''), dstr(dep)].filter(Boolean).join(' · ')}</span>
+      ${allowEdit && isEditor() ? `<button class="btn btn-sm" style="margin-left:auto;" onclick="setModuleView('logistics','edit',renderLogistics)" title="Switch to the edit form">✎</button>` : ''}
     </div>
     <div class="leg-body">
       <div class="leg-route">
@@ -224,18 +343,56 @@ async function renderAccommodationModule() {
     db().from('trip_days').select('id, day_number').eq('trip_id', activeTrip.id),
   ]);
   const dayLabel = id => { const d = (days||[]).find(x=>x.id===id); return d ? 'Day ' + d.day_number : '—'; };
+  const edit = showEditForm('accommodation');
   document.getElementById('main').innerHTML = `
-    <div class="pagehead"><div><h1>Accommodation</h1><div class="subtitle">One row can be linked to a day, or left unlinked for multi-night stays.</div></div>
-      ${isEditor() ? '<button class="btn btn-primary btn-sm" onclick="addAccommodation()" title="Tip: booking confirmation emails or PDFs can fill this in automatically — see the Imports tab.">+ Add stay</button>' : ''}
+    <div class="pagehead"><div><h1>Accommodation</h1><div class="subtitle">One stay can be linked to a day, or left unlinked for multi-night stays.</div></div>
+      <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+        ${viewToggleHtml('accommodation','renderAccommodationModule')}
+        ${isEditor() ? '<button class="btn btn-primary btn-sm" onclick="openStayModal()">+ Add stay</button>' : ''}
+      </div>
     </div>
     ${isEditor() ? `<div class="muted" style="font-size:11px;margin:-6px 0 12px;">💡 Got a booking confirmation email or PDF? <a href="#" onclick="event.preventDefault();goTrip(activeTrip.id,'imports');">Paste/upload it in Imports</a> instead of typing stays by hand — we'll extract the details and you just review &amp; accept.</div>` : ''}
     <div style="display:flex;flex-direction:column;gap:10px;">
-      ${(accs||[]).map(a => isEditor() ? accommodationCardHtml(a, days, dayLabel) : accommodationReadonlyHtml(a, dayLabel)).join('') || '<p class="muted">No accommodation added yet.</p>'}
+      ${(accs||[]).map(a => edit ? accommodationCardHtml(a, days, dayLabel) : accommodationReadonlyHtml(a, dayLabel, true)).join('') || `
+        <div class="empty-state"><div class="empty-title">No stays yet</div>
+        <div class="empty-desc">${isEditor() ? 'Add one above, or import a booking confirmation.' : 'Nothing has been added yet.'}</div></div>`}
     </div>
   `;
 }
 
-function accommodationReadonlyHtml(a, dayLabel) {
+function openStayModal() {
+  db().from('trip_days').select('id, day_number').eq('trip_id', activeTrip.id).order('order_index').then(({ data: days }) => {
+    openFormModal({
+      title: 'Add stay',
+      fields: [
+        { id: 'stName', label: 'Name', placeholder: "Morag's Lodge" },
+        { id: 'stDay', label: 'Night of', type: 'select', options: [
+            { v: '', l: '— unlinked (multi-night) —' },
+            ...(days||[]).map(d => ({ v: d.id, l: 'Day ' + d.day_number })),
+          ] },
+        { id: 'stRoom', label: 'Room type', placeholder: 'Twin en-suite, 4-bed dorm…' },
+        { id: 'stUrl', label: 'Booking URL', type: 'url', placeholder: 'https://…' },
+        { id: 'stMap', label: 'Google Maps link', type: 'url', placeholder: 'https://maps…' },
+        { id: 'stRef', label: 'Booking reference' },
+        { id: 'stCost', label: 'Cost', type: 'number' },
+      ],
+      submitLabel: 'Add stay',
+      onSubmit: async (v) => {
+        if (!v.stName) return 'Give the stay a name.';
+        const { error } = await db().from('accommodations').insert({
+          trip_id: activeTrip.id, name: v.stName, day_id: v.stDay || null,
+          room_type: v.stRoom || null, url: v.stUrl || null, map_url: v.stMap || null,
+          booking_reference: v.stRef || null, cost: v.stCost ? Number(v.stCost) : null,
+          pay_status: 'unpaid', currency: activeTrip.default_currency || null,
+        });
+        if (error) return error.message;
+        renderAccommodationModule();
+      },
+    });
+  });
+}
+
+function accommodationReadonlyHtml(a, dayLabel, allowEdit) {
   const links = [];
   if (a.url) links.push(`<a href="${esc(a.url)}" target="_blank" rel="noopener">Booking ↗</a>`);
   if (a.map_url) links.push(`<a href="${esc(a.map_url)}" target="_blank" rel="noopener">Map ↗</a>`);
@@ -248,9 +405,11 @@ function accommodationReadonlyHtml(a, dayLabel) {
       <span style="font-size:17px;">🏠</span>
       <span class="badge badge-gray">${esc(a.day_id ? dayLabel(a.day_id) : 'Unlinked')}</span>
       <span class="badge ${PAY_STATUS_COLOR[a.pay_status] || 'badge-gray'}">${esc(a.pay_status || '')}</span>
+      ${allowEdit && isEditor() ? `<button class="btn btn-sm" style="margin-left:auto;" onclick="setModuleView('accommodation','edit',renderAccommodationModule)" title="Switch to the edit form">✎</button>` : ''}
     </div>
     <div class="leg-body">
       <div style="font-weight:600;font-size:var(--text-md);">${esc(a.name)}</div>
+      ${a.room_type ? `<div style="font-size:var(--text-sm);color:var(--accent-secondary);font-weight:500;margin-top:2px;">🛏️ ${esc(a.room_type)}</div>` : ''}
       ${a.address ? `<div class="muted" style="font-size:var(--text-sm);margin-top:3px;">${esc(a.address)}</div>` : ''}
       ${links.length ? `<div style="margin-top:8px;display:flex;gap:12px;flex-wrap:wrap;font-size:var(--text-sm);">${links.join('')}</div>` : ''}
       ${a.breakfast_info ? `<div class="irow" style="margin-top:10px;"><div class="ico">🍳</div><div class="ilbl">Breakfast</div>
@@ -269,6 +428,7 @@ function accommodationCardHtml(a, days, dayLabel) {
     <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:flex-start;">
       <div style="flex:2;min-width:200px;">
         <input type="text" value="${esc(a.name)}" placeholder="Name" onblur="quickSave('accommodations','${a.id}','name',this.value,this)" ${isEditor()?'':'disabled'} style="font-weight:700;width:100%;margin-bottom:6px;">
+        <input type="text" value="${esc(a.room_type||'')}" placeholder="Room type (twin en-suite, 4-bed dorm…)" onblur="quickSave('accommodations','${a.id}','room_type',this.value,this)" ${isEditor()?'':'disabled'} style="width:100%;margin-bottom:6px;">
         <input type="url" value="${esc(a.url||'')}" placeholder="Booking URL" onblur="quickSave('accommodations','${a.id}','url',this.value,this)" ${isEditor()?'':'disabled'} style="width:100%;margin-bottom:6px;">
         <input type="text" value="${esc(a.address||'')}" placeholder="Address (optional)" onblur="quickSave('accommodations','${a.id}','address',this.value,this)" ${isEditor()?'':'disabled'} style="width:100%;margin-bottom:6px;">
         <div style="display:flex;gap:6px;align-items:center;">
@@ -334,23 +494,36 @@ async function renderPoiModule() {
   const byDay = {};
   (pois||[]).forEach(p => { (byDay[p.day_id] = byDay[p.day_id] || []).push(p); });
 
+  const edit = showEditForm('poi');
   document.getElementById('main').innerHTML = `
     <div class="pagehead">
-      <div><h1>Sights &amp; resupply</h1><div class="subtitle">Castles, viewpoints, water refills, shops — anything worth marking on a day.</div></div>
+      <div><h1>Sights &amp; resupply</h1><div class="subtitle">Castles, viewpoints, restaurants, water refills, shops — anything worth marking on a day.</div></div>
+      ${viewToggleHtml('poi','renderPoiModule')}
     </div>
-    ${(days||[]).map(d => `
-      <div class="card" style="margin-bottom:12px;">
+    ${(days||[]).map(d => {
+      const list = byDay[d.id] || [];
+      return `<div class="card" style="margin-bottom:12px;">
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;flex-wrap:wrap;gap:6px;">
           <strong>Day ${d.day_number}${d.title ? ' — ' + esc(d.title) : ''}</strong>
           ${isEditor() ? `<button class="btn btn-sm" onclick="openPoiModal('${d.id}', renderPoiModule)">+ Add place</button>` : ''}
         </div>
         <div id="poiList_${d.id}">
-          ${(byDay[d.id]||[]).map(p => poiListRowHtml(p)).join('') || '<p class="muted" style="font-size:12px;">Nothing yet.</p>'}
+          ${list.length
+            ? (edit ? list.map(p => poiListRowHtml(p)).join('')
+                    : POI_GROUPS.map(g => {
+                        const gl = list.filter(p => g.match(p.category));
+                        if (!gl.length) return '';
+                        return `<div style="padding:6px 0;border-top:1px solid var(--border-hairline);">
+                          <div class="muted" style="font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.04em;margin-bottom:3px;">${g.icon} ${g.label}</div>
+                          ${gl.map(poiLineHtml).join('')}
+                        </div>`;
+                      }).join(''))
+            : '<p class="muted" style="font-size:12px;">Nothing yet.</p>'}
         </div>
-      </div>
-    `).join('')}
+      </div>`;
+    }).join('')}
   `;
-  if (isEditor()) wirePoiDragDrop();
+  if (edit) wirePoiDragDrop();
 }
 
 function poiListRowHtml(p) {
