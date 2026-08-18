@@ -278,3 +278,85 @@ async function addExpense() {
   if (error) { alert(error.message); return; }
   renderExpensesModule();
 }
+
+// ---------------- Photos ----------------
+async function renderPhotosModule() {
+  if (moduleGate('photos')) return;
+  const [{ data: updates }, { data: days }] = await Promise.all([
+    db().from('updates').select('*').eq('trip_id', activeTrip.id).not('photo_url', 'is', null).order('created_at', { ascending: false }),
+    db().from('trip_days').select('id, day_number, title').eq('trip_id', activeTrip.id).order('order_index'),
+  ]);
+  document.getElementById('main').innerHTML = `
+    <div class="pagehead"><div><h1>Photos</h1><div class="subtitle">Photos shown on the participant live page (when showPhotos is enabled in visibility settings).</div></div></div>
+    ${isEditor() ? `<div class="card" style="margin-bottom:16px;">
+      <h2>Upload photo</h2>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px;align-items:center;">
+        <input id="photoFile" type="file" accept="image/*" style="flex:1;min-width:180px;">
+        <select id="photoDay" style="width:140px;">
+          <option value="">No day tag</option>
+          ${(days||[]).map(d=>`<option value="${d.id}">Day ${d.day_number}${d.title?' — '+esc(d.title.substring(0,22)):''}</option>`).join('')}
+        </select>
+      </div>
+      <input id="photoCaption" type="text" placeholder="Caption (optional)" style="width:100%;margin-bottom:10px;">
+      <button class="btn btn-primary" onclick="uploadPhoto()">Upload</button>
+      <span id="photoStatus" class="saveIndicator" style="margin-left:10px;"></span>
+    </div>` : ''}
+    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:10px;">
+      ${(updates||[]).map(u => `
+        <div class="card" style="padding:8px;position:relative;">
+          <img src="${esc(u.photo_url)}" alt="${esc(u.caption||'')}" loading="lazy"
+            style="width:100%;height:140px;object-fit:cover;border-radius:8px;display:block;cursor:zoom-in;"
+            onclick="adminOpenLightbox('${esc(u.photo_url)}','${esc(u.caption||'')}')">
+          ${u.caption ? `<div style="font-size:12px;margin-top:6px;color:var(--text-secondary);">${esc(u.caption)}</div>` : ''}
+          <div style="font-size:11px;color:var(--text-tertiary);margin-top:3px;">${u.created_at ? new Date(u.created_at).toLocaleDateString() : ''}</div>
+          ${isEditor() ? `<button class="btn btn-sm btn-danger" style="position:absolute;top:8px;right:8px;padding:2px 7px;font-size:11px;line-height:1.4;" onclick="deletePhoto('${u.id}','${esc(u.photo_url)}')">✕</button>` : ''}
+        </div>
+      `).join('') || '<p class="muted">No photos yet. Upload one above.</p>'}
+    </div>
+    <div id="admin-lb" onclick="adminCloseLightbox()" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.88);z-index:9999;align-items:center;justify-content:center;cursor:zoom-out;flex-direction:column;gap:12px;">
+      <img id="admin-lb-img" src="" style="max-width:90vw;max-height:85vh;border-radius:12px;object-fit:contain;box-shadow:0 8px 40px rgba(0,0,0,.5);">
+      <div id="admin-lb-cap" style="color:#fff;font-size:14px;text-align:center;max-width:500px;opacity:.85;"></div>
+    </div>
+  `;
+}
+function adminOpenLightbox(url, caption) {
+  const lb = document.getElementById('admin-lb');
+  document.getElementById('admin-lb-img').src = url;
+  document.getElementById('admin-lb-cap').textContent = caption || '';
+  lb.style.display = 'flex';
+  document.addEventListener('keydown', adminLbKey);
+}
+function adminCloseLightbox() {
+  document.getElementById('admin-lb').style.display = 'none';
+  document.removeEventListener('keydown', adminLbKey);
+}
+function adminLbKey(e) { if (e.key === 'Escape') adminCloseLightbox(); }
+
+async function uploadPhoto() {
+  const file = document.getElementById('photoFile').files[0];
+  if (!file) { alert('Pick a file first.'); return; }
+  const status = document.getElementById('photoStatus');
+  status.textContent = 'Uploading…'; status.className = 'saveIndicator saving';
+  const ext = file.name.split('.').pop().toLowerCase();
+  const path = `trips/${activeTrip.id}/${Date.now()}-${Math.random().toString(36).slice(2,7)}.${ext}`;
+  const { error: upErr } = await db().storage.from('photos').upload(path, file, { cacheControl: '3600' });
+  if (upErr) { status.textContent = 'Upload failed: ' + upErr.message; status.className = 'saveIndicator'; return; }
+  const { data: { publicUrl } } = db().storage.from('photos').getPublicUrl(path);
+  const dayId = document.getElementById('photoDay').value || null;
+  const caption = document.getElementById('photoCaption').value.trim() || null;
+  const { error: insErr } = await db().from('updates').insert({
+    trip_id: activeTrip.id, day_id: dayId,
+    membership_id: activeMembership?.id || null,
+    caption, photo_url: publicUrl,
+  });
+  if (insErr) { status.textContent = 'DB error: ' + insErr.message; status.className = 'saveIndicator'; return; }
+  status.textContent = '✓ Uploaded'; status.className = 'saveIndicator saved';
+  renderPhotosModule();
+}
+async function deletePhoto(id, url) {
+  if (!confirm('Delete this photo? This cannot be undone.')) return;
+  const storagePath = url.split('/photos/').slice(1).join('/photos/');
+  if (storagePath) await db().storage.from('photos').remove([storagePath]);
+  await db().from('updates').delete().eq('id', id);
+  renderPhotosModule();
+}

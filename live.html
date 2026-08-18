@@ -54,7 +54,21 @@ h2 { font-size: 15px; font-weight: 700; margin-bottom: 4px; }
 a { color: var(--p-accent); font-weight: 500; }
 a:hover { color: var(--p-accent-secondary); }
 .gallery { display: grid; grid-template-columns: repeat(auto-fill, minmax(110px, 1fr)); gap: 8px; }
-.gallery img { width: 100%; height: 100px; object-fit: cover; border-radius: 10px; }
+.gallery img { width: 100%; height: 100px; object-fit: cover; border-radius: 10px; cursor: zoom-in; transition: opacity .15s; }
+.gallery img:hover { opacity: .88; }
+#lb { display: none; position: fixed; inset: 0; background: rgba(0,0,0,.9); z-index: 9999;
+  align-items: center; justify-content: center; flex-direction: column; gap: 14px; cursor: zoom-out; }
+#lb img { max-width: 92vw; max-height: 82vh; border-radius: 14px; object-fit: contain; box-shadow: 0 8px 48px rgba(0,0,0,.6); }
+#lb .lb-cap { color: #fff; font-size: 14px; text-align: center; max-width: 520px; opacity: .85; padding: 0 16px; }
+#lb .lb-nav { position: fixed; top: 50%; transform: translateY(-50%); background: rgba(255,255,255,.15);
+  border: none; border-radius: 50%; width: 42px; height: 42px; color: #fff; font-size: 20px; cursor: pointer;
+  display: flex; align-items: center; justify-content: center; transition: background .15s; }
+#lb .lb-nav:hover { background: rgba(255,255,255,.28); }
+#lb .lb-prev { left: 14px; }
+#lb .lb-next { right: 14px; }
+#lb .lb-close { position: fixed; top: 14px; right: 18px; background: none; border: none;
+  color: #fff; font-size: 26px; cursor: pointer; opacity: .7; line-height: 1; padding: 4px; }
+#lb .lb-close:hover { opacity: 1; }
 .stay-note { font-size: 14px; margin-top: 4px; color: var(--p-text-primary); }
 .stat-row { display: flex; margin-top: 16px; padding-top: 16px; border-top: 1px solid var(--p-border); }
 .card.today .stat-row { border-top-color: rgba(46,83,57,0.18); }
@@ -151,10 +165,20 @@ function render(data) {
     ${(data.photos||[]).length ? `<div class="card">
       <div class="eyebrow">Photos</div>
       <div class="gallery">
-        ${data.photos.map(p => `<img src="${esc(p.photoUrl)}" alt="${esc(p.caption||'')}" loading="lazy">`).join('')}
+        ${data.photos.map((p,i) => `<img src="${esc(p.photoUrl)}" alt="${esc(p.caption||'')}" loading="lazy" onclick="openLb(${i})">`).join('')}
       </div>
     </div>` : ''}
   `;
+  window._lbPhotos = (data.photos||[]);
+  document.getElementById('app').insertAdjacentHTML('beforeend', `
+    <div id="lb" onclick="handleLbClick(event)">
+      <button class="lb-close" onclick="closeLb(event)" aria-label="Close">✕</button>
+      <button class="lb-nav lb-prev" onclick="lbStep(event,-1)" aria-label="Previous">‹</button>
+      <img id="lb-img" src="" alt="">
+      <div id="lb-cap" class="lb-cap"></div>
+      <button class="lb-nav lb-next" onclick="lbStep(event,1)" aria-label="Next">›</button>
+    </div>
+  `);
 }
 
 function todayCardHtml(d, totalDays) {
@@ -190,6 +214,32 @@ function dayRowHtml(d, isToday) {
     </div>
   `;
 }
+let _lbIdx = 0;
+function openLb(i) {
+  _lbIdx = i;
+  const photos = window._lbPhotos || [];
+  if (!photos.length) return;
+  document.getElementById('lb-img').src = photos[i].photoUrl || '';
+  document.getElementById('lb-cap').textContent = photos[i].caption || '';
+  const lb = document.getElementById('lb');
+  lb.style.display = 'flex';
+  document.addEventListener('keydown', lbKey);
+}
+function closeLb(e) { if (e) e.stopPropagation(); document.getElementById('lb').style.display = 'none'; document.removeEventListener('keydown', lbKey); }
+function handleLbClick(e) { if (e.target === document.getElementById('lb')) closeLb(); }
+function lbStep(e, dir) {
+  e.stopPropagation();
+  const photos = window._lbPhotos || [];
+  _lbIdx = (_lbIdx + dir + photos.length) % photos.length;
+  document.getElementById('lb-img').src = photos[_lbIdx].photoUrl || '';
+  document.getElementById('lb-cap').textContent = photos[_lbIdx].caption || '';
+}
+function lbKey(e) {
+  if (e.key === 'Escape') closeLb();
+  if (e.key === 'ArrowRight') lbStep(e, 1);
+  if (e.key === 'ArrowLeft') lbStep(e, -1);
+}
+
 load();
 </script>
 </body>

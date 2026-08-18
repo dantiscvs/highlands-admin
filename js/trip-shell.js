@@ -6,6 +6,7 @@ const MODULE_LABELS = {
   accommodation: '🏠 Accommodation', resupply: '🛒 Resupply', poi: '🏰 Sights',
   packing: '🎒 Packing', tasks: '✅ Tasks', expenses: '💸 Expenses',
   sightseeing: 'Sightseeing', transport: '✈️ Logistics', live: '🔴 Live', overlays: 'Overlays',
+  photos: '📷 Photos',
 };
 
 // Minimal geometric line icons (18x18, 1.5-1.6px stroke, currentColor) per the
@@ -25,6 +26,7 @@ const NAV_ICONS = {
   gear: '<svg viewBox="0 0 18 18"><circle cx="9" cy="9" r="2.3" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M9 2.8v1.8M9 13.4v1.8M15.2 9h-1.8M4.6 9H2.8M13.1 4.9l-1.3 1.3M6.2 11.9l-1.3 1.3M13.1 13.1l-1.3-1.3M6.2 6.1L4.9 4.8" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>',
   logout: '<svg viewBox="0 0 18 18"><path d="M8 3H4a1 1 0 0 0-1 1v10a1 1 0 0 0 1 1h4" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/><path d="M7 9h8m0 0-2.5-2.5M15 9l-2.5 2.5" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>',
   account: '<svg viewBox="0 0 18 18"><circle cx="9" cy="6.5" r="3" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M3 15c0-3 2.7-5 6-5s6 2 6 5" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>',
+  camera: '<svg viewBox="0 0 18 18"><rect x="2" y="6" width="14" height="10" rx="2" fill="none" stroke="currentColor" stroke-width="1.6"/><circle cx="9" cy="11" r="2.5" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M6 6V5a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v1" fill="none" stroke="currentColor" stroke-width="1.5"/></svg>',
 };
 
 async function loadTrip(tripId) {
@@ -55,6 +57,7 @@ async function renderTripShell(tripId, section) {
     expenses: () => renderExpensesModule(),
     poi: () => renderPoiModule(),
     readiness: renderReadinessChecklist,
+    photos: () => renderPhotosModule(),
     share: renderShareSection,
     imports: renderImportsSection,
     participants: renderParticipantsSection,
@@ -92,6 +95,7 @@ function renderTripSidebar(section) {
     ${moduleOn('packing') ? navRow('bag','Packing','packing',section) : ''}
     ${moduleOn('tasks') ? navRow('check','Tasks','tasks',section) : ''}
     ${moduleOn('expenses') ? navRow('wallet','Expenses','expenses',section) : ''}
+    ${moduleOn('photos') ? navRow('camera','Photos','photos',section) : ''}
 
     <div class="navgroup">People</div>
     ${navRow('people','Participants','participants',section)}
@@ -156,7 +160,7 @@ async function renderTripOverview() {
 
 async function renderTripSettings() {
   const t = activeTrip;
-  const ALL_MODULES = ['route','gpx','elevation','weather','accommodation','resupply','poi','packing','tasks','expenses','transport','live'];
+  const ALL_MODULES = ['route','gpx','elevation','weather','accommodation','resupply','poi','packing','tasks','expenses','transport','live','photos'];
   document.getElementById('main').innerHTML = `
     <div class="pagehead"><div><h1>Trip settings</h1><div class="subtitle">Trip-level configuration.</div></div></div>
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
