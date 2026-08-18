@@ -55,28 +55,84 @@
 </header>
 
 <!-- ============ HERO ============ -->
-<!-- Absolute path: a url() inside a custom property resolves against the
-     stylesheet that consumes it (css/scenes.css), not this page. -->
-<section class="hero-photo" style="--hero-img:url('/img/hero.jpg');">
-  <div class="bg" role="img" aria-label="Three cyclists on a coastal road above a Highland loch"></div>
+<section class="hero-photo">
+  <div class="bg" role="img" aria-label="A cyclist beside a loaded touring bike on a rural road, hay bales and forested hills behind"></div>
   <div class="scrim"></div>
   <div class="wrap">
-    <div class="hero-inner">
-      <div class="eyebrow">For groups who go far</div>
-      <h1><span class="s1">Big trips have a hundred moving parts.</span> <span class="s2">Keep them in one place.</span></h1>
-      <p class="lede">Route, bookings, packing and expenses — plus one link for everyone at home.</p>
-      <div class="hero-cta">
-        <a class="btn btn-primary btn-lg" href="app.html">Start planning — free</a>
-        <a class="btn btn-lg btn-glass" href="live.html?t=c26dcdbd931c46f8804196172c1179b9">See a live trip →</a>
+    <div class="hero-inner hero-cols">
+      <div class="hero-copy">
+        <div class="eyebrow">For groups who go far</div>
+        <h1><span class="s1">Big trips have a hundred moving parts.</span> <span class="s2">Keep them in one place.</span></h1>
+        <p class="lede">Route, bookings, packing and expenses — plus one link for everyone at home.</p>
+        <div class="hero-cta">
+          <a class="btn btn-primary btn-lg" href="app.html">Start planning — free</a>
+          <a class="btn btn-lg btn-glass" href="live.html?t=c26dcdbd931c46f8804196172c1179b9">See a live trip →</a>
+        </div>
+        <div class="hero-callouts">
+          <span>Free while in early access</span>
+          <span>Sign in with a link, no password</span>
+          <span>Followers need no account</span>
+        </div>
       </div>
-      <div class="hero-callouts">
-        <span>Free while in early access</span>
-        <span>Sign in with a link, no password</span>
-        <span>Followers need no account</span>
+
+      <div class="hero-shots">
+        <div class="ui shot-desktop">
+          <div class="ui-bar">
+            <span class="ui-dot"></span><span class="ui-dot"></span><span class="ui-dot"></span>
+            <span class="ui-url">triptracker.cc/app — Route &amp; Days</span>
+          </div>
+          <div class="ui-body">
+            <div class="ui-stats">
+              <div class="ui-stat"><b>8</b><span>Days</span></div>
+              <div class="ui-stat"><b>514</b><span>km</span></div>
+              <div class="ui-stat"><b>6156</b><span>m climbed</span></div>
+              <div class="ui-stat"><b>88%</b><span>Ready</span></div>
+            </div>
+            <div class="ui-row">
+              <span class="ui-num">3</span>
+              <div style="flex:1;min-width:0;">
+                <div class="ui-t">Fort Augustus → Ratagan</div>
+                <div class="ui-m">Mon 17 Aug · 85.9 km · +1161 m</div>
+              </div>
+              <span class="ui-pill pill-green">Booked</span>
+            </div>
+            <div class="ui-row" style="border-color:var(--accent-subtle-border);background:var(--accent-subtle);">
+              <span class="ui-num" style="background:var(--accent);color:var(--text-on-accent);">4</span>
+              <div style="flex:1;min-width:0;">
+                <div class="ui-t">Ratagan → Achnasheen</div>
+                <div class="ui-m">Today · 48 / 88 km · +1160 m</div>
+              </div>
+              <span class="ui-pill pill-orange">Riding</span>
+            </div>
+            <div class="ui-row">
+              <span class="ui-num">5</span>
+              <div style="flex:1;min-width:0;">
+                <div class="ui-t">Achnasheen → Dundonnell</div>
+                <div class="ui-m">Wed 19 Aug · 93 km · +1183 m</div>
+              </div>
+              <span class="ui-pill pill-gray">Planned</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Same plan, phone layout — the view you actually use on the road. -->
+        <div class="phone shot-phone" aria-label="The same day planner on a phone">
+          <div class="notch"></div>
+          <div class="screen">
+            <div class="ph-t">Route &amp; Days</div>
+            <div class="ph-card"><span class="ph-n">3</span>
+              <div><div class="ph-h">Fort Augustus → Ratagan</div><div class="ph-m">85.9 km</div></div></div>
+            <div class="ph-card" style="border-color:var(--accent-subtle-border);background:var(--accent-subtle);">
+              <span class="ph-n" style="background:var(--accent);color:var(--text-on-accent);">4</span>
+              <div><div class="ph-h">Ratagan → Achnasheen</div><div class="ph-m">48 / 88 km</div></div></div>
+            <div class="ph-card"><span class="ph-n">5</span>
+              <div><div class="ph-h">Achnasheen → Dundonnell</div><div class="ph-m">93 km</div></div></div>
+          </div>
+        </div>
       </div>
     </div>
   </div>
-  <div class="photo-credit">Wester Ross, Scotland</div>
+  <div class="photo-credit">Photo by <a href="https://unsplash.com/@timur_valiev?utm_source=unsplash&amp;utm_medium=referral&amp;utm_content=creditCopyText" target="_blank" rel="noopener nofollow">Timur Valiev</a> on <a href="https://unsplash.com/photos/a-person-standing-next-to-a-bike-near-hay-bales-Wf2KXzaAKvc?utm_source=unsplash&amp;utm_medium=referral&amp;utm_content=creditCopyText" target="_blank" rel="noopener nofollow">Unsplash</a></div>
 </section>
 
 <div class="hero-strip">

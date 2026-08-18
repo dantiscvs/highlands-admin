@@ -7,9 +7,15 @@
 
 /* ---------- Photo hero ---------- */
 .hero-photo { position: relative; overflow: hidden; padding: 0;
-  border-bottom: 1px solid var(--border-hairline); }
+  border-bottom: 1px solid var(--border-hairline);
+  /* Responsive source: a phone should not pull the 2400px original. */
+  --hero-img: url('/img/hero-1200.jpg'); }
+@media (min-width: 780px) { .hero-photo { --hero-img: url('/img/hero-1600.jpg'); } }
+@media (min-width: 1400px), (min-width: 780px) and (min-resolution: 2dppx) {
+  .hero-photo { --hero-img: url('/img/hero.jpg'); }
+}
 .hero-photo .bg { position: absolute; inset: 0; background-image: var(--hero-img);
-  background-size: cover; background-position: center 42%; transform: scale(1.04); }
+  background-size: cover; background-position: center 58%; transform: scale(1.04); }
 /* Two scrims: a vertical one for text contrast, a warm one to tie the photo
    into the palette instead of it sitting on the page like a sticker. */
 .hero-photo .scrim { position: absolute; inset: 0;
@@ -17,16 +23,22 @@
     linear-gradient(180deg, rgba(16,20,14,.72) 0%, rgba(16,20,14,.55) 45%, rgba(16,20,14,.80) 100%),
     linear-gradient(100deg, rgba(46,83,57,.42) 0%, rgba(46,83,57,0) 60%); }
 .hero-photo .wrap { position: relative; z-index: 2; }
-.hero-photo .hero-inner { padding: clamp(64px, 10vw, 132px) 0 clamp(56px, 8vw, 104px); max-width: 960px; }
-/* Sized for a two-sentence headline: at the global h1 max of 58px this one
-   cannot fit two lines, and balance splits it into three. 50px lets it
-   break at the sentence, which is where it wants to break. */
-.hero-photo h1 { color: #FBFAF6; margin-bottom: 18px; text-wrap: balance;
-  font-size: clamp(31px, 4.6vw, 50px); }
-/* Once each sentence fits a line, break between them. Left to itself,
-   text-wrap:balance evens the line lengths and splits "moving / parts",
-   which reads worse than an uneven but meaningful break. */
-@media (min-width: 900px) {
+.hero-photo .wrap { max-width: 1240px; }
+.hero-photo .hero-inner { padding: clamp(56px, 8vw, 104px) 0 clamp(48px, 6vw, 88px); }
+.hero-photo .hero-cols { display: grid; grid-template-columns: minmax(0,1fr) minmax(0,440px);
+  gap: clamp(32px, 4.5vw, 56px); align-items: center; }
+.hero-photo .hero-copy { max-width: 700px; }
+/* Sized for a two-sentence headline sharing the row with the app shots. The
+   copy column is ~690px at full width, so anything above ~40px wraps to four
+   lines; balance then keeps the two lines even. A forced break at the sentence
+   was tried and removed — sentence one alone needs ~890px at 50px, which this
+   column never has. */
+.hero-photo h1 { color: #FBFAF6; margin-bottom: 16px; text-wrap: balance;
+  font-size: clamp(29px, 3.5vw, 38px); }
+/* Measured, not guessed: sentence one is 670px wide at 38px, and the copy
+   track only reaches ~696px once the viewport passes 1240px. Below that,
+   balance gives two even lines instead. */
+@media (min-width: 1240px) {
   .hero-photo h1 { text-wrap: initial; }
   .hero-photo h1 .s1 { display: block; }
 }
@@ -47,8 +59,33 @@
   background-color: rgba(251,250,246,.16);
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12'%3E%3Cpolyline points='3,6.3 5,8.4 9,3.8' fill='none' stroke='%23FBFAF6' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
   background-repeat: no-repeat; background-position: center; }
-.photo-credit { position: absolute; right: 10px; bottom: 8px; z-index: 3;
-  font-size: 10.5px; color: rgba(251,250,246,.5); letter-spacing: .02em; }
+.photo-credit { position: absolute; right: 12px; bottom: 8px; z-index: 4;
+  font-size: 10.5px; color: rgba(251,250,246,.55); letter-spacing: .02em; }
+.photo-credit a { color: rgba(251,250,246,.8); text-decoration: underline;
+  text-underline-offset: 2px; }
+.photo-credit a:hover { color: #fff; }
+
+/* ---------- Hero device shots ---------- */
+.hero-shots { position: relative; }
+.hero-shots .shot-desktop { transform: perspective(1400px) rotateY(-4deg); transform-origin: right center; }
+.hero-shots .shot-phone { position: absolute; left: -34px; bottom: -30px; width: 152px; z-index: 3; }
+.phone { background: #1B1D18; border-radius: 20px; padding: 7px 5px;
+  box-shadow: 0 18px 40px rgba(0,0,0,.42), 0 0 0 1px rgba(255,255,255,.10); }
+.phone .notch { width: 40px; height: 4px; border-radius: 3px; background: rgba(255,255,255,.28);
+  margin: 1px auto 6px; }
+.phone .screen { background: var(--bg-page); border-radius: 14px; padding: 9px 8px; overflow: hidden; }
+.phone .ph-t { font-size: 9.5px; font-weight: 700; color: var(--text-primary); margin-bottom: 6px; }
+.phone .ph-card { background: var(--bg-card); border: 1px solid var(--border-hairline);
+  border-radius: 7px; padding: 6px 7px; margin-bottom: 5px; display: flex; gap: 6px; align-items: center; }
+.phone .ph-n { width: 15px; height: 15px; border-radius: 50%; background: var(--accent-subtle);
+  color: var(--accent); font-family: var(--font-mono); font-weight: 700; font-size: 8px;
+  display: flex; align-items: center; justify-content: center; flex: none; }
+.phone .ph-h { font-size: 8.5px; font-weight: 600; color: var(--text-primary); line-height: 1.25; }
+.phone .ph-m { font-size: 7.5px; color: var(--text-secondary); font-family: var(--font-mono); }
+.mobile-note { display: inline-flex; align-items: center; gap: 6px; margin-top: 18px;
+  padding: 6px 12px; border-radius: var(--radius-full); font-size: 12.5px; font-weight: 600;
+  background: rgba(251,250,246,.14); color: #FBFAF6; border: 1px solid rgba(251,250,246,.3);
+  backdrop-filter: blur(6px); }
 
 /* A stat strip that sits directly under the photo */
 .hero-strip { background: var(--bg-card); border-bottom: 1px solid var(--border-hairline); }
@@ -192,13 +229,35 @@
 
 .nextprev { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 14px; }
 
+@media (max-width: 1080px) {
+  /* Stack, and drop the perspective tilt — it only reads well side-on. */
+  .hero-photo .hero-cols { grid-template-columns: 1fr; gap: 36px; }
+  .hero-shots .shot-desktop { transform: none; }
+  .hero-shots .shot-phone { left: auto; right: -10px; bottom: -22px; width: 132px; }
+}
 @media (max-width: 940px) {
   .detail { grid-template-columns: 1fr; gap: 28px; }
   .detail.flip .detail-media { order: 0; }
   .hero-strip .row { grid-template-columns: repeat(2, 1fr); }
-  .hero-photo .bg { background-position: center 40%; }
+  .hero-photo .bg { background-position: center 55%; }
+}
+@media (max-width: 700px) {
+  /* On a phone, show the phone. The desktop panel adds nothing here and the
+     overlap gets cramped, so the mobile layout becomes the whole story. */
+  .hero-shots .shot-desktop { display: none; }
+  .hero-shots .shot-phone { position: static; width: 100%; max-width: 210px; margin: 0 auto; }
+  .hero-shots { display: flex; justify-content: center; }
+  .phone { border-radius: 26px; padding: 9px 7px; }
+  .phone .screen { border-radius: 18px; padding: 12px 10px; }
+  .phone .ph-t { font-size: 12px; }
+  .phone .ph-h { font-size: 11px; }
+  .phone .ph-m { font-size: 10px; }
+  .phone .ph-n { width: 19px; height: 19px; font-size: 10px; }
+  .phone .ph-card { padding: 8px 9px; border-radius: 9px; }
 }
 @media (max-width: 620px) {
-  .hero-photo .hero-inner { padding: 56px 0 48px; }
+  .hero-photo .hero-inner { padding: 48px 0 44px; }
   .scene-stage { min-height: 300px; }
+  .photo-credit { position: static; display: block; text-align: right;
+    padding: 0 18px 8px; color: rgba(251,250,246,.5); }
 }
