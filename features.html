@@ -57,6 +57,7 @@
       <a href="features/route.html">Route &amp; days</a>
       <a href="features/statistics.html">Statistics</a>
       <a href="features/today.html">Today</a>
+      <a href="features/weather.html">Weather</a>
       <a href="features/logistics.html">Logistics</a>
       <a href="features/accommodation.html">Accommodation</a>
       <a href="features/sights.html">Sights &amp; resupply</a>
@@ -195,6 +196,53 @@
                 <span>🍽️</span><div><div style="font-weight:600;font-size:12.5px;">Midge Bite Cafe</div>
                 <div class="ui-m" style="font-size:11px;">🕐 08:00–16:00 · Cyclist-friendly, big portions.</div></div>
               </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- WEATHER -->
+    <div class="feature-block" id="weather">
+      <div class="split">
+        <div>
+          <div class="eyebrow">Weather</div>
+          <h2>A forecast per stage, not per country</h2>
+          <p class="lede">Each day gets an hourly meteogram for the point where that stage ends —
+            derived from your GPX, so there are no coordinates to look up.</p>
+          <ul>
+            <li><strong>48 hours at a time</strong>, pageable across 16 days.</li>
+            <li><strong>Temperature, feels-like and dew point</strong> on one axis.</li>
+            <li><strong>Rain in mm plus probability</strong>, so drizzle and a downpour look different.</li>
+            <li><strong>Wind and gusts</strong> with direction arrows — the number that decides a headwind day.</li>
+            <li><strong>Cloud in three layers</strong>, night shaded, sunrise and sunset marked.</li>
+            <li><strong>Five forecast models</strong> — ECMWF, UK Met Office, GFS, ICON or auto.</li>
+          </ul>
+          <p style="margin-top:20px;"><a class="btn btn-sm" href="features/weather.html">Full breakdown →</a></p>
+        </div>
+        <div class="split-media">
+          <div class="ui">
+            <div class="ui-bar"><span class="ui-dot"></span><span class="ui-dot"></span><span class="ui-dot"></span><span class="ui-url">Weather — Day 4, Achnasheen</span></div>
+            <div class="ui-body">
+              <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:7px;margin-bottom:12px;">
+                <div class="ui-stat"><b>12–14°</b><span>Temp</span></div>
+                <div class="ui-stat"><b>7.5 mm</b><span>Rain</span></div>
+                <div class="ui-stat"><b>32</b><span>Max gust</span></div>
+                <div class="ui-stat"><b>05:52</b><span>Sunrise</span></div>
+              </div>
+              <svg viewBox="0 0 400 120" style="width:100%;display:block;">
+                <rect x="0" y="0" width="70" height="120" fill="var(--bg-recessed)" opacity=".7"/>
+                <rect x="300" y="0" width="100" height="120" fill="var(--bg-recessed)" opacity=".7"/>
+                <line x1="0" y1="30" x2="400" y2="30" stroke="var(--border-hairline)"/>
+                <line x1="0" y1="60" x2="400" y2="60" stroke="var(--border-hairline)"/>
+                <path d="M0,58 L50,52 L100,40 L150,34 L200,32 L250,38 L300,48 L350,56 L400,60" fill="none" stroke="var(--accent)" stroke-width="2.2"/>
+                <path d="M0,66 L50,60 L100,50 L150,44 L200,42 L250,48 L300,58 L350,64 L400,68" fill="none" stroke="var(--accent-2)" stroke-width="1.5" opacity=".8"/>
+                <rect x="196" y="84" width="10" height="30" rx="2" fill="var(--info)" opacity=".8"/>
+                <rect x="210" y="76" width="10" height="38" rx="2" fill="var(--info)" opacity=".8"/>
+                <rect x="224" y="90" width="10" height="24" rx="2" fill="var(--info)" opacity=".8"/>
+                <rect x="238" y="98" width="10" height="16" rx="2" fill="var(--info)" opacity=".8"/>
+              </svg>
+              <div class="ui-m" style="margin-top:6px;text-align:center;">Shaded columns are night · rain arrives 15:00</div>
             </div>
           </div>
         </div>

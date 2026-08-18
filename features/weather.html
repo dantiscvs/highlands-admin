@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Weather — Trip Tracker</title>
+<meta name="description" content="An hourly meteogram for the end of every stage, not one forecast for the whole trip.">
+<meta name="theme-color" content="#F7F5F0">
+<script>
+(function () {
+  var h = location.hash || '', q = location.search || '';
+  if (h.indexOf('access_token=') > -1 || q.indexOf('code=') > -1) location.replace('/app.html' + q + h);
+  var t = localStorage.getItem('theme');
+  if (t === 'dark' || t === 'light') document.documentElement.setAttribute('data-theme', t);
+})();
+</script>
+<link rel="stylesheet" href="../css/site.css">
+<link rel="stylesheet" href="../css/scenes.css">
+</head>
+<body>
+
+<header class="site">
+  <div class="wrap bar">
+    <a class="brand" href="../">
+      <svg class="mark" viewBox="0 0 28 28" aria-hidden="true">
+        <circle cx="14" cy="14" r="12.5" fill="none" stroke="currentColor" stroke-width="1.8"/>
+        <circle cx="8" cy="20" r="2.2" fill="currentColor"/><circle cx="20" cy="8" r="2.2" fill="currentColor"/>
+        <path d="M8 20C16 20 12 8 20 8" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+      </svg>
+      Trip Tracker
+    </a>
+    <nav class="mainnav" id="mainnav">
+      <a href="../features.html" class="on">Features</a>
+      <a href="../how-it-works.html">How it works</a>
+      <a href="../live.html?t=c26dcdbd931c46f8804196172c1179b9">Live demo</a>
+      <a href="../faq.html">FAQ</a>
+    </nav>
+    <div class="headcta">
+      <a class="btn btn-ghost btn-sm" href="../app.html">Sign in</a>
+      <a class="btn btn-primary btn-sm" href="../app.html">Get started</a>
+      <button id="navToggle" aria-label="Menu" aria-expanded="false">
+        <svg viewBox="0 0 22 22" width="22" height="22"><path d="M3 6h16M3 11h16M3 16h16" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" fill="none"/></svg>
+      </button>
+    </div>
+  </div>
+</header>
+
+<section class="subhero">
+  <div class="wrap">
+    <div class="crumb"><a href="../">Home</a> → <a href="../features.html">Features</a> → Weather</div>
+    <div style="display:flex;gap:14px;align-items:flex-start;">
+      <span style="font-size:36px;line-height:1;">🌤️</span>
+      <div>
+        <h1 style="font-size:clamp(28px,4vw,42px);">Weather</h1>
+        <p class="lede" style="margin-top:12px;max-width:640px;">An hourly meteogram for the end of every stage, not one forecast for the whole trip.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="tight">
+  <div class="wrap narrow">
+    <p style="font-size:17px;color:var(--text-secondary);line-height:1.65;">A forecast for &quot;Scotland&quot; is useless when your week crosses four valleys and a coast. Weather gives each day its own hourly chart, for the point where that stage actually ends — which is where you will be standing when the rain arrives.</p>
+  </div>
+</section>
+
+<section style="padding-top:0;">
+  <div class="wrap">
+<div class="detail"><div><h3>It already knows where you will be</h3><p>Most planners make you type coordinates. Trip Tracker takes them from the end of the day&#39;s GPX track, because that is the overnight stop, and caches the result on the day so it is only worked out once.</p><p>Days without a track can have coordinates set by hand, and any day&#39;s point can be overridden if you would rather forecast for a summit than a bunkhouse.</p><ul><li><strong>Derived from your GPX</strong> — no coordinates to look up.</li><li><strong>Per day</strong>, so a week-long trip gets a week of different forecasts.</li><li><strong>Editable</strong> when a track is missing or the wrong point is picked.</li></ul></div><div class="detail-media"><div class="ui">
+  <div class="ui-bar"><span class="ui-dot"></span><span class="ui-dot"></span><span class="ui-dot"></span>
+    <span class="ui-url">Weather — day picker</span></div>
+  <div class="ui-body"><div style="display:flex;gap:6px;overflow:hidden;"><div style="flex:none;padding:7px 13px;border-radius:10px;border:1px solid var(--border-hairline);text-align:center;"><div style="font-size:13px;font-weight:600;">Day 3</div><div style="font-size:10.5px;color:var(--text-tertiary);">17 Aug</div></div><div style="flex:none;padding:7px 13px;border-radius:10px;border:1px solid var(--accent-subtle-border);background:var(--accent-subtle);text-align:center;"><div style="font-size:13px;font-weight:600;">Day 4</div><div style="font-size:10.5px;color:var(--text-tertiary);">18 Aug</div></div><div style="flex:none;padding:7px 13px;border-radius:10px;border:1px solid var(--border-hairline);text-align:center;"><div style="font-size:13px;font-weight:600;">Day 5</div><div style="font-size:10.5px;color:var(--text-tertiary);">19 Aug</div></div><div style="flex:none;padding:7px 13px;border-radius:10px;border:1px solid var(--border-hairline);text-align:center;"><div style="font-size:13px;font-weight:600;">Day 6</div><div style="font-size:10.5px;color:var(--text-tertiary);">20 Aug</div></div></div><div class="ui-m" style="margin-top:10px;">57.574, -5.081 (from GPX) · Achnasheen</div></div>
+</div></div></div>
+<div class="detail flip"><div><h3>A meteogram, not an emoji</h3><p>A sun icon and one temperature tells you nothing about whether to start at six or wait until nine. The chart stacks the things that change that decision across 48 hours: temperature with feels-like and dew point, precipitation with probability, wind with gusts and direction, and cloud cover split into low, mid and high.</p><p>Night hours are shaded, days are separated, and the summary above gives the range, total rainfall, peak gust and daylight hours for the stage itself.</p><ul><li><strong>48 hours</strong> at a time, pageable through 16 days.</li><li><strong>Temperature, feels-like and dew point</strong> on one axis.</li><li><strong>Rain in mm plus probability</strong>, so drizzle and a downpour look different.</li><li><strong>Wind and gusts</strong> with direction arrows every three hours.</li><li><strong>Cloud in three layers</strong> — high cloud and hill fog are not the same problem.</li><li><strong>Sunrise and sunset</strong>, which is what really limits a long day.</li></ul></div><div class="detail-media"><div class="ui">
+  <div class="ui-bar"><span class="ui-dot"></span><span class="ui-dot"></span><span class="ui-dot"></span>
+    <span class="ui-url">Weather — Day 4, Achnasheen</span></div>
+  <div class="ui-body"><div style="display:grid;grid-template-columns:repeat(4,1fr);gap:7px;margin-bottom:12px;"><div class="ui-stat"><b>12–14°</b><span>Temp</span></div><div class="ui-stat"><b>7.5 mm</b><span>Rain</span></div><div class="ui-stat"><b>32</b><span>Max gust</span></div><div class="ui-stat"><b>05:52</b><span>Sunrise</span></div></div><svg viewBox="0 0 400 120" style="width:100%;display:block;"><rect x="0" y="0" width="70" height="120" fill="var(--bg-recessed)" opacity=".7"/><rect x="300" y="0" width="100" height="120" fill="var(--bg-recessed)" opacity=".7"/><line x1="0" y1="30" x2="400" y2="30" stroke="var(--border-hairline)"/><line x1="0" y1="60" x2="400" y2="60" stroke="var(--border-hairline)"/><path d="M0,58 L50,52 L100,40 L150,34 L200,32 L250,38 L300,48 L350,56 L400,60" fill="none" stroke="var(--accent)" stroke-width="2.2"/><path d="M0,66 L50,60 L100,50 L150,44 L200,42 L250,48 L300,58 L350,64 L400,68" fill="none" stroke="var(--accent-2)" stroke-width="1.5" opacity=".8"/><rect x="196" y="84" width="10" height="30" rx="2" fill="var(--info)" opacity=".8"/><rect x="210" y="76" width="10" height="38" rx="2" fill="var(--info)" opacity=".8"/><rect x="224" y="90" width="10" height="24" rx="2" fill="var(--info)" opacity=".8"/><rect x="238" y="98" width="10" height="16" rx="2" fill="var(--info)" opacity=".8"/></svg><div class="ui-m" style="margin-top:6px;text-align:center;">Shaded columns are night · rain arrives 15:00</div></div>
+</div></div></div>
+<div class="detail" style="grid-template-columns:1fr;max-width:780px;"><div><h3>Pick the model you trust</h3><p>Forecast models disagree, especially in mountains, and most people who ride in bad weather have a favourite. Switch between ECMWF, the UK Met Office, GFS and ICON, or let the service pick the best available for that location.</p><p>Disagreement between two models is itself information. If ECMWF and the Met Office differ about Thursday, Thursday is uncertain — worth knowing before you commit to a 90 km day.</p><ul><li><strong>Five sources</strong>, switchable per trip.</li><li><strong>Cached for three hours</strong>, so paging between days is instant.</li><li><strong>Last good forecast is kept</strong> and labelled with its age if the network drops.</li></ul></div></div>
+  </div>
+</section>
+
+<section class="tight">
+  <div class="wrap narrow">
+    <div class="limits">
+      <h4>Good to know</h4>
+      <ul><li>Forecasts come from Open-Meteo and need a connection the first time for each point and model. After that a cached copy is shown, labelled with its age.</li><li>The point used is where the stage ends. A day that climbs 1,000 m to a pass and descends will not show the weather at the top.</li><li>Only days with a GPX track get coordinates automatically; the rest need them set by hand.</li><li>Wind is forecast at 10 m in open ground — valleys and forest will differ considerably.</li></ul>
+    </div>
+  </div>
+</section>
+
+<section class="alt tight">
+  <div class="wrap">
+    <div class="sec-head" style="margin-bottom:24px;"><h2 style="font-size:24px;">Related</h2></div>
+    <div class="nextprev"><a class="card" href="today.html"><span class="ico">🎯</span><h4>Today</h4><p>The screen you actually use while moving. One stage, what is left of it, and whether you a…</p><span class="more">Read more →</span></a><a class="card" href="route.html"><span class="ico">🗺️</span><h4>Route &amp; Days</h4><p>The backbone of every trip. One row per stage, with everything else in the app hanging off…</p><span class="more">Read more →</span></a><a class="card" href="readiness.html"><span class="ico">☑️</span><h4>Readiness</h4><p>What is still missing, a week before you leave.…</p><span class="more">Read more →</span></a></div>
+  </div>
+</section>
+
+<section class="tight">
+  <div class="wrap">
+    <div class="cta-band">
+      <h2>Try it on your next trip</h2>
+      <p>Free while in early access. A couple of minutes to set up.</p>
+      <div class="cta-actions">
+        <a class="btn btn-lg" href="../app.html">Get started</a>
+        <a class="btn btn-lg btn-outline" href="../live.html?t=c26dcdbd931c46f8804196172c1179b9">View the demo trip</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<footer class="site">
+  <div class="wrap">
+    <div class="foot-grid">
+      <div>
+        <a class="brand" href="../" style="margin-bottom:12px;">
+          <svg class="mark" viewBox="0 0 28 28" aria-hidden="true">
+            <circle cx="14" cy="14" r="12.5" fill="none" stroke="currentColor" stroke-width="1.8"/>
+            <circle cx="8" cy="20" r="2.2" fill="currentColor"/><circle cx="20" cy="8" r="2.2" fill="currentColor"/>
+            <path d="M8 20C16 20 12 8 20 8" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+          </svg>
+          Trip Tracker
+        </a>
+        <p class="muted" style="max-width:300px;font-size:14px;">Planning and live sharing for multi-day group trips.</p>
+      </div>
+      <div><h4>Product</h4><ul>
+        <li><a href="../features.html">All features</a></li>
+        <li><a href="../how-it-works.html">How it works</a></li>
+        <li><a href="../faq.html">FAQ</a></li></ul></div>
+      <div><h4>Try it</h4><ul>
+        <li><a href="../app.html">Sign in</a></li>
+        <li><a href="../app.html">Create a trip</a></li>
+        <li><a href="../live.html?t=c26dcdbd931c46f8804196172c1179b9">Live demo</a></li></ul></div>
+      <div><h4>Deep dives</h4><ul>
+        <li><a href="route.html">Route &amp; Days</a></li>
+        <li><a href="today.html">Today</a></li>
+        <li><a href="live.html">Live sharing</a></li>
+        <li><a href="imports.html">Imports</a></li></ul></div>
+    </div>
+    <div class="foot-bottom">
+      <span>© 2026 Trip Tracker</span>
+      <span>Early access — <a href="../app.html">free to use</a></span>
+    </div>
+  </div>
+</footer>
+
+<script>
+document.getElementById('navToggle').addEventListener('click', function () {
+  var n = document.getElementById('mainnav');
+  var open = n.classList.toggle('open');
+  this.setAttribute('aria-expanded', open ? 'true' : 'false');
+});
+</script>
+</body>
+</html>

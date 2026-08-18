@@ -29,6 +29,7 @@ const NAV_ICONS = {
   camera: '<svg viewBox="0 0 18 18"><rect x="2" y="6" width="14" height="10" rx="2" fill="none" stroke="currentColor" stroke-width="1.6"/><circle cx="9" cy="11" r="2.5" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M6 6V5a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v1" fill="none" stroke="currentColor" stroke-width="1.5"/></svg>',
   eye: '<svg viewBox="0 0 18 18"><path d="M1.5 9S4.5 4 9 4s7.5 5 7.5 5-3 5-7.5 5S1.5 9 1.5 9Z" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/><circle cx="9" cy="9" r="2.2" fill="none" stroke="currentColor" stroke-width="1.5"/></svg>',
   today: '<svg viewBox="0 0 18 18"><rect x="2.5" y="3.5" width="13" height="11" rx="1.8" fill="none" stroke="currentColor" stroke-width="1.6"/><line x1="2.5" y1="7" x2="15.5" y2="7" stroke="currentColor" stroke-width="1.6"/><line x1="6" y1="2" x2="6" y2="5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/><line x1="12" y1="2" x2="12" y2="5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/><circle cx="9" cy="10.8" r="1.5" fill="currentColor"/></svg>',
+  weather: '<svg viewBox="0 0 18 18"><circle cx="6.5" cy="6.5" r="3" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M11.5 14.5H6a3 3 0 0 1 0-6 3.6 3.6 0 0 1 .5 0 4 4 0 0 1 7.6 1.2 2.6 2.6 0 0 1-.6 4.8" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/></svg>',
   chart: '<svg viewBox="0 0 18 18"><line x1="3" y1="15" x2="15" y2="15" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/><rect x="4" y="9" width="2.6" height="5" fill="currentColor"/><rect x="8" y="5.5" width="2.6" height="8.5" fill="currentColor"/><rect x="12" y="7.5" width="2.6" height="6.5" fill="currentColor"/></svg>',
 };
 
@@ -93,6 +94,7 @@ async function renderTripShell(tripId, section) {
     overview: renderTripOverview,
     today: renderTodaySection,
     stats: renderStatsSection,
+    weather: renderWeatherSection,
     grid: renderDayGrid,
     logistics: renderLogistics,
     accommodation: () => renderAccommodationModule(),
@@ -138,6 +140,7 @@ function renderTripSidebar(section) {
     ${moduleOn('route') ? navRow('today','Today','today',section) : ''}
     ${moduleOn('route') ? navRow('grid','Route & Days','grid',section) : ''}
     ${moduleOn('route') ? navRow('chart','Statistics','stats',section) : ''}
+    ${moduleOn('weather') ? navRow('weather','Weather','weather',section) : ''}
     ${moduleOn('transport') ? navRow('route','Logistics','logistics',section) : ''}
 
     <div class="navgroup">Modules</div>

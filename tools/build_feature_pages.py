@@ -709,6 +709,87 @@ FEATURES = [
                 "Dismissals are stored in your browser, so they do not follow you to another device."],
         related=["route", "accommodation", "sights"],
     ),
+
+    dict(
+        slug="weather", icon="🌤️", name="Weather",
+        title="Weather",
+        lede="An hourly meteogram for the end of every stage, not one forecast for the whole trip.",
+        intro="A forecast for &quot;Scotland&quot; is useless when your week crosses four valleys and a coast. "
+              "Weather gives each day its own hourly chart, for the point where that stage actually ends — "
+              "which is where you will be standing when the rain arrives.",
+        blocks=[
+            dict(h="It already knows where you will be",
+                 p=["Most planners make you type coordinates. Trip Tracker takes them from the end of the "
+                    "day&#39;s GPX track, because that is the overnight stop, and caches the result on the day "
+                    "so it is only worked out once.",
+                    "Days without a track can have coordinates set by hand, and any day&#39;s point can be "
+                    "overridden if you would rather forecast for a summit than a bunkhouse."],
+                 li=["<strong>Derived from your GPX</strong> — no coordinates to look up.",
+                     "<strong>Per day</strong>, so a week-long trip gets a week of different forecasts.",
+                     "<strong>Editable</strong> when a track is missing or the wrong point is picked."],
+                 media=ui("Weather — day picker",
+                          '<div style="display:flex;gap:6px;overflow:hidden;">'
+                          '<div style="flex:none;padding:7px 13px;border-radius:10px;border:1px solid var(--border-hairline);text-align:center;">'
+                          '<div style="font-size:13px;font-weight:600;">Day 3</div><div style="font-size:10.5px;color:var(--text-tertiary);">17 Aug</div></div>'
+                          '<div style="flex:none;padding:7px 13px;border-radius:10px;border:1px solid var(--accent-subtle-border);background:var(--accent-subtle);text-align:center;">'
+                          '<div style="font-size:13px;font-weight:600;">Day 4</div><div style="font-size:10.5px;color:var(--text-tertiary);">18 Aug</div></div>'
+                          '<div style="flex:none;padding:7px 13px;border-radius:10px;border:1px solid var(--border-hairline);text-align:center;">'
+                          '<div style="font-size:13px;font-weight:600;">Day 5</div><div style="font-size:10.5px;color:var(--text-tertiary);">19 Aug</div></div>'
+                          '<div style="flex:none;padding:7px 13px;border-radius:10px;border:1px solid var(--border-hairline);text-align:center;">'
+                          '<div style="font-size:13px;font-weight:600;">Day 6</div><div style="font-size:10.5px;color:var(--text-tertiary);">20 Aug</div></div></div>'
+                          '<div class="ui-m" style="margin-top:10px;">57.574, -5.081 (from GPX) · Achnasheen</div>')),
+            dict(h="A meteogram, not an emoji",
+                 p=["A sun icon and one temperature tells you nothing about whether to start at six or wait "
+                    "until nine. The chart stacks the things that change that decision across 48 hours: "
+                    "temperature with feels-like and dew point, precipitation with probability, wind with "
+                    "gusts and direction, and cloud cover split into low, mid and high.",
+                    "Night hours are shaded, days are separated, and the summary above gives the range, "
+                    "total rainfall, peak gust and daylight hours for the stage itself."],
+                 li=["<strong>48 hours</strong> at a time, pageable through 16 days.",
+                     "<strong>Temperature, feels-like and dew point</strong> on one axis.",
+                     "<strong>Rain in mm plus probability</strong>, so drizzle and a downpour look different.",
+                     "<strong>Wind and gusts</strong> with direction arrows every three hours.",
+                     "<strong>Cloud in three layers</strong> — high cloud and hill fog are not the same problem.",
+                     "<strong>Sunrise and sunset</strong>, which is what really limits a long day."],
+                 media=ui("Weather — Day 4, Achnasheen",
+                          '<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:7px;margin-bottom:12px;">'
+                          '<div class="ui-stat"><b>12–14°</b><span>Temp</span></div>'
+                          '<div class="ui-stat"><b>7.5 mm</b><span>Rain</span></div>'
+                          '<div class="ui-stat"><b>32</b><span>Max gust</span></div>'
+                          '<div class="ui-stat"><b>05:52</b><span>Sunrise</span></div></div>'
+                          '<svg viewBox="0 0 400 120" style="width:100%;display:block;">'
+                          '<rect x="0" y="0" width="70" height="120" fill="var(--bg-recessed)" opacity=".7"/>'
+                          '<rect x="300" y="0" width="100" height="120" fill="var(--bg-recessed)" opacity=".7"/>'
+                          '<line x1="0" y1="30" x2="400" y2="30" stroke="var(--border-hairline)"/>'
+                          '<line x1="0" y1="60" x2="400" y2="60" stroke="var(--border-hairline)"/>'
+                          '<path d="M0,58 L50,52 L100,40 L150,34 L200,32 L250,38 L300,48 L350,56 L400,60" fill="none" stroke="var(--accent)" stroke-width="2.2"/>'
+                          '<path d="M0,66 L50,60 L100,50 L150,44 L200,42 L250,48 L300,58 L350,64 L400,68" fill="none" stroke="var(--accent-2)" stroke-width="1.5" opacity=".8"/>'
+                          '<rect x="196" y="84" width="10" height="30" rx="2" fill="var(--info)" opacity=".8"/>'
+                          '<rect x="210" y="76" width="10" height="38" rx="2" fill="var(--info)" opacity=".8"/>'
+                          '<rect x="224" y="90" width="10" height="24" rx="2" fill="var(--info)" opacity=".8"/>'
+                          '<rect x="238" y="98" width="10" height="16" rx="2" fill="var(--info)" opacity=".8"/>'
+                          '</svg>'
+                          '<div class="ui-m" style="margin-top:6px;text-align:center;">Shaded columns are night · rain arrives 15:00</div>')),
+            dict(h="Pick the model you trust",
+                 p=["Forecast models disagree, especially in mountains, and most people who ride in bad "
+                    "weather have a favourite. Switch between ECMWF, the UK Met Office, GFS and ICON, or let "
+                    "the service pick the best available for that location.",
+                    "Disagreement between two models is itself information. If ECMWF and the Met Office "
+                    "differ about Thursday, Thursday is uncertain — worth knowing before you commit to a "
+                    "90 km day."],
+                 li=["<strong>Five sources</strong>, switchable per trip.",
+                     "<strong>Cached for three hours</strong>, so paging between days is instant.",
+                     "<strong>Last good forecast is kept</strong> and labelled with its age if the network drops."],
+                 media=None),
+        ],
+        limits=["Forecasts come from Open-Meteo and need a connection the first time for each point and "
+                "model. After that a cached copy is shown, labelled with its age.",
+                "The point used is where the stage ends. A day that climbs 1,000 m to a pass and descends "
+                "will not show the weather at the top.",
+                "Only days with a GPX track get coordinates automatically; the rest need them set by hand.",
+                "Wind is forecast at 10 m in open ground — valleys and forest will differ considerably."],
+        related=["today", "route", "readiness"],
+    ),
 ]
 
 BY_SLUG = {f["slug"]: f for f in FEATURES}

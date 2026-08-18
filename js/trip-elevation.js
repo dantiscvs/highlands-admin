@@ -60,6 +60,10 @@ function buildProfileFromGpx(text) {
     totalGain: gain[gain.length - 1],
     minEle: Math.min(...smooth), maxEle: Math.max(...smooth),
     hasEle,
+    // Kept so the Weather module can forecast for where a stage actually ends,
+    // without re-fetching and re-parsing the track.
+    startLatLon: [pts[0].lat, pts[0].lon],
+    endLatLon: [pts[pts.length - 1].lat, pts[pts.length - 1].lon],
   };
 }
 

@@ -79,54 +79,68 @@
         <div class="ui shot-desktop">
           <div class="ui-bar">
             <span class="ui-dot"></span><span class="ui-dot"></span><span class="ui-dot"></span>
-            <span class="ui-url">triptracker.cc/app — Route &amp; Days</span>
+            <span class="ui-url">triptracker.cc/app — Today · Day 4 of 8</span>
           </div>
           <div class="ui-body">
-            <div class="ui-stats">
-              <div class="ui-stat"><b>8</b><span>Days</span></div>
-              <div class="ui-stat"><b>514</b><span>km</span></div>
-              <div class="ui-stat"><b>6156</b><span>m climbed</span></div>
-              <div class="ui-stat"><b>88%</b><span>Ready</span></div>
-            </div>
-            <div class="ui-row">
-              <span class="ui-num">3</span>
-              <div style="flex:1;min-width:0;">
-                <div class="ui-t">Fort Augustus → Ratagan</div>
-                <div class="ui-m">Mon 17 Aug · 85.9 km · +1161 m</div>
+
+            <div class="hx-head">
+              <div>
+                <div class="hx-title">Ratagan → Achnasheen</div>
+                <div class="ui-m">Tue 18 Aug · tarmac · 88 km</div>
               </div>
-              <span class="ui-pill pill-green">Booked</span>
+              <div class="hx-score"><b>8.3</b><span>Hard</span></div>
             </div>
-            <div class="ui-row" style="border-color:var(--accent-subtle-border);background:var(--accent-subtle);">
-              <span class="ui-num" style="background:var(--accent);color:var(--text-on-accent);">4</span>
-              <div style="flex:1;min-width:0;">
-                <div class="ui-t">Ratagan → Achnasheen</div>
-                <div class="ui-m">Today · 48 / 88 km · +1160 m</div>
+
+            <div class="hx-prog">
+              <div class="hx-prog-top">
+                <span><b>40.0 km</b> left</span>
+                <span class="ui-m">48 / 88 done</span>
               </div>
-              <span class="ui-pill pill-orange">Riding</span>
+              <div class="hx-bar"><div style="width:55%;"></div></div>
             </div>
-            <div class="ui-row">
-              <span class="ui-num">5</span>
-              <div style="flex:1;min-width:0;">
-                <div class="ui-t">Achnasheen → Dundonnell</div>
-                <div class="ui-m">Wed 19 Aug · 93 km · +1183 m</div>
-              </div>
-              <span class="ui-pill pill-gray">Planned</span>
+
+            <div class="hx-metrics">
+              <div><span class="hx-k">Climb left</span><b>612 m</b></div>
+              <div><span class="hx-k">Pace needed</span><b class="warn">14.2 km/h</b></div>
+              <div><span class="hx-k">ETA</span><b>17:40</b></div>
             </div>
+
+            <div class="hx-line">
+              <span class="hx-ico">🌧️</span>
+              <div><b>Rain from 15:00</b><span class="ui-m"> · 4 mm, gusts 38 km/h</span></div>
+            </div>
+            <div class="hx-line">
+              <span class="hx-ico">🍽️</span>
+              <div><b>Midge Bite Cafe</b><span class="ui-m"> · kitchen closes 20:00 — 6 km ahead</span></div>
+            </div>
+            <div class="hx-line">
+              <span class="hx-ico">🛒</span>
+              <div><b>Last shop for 60 km</b><span class="ui-m"> · Co-op, closes 22:00</span></div>
+            </div>
+            <div class="hx-line last">
+              <span class="hx-ico">🏠</span>
+              <div><b>Ledgowan Bunkhouse</b><span class="ui-m"> · Achnasheen · 3 beds · paid</span></div>
+            </div>
+
           </div>
         </div>
 
-        <!-- Same plan, phone layout — the view you actually use on the road. -->
-        <div class="phone shot-phone" aria-label="The same day planner on a phone">
+        <!-- Same day, phone layout — the view you actually use on the road. -->
+        <div class="phone shot-phone" aria-label="The same day on a phone">
           <div class="notch"></div>
           <div class="screen">
-            <div class="ph-t">Route &amp; Days</div>
-            <div class="ph-card"><span class="ph-n">3</span>
-              <div><div class="ph-h">Fort Augustus → Ratagan</div><div class="ph-m">85.9 km</div></div></div>
-            <div class="ph-card" style="border-color:var(--accent-subtle-border);background:var(--accent-subtle);">
-              <span class="ph-n" style="background:var(--accent);color:var(--text-on-accent);">4</span>
-              <div><div class="ph-h">Ratagan → Achnasheen</div><div class="ph-m">48 / 88 km</div></div></div>
-            <div class="ph-card"><span class="ph-n">5</span>
-              <div><div class="ph-h">Achnasheen → Dundonnell</div><div class="ph-m">93 km</div></div></div>
+            <div class="ph-t">Today · Day 4</div>
+            <div class="ph-hero">
+              <b>40.0 km</b><span>left of 88</span>
+              <div class="ph-bar"><div style="width:55%;"></div></div>
+            </div>
+            <div class="ph-kv"><span>Climb left</span><b>612 m</b></div>
+            <div class="ph-kv"><span>Pace needed</span><b class="warn">14.2</b></div>
+            <div class="ph-kv"><span>Rain from</span><b>15:00</b></div>
+            <div class="ph-card"><span class="ph-n">🍽️</span>
+              <div><div class="ph-h">Midge Bite Cafe</div><div class="ph-m">closes 20:00</div></div></div>
+            <div class="ph-card"><span class="ph-n">🏠</span>
+              <div><div class="ph-h">Ledgowan Bunkhouse</div><div class="ph-m">Achnasheen</div></div></div>
           </div>
         </div>
       </div>
@@ -155,6 +169,7 @@
     <div class="chips" style="justify-content:center;">
       <span class="chip">🗺️ Route &amp; days</span>
       <span class="chip">📈 Elevation profiles</span>
+      <span class="chip">🌤️ Weather</span>
       <span class="chip">🎯 Today</span>
       <span class="chip">📊 Statistics</span>
       <span class="chip">✈️ Logistics</span>
@@ -540,6 +555,8 @@
         <p>The on-the-road screen — progress, live pace and what is still ahead.</p><span class="more">Read more →</span></a>
       <a class="card" href="features/statistics.html"><span class="ico">📊</span><h4>Statistics</h4>
         <p>Effort scores, pace charts and elevation across the whole trip.</p><span class="more">Read more →</span></a>
+      <a class="card" href="features/weather.html"><span class="ico">🌤️</span><h4>Weather</h4>
+        <p>An hourly meteogram for where each stage ends, not one forecast for the trip.</p><span class="more">Read more →</span></a>
       <a class="card" href="features/logistics.html"><span class="ico">✈️</span><h4>Logistics</h4>
         <p>Flights, trains, ferries and bike boxes, with seats and references.</p><span class="more">Read more →</span></a>
       <a class="card" href="features/accommodation.html"><span class="ico">🏠</span><h4>Accommodation</h4>
@@ -621,6 +638,7 @@
       <div><h4>Deep dives</h4><ul>
         <li><a href="features/route.html">Route &amp; Days</a></li>
         <li><a href="features/today.html">Today</a></li>
+        <li><a href="features/weather.html">Weather</a></li>
         <li><a href="features/live.html">Live sharing</a></li>
         <li><a href="features/imports.html">Imports</a></li></ul></div>
     </div>
