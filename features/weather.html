@@ -30,7 +30,15 @@
       Trip Tracker
     </a>
     <nav class="mainnav" id="mainnav">
-      <a href="../features.html" class="on">Features</a>
+      <div class="navdrop" id="navdrop">
+        <button type="button" class="on" aria-expanded="false" onclick="toggleFeatureMenu(event)">Features
+          <svg class="caret" width="10" height="10" viewBox="0 0 10 10" aria-hidden="true"><path d="M2 4l3 3 3-3" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </button>
+        <div class="navdrop-menu">
+          <a href="route.html"><i>🗺️</i><b>Route &amp; Days<span>Stages, elevation, maps</span></b></a><a href="today.html"><i>🎯</i><b>Today<span>The on-the-road screen</span></b></a><a href="statistics.html"><i>📊</i><b>Statistics<span>Effort and pace charts</span></b></a><a href="weather.html"><i>🌤️</i><b>Weather<span>Hourly, per stage</span></b></a><a href="logistics.html"><i>✈️</i><b>Logistics<span>Flights, trains, ferries</span></b></a><a href="accommodation.html"><i>🏠</i><b>Accommodation<span>Rooms, costs, breakfast</span></b></a><a href="sights.html"><i>🏰</i><b>Sights &amp; Resupply<span>Food, shops, water</span></b></a><a href="packing.html"><i>🎒</i><b>Packing &amp; Tasks<span>Assigned per person</span></b></a><a href="expenses.html"><i>💸</i><b>Expenses<span>Split and settle</span></b></a><a href="story.html"><i>📸</i><b>Story &amp; Photos<span>Gallery and story cards</span></b></a><a href="live.html"><i>🔴</i><b>Live Sharing<span>One public link</span></b></a><a href="imports.html"><i>📥</i><b>Imports<span>Email, PDF, GPX</span></b></a>
+          <a class="all" href="../features.html">All features →</a>
+        </div>
+      </div>
       <a href="../how-it-works.html">How it works</a>
       <a href="../live.html?t=c26dcdbd931c46f8804196172c1179b9">Live demo</a>
       <a href="../faq.html">FAQ</a>
@@ -45,18 +53,7 @@
   </div>
 </header>
 
-<section class="subhero">
-  <div class="wrap">
-    <div class="crumb"><a href="../">Home</a> → <a href="../features.html">Features</a> → Weather</div>
-    <div style="display:flex;gap:14px;align-items:flex-start;">
-      <span style="font-size:36px;line-height:1;">🌤️</span>
-      <div>
-        <h1 style="font-size:clamp(28px,4vw,42px);">Weather</h1>
-        <p class="lede" style="margin-top:12px;max-width:640px;">An hourly meteogram for the end of every stage, not one forecast for the whole trip.</p>
-      </div>
-    </div>
-  </div>
-</section>
+<section class="subhero subhero-photo" style="--sub-img:url('/img/features/weather.jpg');"><div class="sub-bg"></div><div class="sub-scrim"></div><div class="wrap"><div class="crumb"><a href="../">Home</a> → <a href="../features.html">Features</a> → Weather</div><div style="display:flex;gap:14px;align-items:flex-start;"><span style="font-size:36px;line-height:1;">🌤️</span><div><h1 style="font-size:clamp(28px,4vw,42px);">Weather</h1><p class="lede" style="margin-top:12px;max-width:640px;">An hourly meteogram for the end of every stage, not one forecast for the whole trip.</p></div></div></div><div class="photo-credit">Photo by <a href="https://unsplash.com/@notquitemax?utm_source=unsplash&utm_medium=referral&utm_content=creditCopyText" target="_blank" rel="noopener nofollow">Max</a> on <a href="https://unsplash.com/photos/closeup-photography-of-water-drops-on-body-of-water-22x7fxFpl_8?utm_source=unsplash&utm_medium=referral&utm_content=creditCopyText" target="_blank" rel="noopener nofollow">Unsplash</a></div></section>
 
 <section class="tight">
   <div class="wrap narrow">
@@ -145,6 +142,17 @@
 </footer>
 
 <script>
+// Features menu: hover on desktop (CSS), tap to expand in the hamburger.
+function toggleFeatureMenu(e) {
+  e.preventDefault();
+  var d = document.getElementById('navdrop');
+  var open = d.classList.toggle('open');
+  d.querySelector('button').setAttribute('aria-expanded', open ? 'true' : 'false');
+}
+document.addEventListener('click', function (e) {
+  var d = document.getElementById('navdrop');
+  if (d && !d.contains(e.target)) d.classList.remove('open');
+});
 document.getElementById('navToggle').addEventListener('click', function () {
   var n = document.getElementById('mainnav');
   var open = n.classList.toggle('open');

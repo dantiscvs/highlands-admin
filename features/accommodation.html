@@ -30,7 +30,15 @@
       Trip Tracker
     </a>
     <nav class="mainnav" id="mainnav">
-      <a href="../features.html" class="on">Features</a>
+      <div class="navdrop" id="navdrop">
+        <button type="button" class="on" aria-expanded="false" onclick="toggleFeatureMenu(event)">Features
+          <svg class="caret" width="10" height="10" viewBox="0 0 10 10" aria-hidden="true"><path d="M2 4l3 3 3-3" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </button>
+        <div class="navdrop-menu">
+          <a href="route.html"><i>🗺️</i><b>Route &amp; Days<span>Stages, elevation, maps</span></b></a><a href="today.html"><i>🎯</i><b>Today<span>The on-the-road screen</span></b></a><a href="statistics.html"><i>📊</i><b>Statistics<span>Effort and pace charts</span></b></a><a href="weather.html"><i>🌤️</i><b>Weather<span>Hourly, per stage</span></b></a><a href="logistics.html"><i>✈️</i><b>Logistics<span>Flights, trains, ferries</span></b></a><a href="accommodation.html"><i>🏠</i><b>Accommodation<span>Rooms, costs, breakfast</span></b></a><a href="sights.html"><i>🏰</i><b>Sights &amp; Resupply<span>Food, shops, water</span></b></a><a href="packing.html"><i>🎒</i><b>Packing &amp; Tasks<span>Assigned per person</span></b></a><a href="expenses.html"><i>💸</i><b>Expenses<span>Split and settle</span></b></a><a href="story.html"><i>📸</i><b>Story &amp; Photos<span>Gallery and story cards</span></b></a><a href="live.html"><i>🔴</i><b>Live Sharing<span>One public link</span></b></a><a href="imports.html"><i>📥</i><b>Imports<span>Email, PDF, GPX</span></b></a>
+          <a class="all" href="../features.html">All features →</a>
+        </div>
+      </div>
       <a href="../how-it-works.html">How it works</a>
       <a href="../live.html?t=c26dcdbd931c46f8804196172c1179b9">Live demo</a>
       <a href="../faq.html">FAQ</a>
@@ -45,18 +53,7 @@
   </div>
 </header>
 
-<section class="subhero">
-  <div class="wrap">
-    <div class="crumb"><a href="../">Home</a> → <a href="../features.html">Features</a> → Accommodation</div>
-    <div style="display:flex;gap:14px;align-items:flex-start;">
-      <span style="font-size:36px;line-height:1;">🏠</span>
-      <div>
-        <h1 style="font-size:clamp(28px,4vw,42px);">Accommodation</h1>
-        <p class="lede" style="margin-top:12px;max-width:640px;">Where you sleep, and the details you need at 7pm and again at 7am.</p>
-      </div>
-    </div>
-  </div>
-</section>
+<section class="subhero subhero-photo" style="--sub-img:url('/img/features/accommodation.jpg');"><div class="sub-bg"></div><div class="sub-scrim"></div><div class="wrap"><div class="crumb"><a href="../">Home</a> → <a href="../features.html">Features</a> → Accommodation</div><div style="display:flex;gap:14px;align-items:flex-start;"><span style="font-size:36px;line-height:1;">🏠</span><div><h1 style="font-size:clamp(28px,4vw,42px);">Accommodation</h1><p class="lede" style="margin-top:12px;max-width:640px;">Where you sleep, and the details you need at 7pm and again at 7am.</p></div></div></div><div class="photo-credit">Photo by <a href="https://unsplash.com/@zoshuacolah?utm_source=unsplash&utm_medium=referral&utm_content=creditCopyText" target="_blank" rel="noopener nofollow">Zoshua Colah</a> on <a href="https://unsplash.com/photos/a-room-filled-with-lots-of-bunk-beds-next-to-a-window-TzMGehZmocI?utm_source=unsplash&utm_medium=referral&utm_content=creditCopyText" target="_blank" rel="noopener nofollow">Unsplash</a></div></section>
 
 <section class="tight">
   <div class="wrap narrow">
@@ -71,7 +68,7 @@
     <span class="ui-url">Accommodation</span></div>
   <div class="ui-body"><div style="display:flex;gap:7px;align-items:center;margin-bottom:10px;flex-wrap:wrap;"><span style="font-size:15px;">🏠</span><span class="ui-pill pill-gray">Day 4</span><span class="ui-pill pill-green">paid</span></div><div style="font-weight:700;font-size:14px;">Ledgowan Bunkhouse</div><div style="font-size:12px;color:var(--accent-2);font-weight:600;margin-top:2px;">🛏️ Bunkhouse — 3 beds</div><div style="margin-top:11px;padding-top:9px;border-top:1px solid var(--border-hairline);font-size:12px;color:var(--text-secondary);">🍳 <strong style="color:var(--text-primary);">Breakfast</strong> — Self-catered, 7 GBP per person</div><div style="font-size:12px;color:var(--text-secondary);margin-top:6px;">⚠️ <strong style="color:var(--text-primary);">Cancellation</strong> — none possible</div><div style="display:grid;grid-template-columns:repeat(2,1fr);gap:9px;margin-top:12px;padding-top:10px;border-top:1px solid var(--border-hairline);"><div><div class="ui-m" style="font-size:9px;text-transform:uppercase;letter-spacing:.05em;">Reference</div><div class="mono" style="font-size:12px;font-weight:600;">DEMO-8F0406</div></div><div><div class="ui-m" style="font-size:9px;text-transform:uppercase;letter-spacing:.05em;">Cost</div><div class="mono" style="font-size:12px;font-weight:600;">150 GBP</div></div></div></div>
 </div></div></div>
-<div class="detail" style="grid-template-columns:1fr;max-width:780px;"><div><h3>Breakfast on the right morning</h3><p>This sounds trivial until it bites you. You arrive at a lodge on the evening of day two and eat its breakfast on the morning of day three — so showing that breakfast on day two's card is misleading exactly when you are trying to plan a start time.</p><p>Breakfast belongs to the stay in the editor, which is where you type it. On the day cards and on Today it appears on the following morning, labelled with which stay it came from.</p><ul><li><strong>Stored on the stay</strong>, where it is booked.</li><li><strong>Shown on the morning after</strong>, where it is eaten.</li><li><strong>Labelled with the source</strong>, so it is never ambiguous.</li></ul></div></div>
+<div class="detail" style="grid-template-columns:1fr;max-width:780px;"><div><h3>Breakfast on the right morning</h3><p>You arrive at a lodge on day two and eat its breakfast on day three. So it is stored on the stay, where you book it, and shown on the morning after, labelled with which stay it came from.</p></div></div>
   </div>
 </section>
 
@@ -140,6 +137,17 @@
 </footer>
 
 <script>
+// Features menu: hover on desktop (CSS), tap to expand in the hamburger.
+function toggleFeatureMenu(e) {
+  e.preventDefault();
+  var d = document.getElementById('navdrop');
+  var open = d.classList.toggle('open');
+  d.querySelector('button').setAttribute('aria-expanded', open ? 'true' : 'false');
+}
+document.addEventListener('click', function (e) {
+  var d = document.getElementById('navdrop');
+  if (d && !d.contains(e.target)) d.classList.remove('open');
+});
 document.getElementById('navToggle').addEventListener('click', function () {
   var n = document.getElementById('mainnav');
   var open = n.classList.toggle('open');

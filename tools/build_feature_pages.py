@@ -381,14 +381,10 @@ FEATURES = [
                           '<div style="font-size:12px;color:var(--text-secondary);margin-top:6px;">⚠️ <strong style="color:var(--text-primary);">Cancellation</strong> — none possible</div>'
                           + facts(("Reference", "DEMO-8F0406"), ("Cost", "150 GBP")))),
             dict(h="Breakfast on the right morning",
-                 p=["This sounds trivial until it bites you. You arrive at a lodge on the evening of day two "
-                    "and eat its breakfast on the morning of day three — so showing that breakfast on day two's "
-                    "card is misleading exactly when you are trying to plan a start time.",
-                    "Breakfast belongs to the stay in the editor, which is where you type it. On the day cards "
-                    "and on Today it appears on the following morning, labelled with which stay it came from."],
-                 li=["<strong>Stored on the stay</strong>, where it is booked.",
-                     "<strong>Shown on the morning after</strong>, where it is eaten.",
-                     "<strong>Labelled with the source</strong>, so it is never ambiguous."],
+                 p=["You arrive at a lodge on day two and eat its breakfast on day three. So it is "
+                    "stored on the stay, where you book it, and shown on the morning after, labelled "
+                    "with which stay it came from."],
+                 li=[],
                  media=None),
         ],
         limits=["One stay links to at most one day. A five-night base is modelled as an unlinked stay rather "
@@ -790,6 +786,58 @@ FEATURES = [
                 "Wind is forecast at 10 m in open ground — valleys and forest will differ considerably."],
         related=["today", "route", "readiness"],
     ),
+
+    dict(
+        slug="story", icon="📸", name="Story &amp; Photos",
+        title="Story &amp; Photos",
+        lede="The trip gallery, and story cards built from it that are actually worth posting.",
+        intro="Photos from a trip end up scattered across four phones and a group chat. Story keeps them "
+              "in one gallery attached to the trip, shows them on the public page, and turns any of them "
+              "into a story card with the day&#39;s real numbers burned in.",
+        blocks=[
+            dict(h="A gallery the whole group fills",
+                 p=["Anyone on the trip can post, tagged to a day. They appear in the gallery, and on the "
+                    "public page if photos are switched on there — so the people following along see the "
+                    "trip as it happens rather than a fortnight later.",
+                    "You can delete your own; organisers can delete any."],
+                 li=["<strong>Anyone on the trip uploads</strong>, not just the organiser.",
+                     "<strong>Tagged to a day</strong>, so the gallery stays in order.",
+                     "<strong>Shown on the live page</strong> when you allow it."],
+                 media=None),
+            dict(h="Story cards with the real numbers",
+                 p=["A photo of a hill is a photo of a hill. A photo of a hill with <em>day 4 of 8, 48 of "
+                    "88 km, +1160 m</em> and the elevation profile you are standing halfway along is a "
+                    "story about a trip.",
+                    "Pick a photo, pick the day, choose what to overlay, and download a 1080 × 1920 PNG "
+                    "sized for Instagram and WhatsApp stories. It renders in your browser — nothing is "
+                    "uploaded to make a card."],
+                 li=["<strong>Toggle each element</strong> — trip name, day counter, distance, climbing, "
+                     "elevation profile, follow link.",
+                     "<strong>Elevation profile</strong> from the day&#39;s GPX, with your position marked.",
+                     "<strong>Three themes</strong> and adjustable photo dimming.",
+                     "<strong>Gradient fallback</strong> when you have no photo yet."],
+                 media=ui("Story card",
+                          '<div style="display:flex;gap:14px;align-items:flex-start;">'
+                          '<div style="width:120px;flex:none;border-radius:8px;overflow:hidden;'
+                          'background:linear-gradient(160deg,var(--accent),var(--accent-2));aspect-ratio:9/16;'
+                          'display:flex;flex-direction:column;justify-content:center;align-items:center;gap:6px;color:#fff;padding:8px;text-align:center;">'
+                          '<div style="font-size:8px;font-weight:800;letter-spacing:.06em;">HIGHLANDS TRAVERSE</div>'
+                          '<div style="font-size:7px;opacity:.8;">DAY 4 OF 8</div>'
+                          '<svg viewBox="0 0 80 24" style="width:88%;"><path d="M0,18 L14,15 L26,9 L38,13 L50,6 L62,14 L80,11" fill="none" stroke="#fff" stroke-width="1.6"/><line x1="40" y1="2" x2="40" y2="24" stroke="#fff" stroke-width="1" stroke-dasharray="2,2"/></svg>'
+                          '<div style="font-family:var(--font-mono);font-size:13px;font-weight:800;">191/513</div>'
+                          '<div style="font-size:6.5px;opacity:.75;">+1160 m climbed today</div></div>'
+                          '<div style="flex:1;font-size:12px;">'
+                          '<div style="font-weight:600;margin-bottom:6px;">Show on the card</div>'
+                          '<div style="display:flex;flex-direction:column;gap:4px;color:var(--text-secondary);">'
+                          '<span>☑ Trip name</span><span>☑ Day counter</span><span>☑ Distance</span>'
+                          '<span>☑ Elevation profile</span><span>☐ Tonight&#39;s stay</span><span>☑ Follow link</span></div></div></div>')),
+        ],
+        limits=["Cards are generated from a photo already uploaded to the trip. A photo served without "
+                "permissive CORS headers cannot be exported — use one from your own gallery.",
+                "The elevation profile only appears for days that have a GPX track.",
+                "There is no text or sticker editor — the overlay is the trip&#39;s own data, by design."],
+        related=["live", "route", "today"],
+    ),
 ]
 
 BY_SLUG = {f["slug"]: f for f in FEATURES}
@@ -798,6 +846,45 @@ BY_SLUG = {f["slug"]: f for f in FEATURES}
 # --------------------------------------------------------------------------
 # Template
 # --------------------------------------------------------------------------
+
+# Hero photography per feature, all Unsplash, credited in the subhero.
+# key: slug -> (file, author, author profile, photo page)
+PHOTOS = {
+  "today":         ("../hero.jpg", "Timur Valiev", "https://unsplash.com/@timur_valiev", "https://unsplash.com/photos/a-person-standing-next-to-a-bike-near-hay-bales-Wf2KXzaAKvc"),
+  "route":         ("route.jpg", "Stephen Talas", "https://unsplash.com/@hunupnorth", "https://unsplash.com/photos/a-dirt-road-going-through-a-lush-green-countryside-aU-9J8sN9GM"),
+  "sights":        ("sights.jpg", "Claudia de Wet", "https://unsplash.com/@claudia_de_wet", "https://unsplash.com/photos/a-yellow-building-with-a-black-roof-SnYPTO7ULxI"),
+  "logistics":     ("logistics.jpg", "Dominic Kurniawan Suryaputra", "https://unsplash.com/@d_ks11", "https://unsplash.com/photos/a-large-crowd-of-people-walking-through-an-airport-xQt-b6uRFaE"),
+  "statistics":    ("statistics.jpg", "Patrick Hendry", "https://unsplash.com/@worldsbetweenlines", "https://unsplash.com/photos/man-riding-on-bicycle-during-daytime-qDBbM9Erwo4"),
+  "weather":       ("weather.jpg", "Max", "https://unsplash.com/@notquitemax", "https://unsplash.com/photos/closeup-photography-of-water-drops-on-body-of-water-22x7fxFpl_8"),
+  "accommodation": ("accommodation.jpg", "Zoshua Colah", "https://unsplash.com/@zoshuacolah", "https://unsplash.com/photos/a-room-filled-with-lots-of-bunk-beds-next-to-a-window-TzMGehZmocI"),
+  "packing":       ("packing.jpg", "Patrick Hendry", "https://unsplash.com/@worldsbetweenlines", "https://unsplash.com/photos/black-and-gray-mountain-bike-OrI5O9tuF7w"),
+  "expenses":      ("expenses.jpg", "Jakub \u017berdzicki", "https://unsplash.com/@jakubzerdzicki", "https://unsplash.com/photos/a-person-holding-a-bunch-of-money-next-to-a-calculator-Yh26MxQhPsc"),
+  "participants":  ("participants.jpg", "Ben Guernsey", "https://unsplash.com/@benguernsey", "https://unsplash.com/photos/a-group-of-people-riding-bikes-down-a-dirt-road-rfuOpSqD0ks"),
+  "live":          ("live.jpg", "Nguy\u1ec5n Hi\u1ec7p", "https://unsplash.com/@hieptltb97", "https://unsplash.com/photos/a-woman-sitting-on-a-couch-taking-a-picture-of-herself-6I5nprn1ol0"),
+  "story":         ("live.jpg", "Nguy\u1ec5n Hi\u1ec7p", "https://unsplash.com/@hieptltb97", "https://unsplash.com/photos/a-woman-sitting-on-a-couch-taking-a-picture-of-herself-6I5nprn1ol0"),
+  "imports":       ("imports.jpg", "Ilya Pavlov", "https://unsplash.com/@ilyapavlov", "https://unsplash.com/photos/a-close-up-of-a-computer-screen-with-a-menu-hXrPSgGFpqQ"),
+  "readiness":     ("readiness.jpg", "Patrick Hendry", "https://unsplash.com/@worldsbetweenlines", "https://unsplash.com/photos/orange-and-black-off-road-bicycle-on-hill-1ow9zrlldJU"),
+}
+UTM = "?utm_source=unsplash&utm_medium=referral&utm_content=creditCopyText"
+
+
+def subhero(f):
+    """Photo-backed hero when the feature has one, plain band otherwise."""
+    ph = PHOTOS.get(f["slug"])
+    inner = (f'<div class="crumb"><a href="../">Home</a> \u2192 <a href="../features.html">Features</a> \u2192 {f["name"]}</div>'
+             f'<div style="display:flex;gap:14px;align-items:flex-start;">'
+             f'<span style="font-size:36px;line-height:1;">{f["icon"]}</span>'
+             f'<div><h1 style="font-size:clamp(28px,4vw,42px);">{f["title"]}</h1>'
+             f'<p class="lede" style="margin-top:12px;max-width:640px;">{f["lede"]}</p></div></div>')
+    if not ph:
+        return f'<section class="subhero"><div class="wrap">{inner}</div></section>'
+    file, author, aurl, purl = ph
+    return (f'<section class="subhero subhero-photo" style="--sub-img:url(\'/img/features/{file}\');">'
+            f'<div class="sub-bg"></div><div class="sub-scrim"></div>'
+            f'<div class="wrap">{inner}</div>'
+            f'<div class="photo-credit">Photo by <a href="{aurl}{UTM}" target="_blank" rel="noopener nofollow">{author}</a>'
+            f' on <a href="{purl}{UTM}" target="_blank" rel="noopener nofollow">Unsplash</a></div></section>')
+
 def render(f):
     blocks = []
     for i, b in enumerate(f["blocks"]):
@@ -853,7 +940,15 @@ def render(f):
       Trip Tracker
     </a>
     <nav class="mainnav" id="mainnav">
-      <a href="../features.html" class="on">Features</a>
+      <div class="navdrop" id="navdrop">
+        <button type="button" class="on" aria-expanded="false" onclick="toggleFeatureMenu(event)">Features
+          <svg class="caret" width="10" height="10" viewBox="0 0 10 10" aria-hidden="true"><path d="M2 4l3 3 3-3" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </button>
+        <div class="navdrop-menu">
+          <a href="route.html"><i>🗺️</i><b>Route &amp; Days<span>Stages, elevation, maps</span></b></a><a href="today.html"><i>🎯</i><b>Today<span>The on-the-road screen</span></b></a><a href="statistics.html"><i>📊</i><b>Statistics<span>Effort and pace charts</span></b></a><a href="weather.html"><i>🌤️</i><b>Weather<span>Hourly, per stage</span></b></a><a href="logistics.html"><i>✈️</i><b>Logistics<span>Flights, trains, ferries</span></b></a><a href="accommodation.html"><i>🏠</i><b>Accommodation<span>Rooms, costs, breakfast</span></b></a><a href="sights.html"><i>🏰</i><b>Sights &amp; Resupply<span>Food, shops, water</span></b></a><a href="packing.html"><i>🎒</i><b>Packing &amp; Tasks<span>Assigned per person</span></b></a><a href="expenses.html"><i>💸</i><b>Expenses<span>Split and settle</span></b></a><a href="story.html"><i>📸</i><b>Story &amp; Photos<span>Gallery and story cards</span></b></a><a href="live.html"><i>🔴</i><b>Live Sharing<span>One public link</span></b></a><a href="imports.html"><i>📥</i><b>Imports<span>Email, PDF, GPX</span></b></a>
+          <a class="all" href="../features.html">All features →</a>
+        </div>
+      </div>
       <a href="../how-it-works.html">How it works</a>
       <a href="../live.html?t={DEMO}">Live demo</a>
       <a href="../faq.html">FAQ</a>
@@ -868,18 +963,7 @@ def render(f):
   </div>
 </header>
 
-<section class="subhero">
-  <div class="wrap">
-    <div class="crumb"><a href="../">Home</a> → <a href="../features.html">Features</a> → {f['name']}</div>
-    <div style="display:flex;gap:14px;align-items:flex-start;">
-      <span style="font-size:36px;line-height:1;">{f['icon']}</span>
-      <div>
-        <h1 style="font-size:clamp(28px,4vw,42px);">{f['title']}</h1>
-        <p class="lede" style="margin-top:12px;max-width:640px;">{f['lede']}</p>
-      </div>
-    </div>
-  </div>
-</section>
+{subhero(f)}
 
 <section class="tight">
   <div class="wrap narrow">
@@ -958,6 +1042,17 @@ def render(f):
 </footer>
 
 <script>
+// Features menu: hover on desktop (CSS), tap to expand in the hamburger.
+function toggleFeatureMenu(e) {{
+  e.preventDefault();
+  var d = document.getElementById('navdrop');
+  var open = d.classList.toggle('open');
+  d.querySelector('button').setAttribute('aria-expanded', open ? 'true' : 'false');
+}}
+document.addEventListener('click', function (e) {{
+  var d = document.getElementById('navdrop');
+  if (d && !d.contains(e.target)) d.classList.remove('open');
+}});
 document.getElementById('navToggle').addEventListener('click', function () {{
   var n = document.getElementById('mainnav');
   var open = n.classList.toggle('open');

@@ -39,7 +39,15 @@
       Trip Tracker
     </a>
     <nav class="mainnav" id="mainnav">
-      <a href="features.html">Features</a>
+      <div class="navdrop" id="navdrop">
+        <button type="button" class="" aria-expanded="false" onclick="toggleFeatureMenu(event)">Features
+          <svg class="caret" width="10" height="10" viewBox="0 0 10 10" aria-hidden="true"><path d="M2 4l3 3 3-3" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </button>
+        <div class="navdrop-menu">
+          <a href="features/route.html"><i>🗺️</i><b>Route &amp; Days<span>Stages, elevation, maps</span></b></a><a href="features/today.html"><i>🎯</i><b>Today<span>The on-the-road screen</span></b></a><a href="features/statistics.html"><i>📊</i><b>Statistics<span>Effort and pace charts</span></b></a><a href="features/weather.html"><i>🌤️</i><b>Weather<span>Hourly, per stage</span></b></a><a href="features/logistics.html"><i>✈️</i><b>Logistics<span>Flights, trains, ferries</span></b></a><a href="features/accommodation.html"><i>🏠</i><b>Accommodation<span>Rooms, costs, breakfast</span></b></a><a href="features/sights.html"><i>🏰</i><b>Sights &amp; Resupply<span>Food, shops, water</span></b></a><a href="features/packing.html"><i>🎒</i><b>Packing &amp; Tasks<span>Assigned per person</span></b></a><a href="features/expenses.html"><i>💸</i><b>Expenses<span>Split and settle</span></b></a><a href="features/story.html"><i>📸</i><b>Story &amp; Photos<span>Gallery and story cards</span></b></a><a href="features/live.html"><i>🔴</i><b>Live Sharing<span>One public link</span></b></a><a href="features/imports.html"><i>📥</i><b>Imports<span>Email, PDF, GPX</span></b></a>
+          <a class="all" href="features.html">All features →</a>
+        </div>
+      </div>
       <a href="how-it-works.html">How it works</a>
       <a href="live.html?t=c26dcdbd931c46f8804196172c1179b9">Live demo</a>
       <a href="faq.html">FAQ</a>
@@ -86,40 +94,41 @@
             <div class="hx-head">
               <div>
                 <div class="hx-title">Ratagan → Achnasheen</div>
-                <div class="ui-m">Tue 18 Aug · tarmac · 88 km</div>
+                <div class="ui-m">Tue 18 Aug · 88 km · +1160 m</div>
               </div>
               <div class="hx-score"><b>8.3</b><span>Hard</span></div>
             </div>
 
-            <div class="hx-prog">
-              <div class="hx-prog-top">
-                <span><b>40.0 km</b> left</span>
-                <span class="ui-m">48 / 88 done</span>
-              </div>
-              <div class="hx-bar"><div style="width:55%;"></div></div>
-            </div>
+            <!-- Elevation profile with the rider's position on it -->
+            <svg class="hx-elev" viewBox="0 0 400 96" preserveAspectRatio="none" aria-label="Elevation profile with current position">
+              <path d="M0,74 L34,66 L66,46 L96,58 L128,26 L160,44 L192,20 L224,40 L256,28 L288,60 L320,46 L352,70 L400,64 L400,96 L0,96 Z" fill="var(--accent)" opacity=".16"/>
+              <path d="M0,74 L34,66 L66,46 L96,58 L128,26 L160,44 L192,20 L224,40 L256,28 L288,60 L320,46 L352,70 L400,64" fill="none" stroke="var(--accent)" stroke-width="2.2" stroke-linejoin="round"/>
+              <line x1="220" y1="6" x2="220" y2="96" stroke="var(--accent-2)" stroke-width="2" stroke-dasharray="4,3"/>
+              <circle cx="220" cy="39" r="5.5" fill="var(--accent-2)" stroke="var(--bg-card)" stroke-width="2"/>
+            </svg>
+            <div class="hx-elev-ax"><span>0 km</span><span class="you">You are here · 48 km</span><span>88 km</span></div>
 
             <div class="hx-metrics">
+              <div><span class="hx-k">Distance left</span><b>40.0 km</b></div>
               <div><span class="hx-k">Climb left</span><b>612 m</b></div>
-              <div><span class="hx-k">Pace needed</span><b class="warn">14.2 km/h</b></div>
-              <div><span class="hx-k">ETA</span><b>17:40</b></div>
+              <div><span class="hx-k">Avg. pace needed</span><b class="warn">14.2 km/h</b></div>
             </div>
 
-            <div class="hx-line">
-              <span class="hx-ico">🌧️</span>
-              <div><b>Rain from 15:00</b><span class="ui-m"> · 4 mm, gusts 38 km/h</span></div>
+            <div class="ui-row">
+              <span class="ui-num" style="background:var(--accent);color:var(--text-on-accent);">4</span>
+              <div style="flex:1;min-width:0;">
+                <div class="ui-t">Ratagan → Achnasheen</div>
+                <div class="ui-m">48 / 88 km · arriving ~17:40</div>
+              </div>
+              <span class="ui-pill pill-orange">Riding</span>
             </div>
-            <div class="hx-line">
-              <span class="hx-ico">🍽️</span>
-              <div><b>Midge Bite Cafe</b><span class="ui-m"> · kitchen closes 20:00 — 6 km ahead</span></div>
-            </div>
-            <div class="hx-line">
-              <span class="hx-ico">🛒</span>
-              <div><b>Last shop for 60 km</b><span class="ui-m"> · Co-op, closes 22:00</span></div>
-            </div>
-            <div class="hx-line last">
-              <span class="hx-ico">🏠</span>
-              <div><b>Ledgowan Bunkhouse</b><span class="ui-m"> · Achnasheen · 3 beds · paid</span></div>
+            <div class="ui-row">
+              <span class="ui-num">5</span>
+              <div style="flex:1;min-width:0;">
+                <div class="ui-t">Achnasheen → Dundonnell</div>
+                <div class="ui-m">Wed 19 Aug · 93 km · +1183 m</div>
+              </div>
+              <span class="ui-pill pill-gray">Planned</span>
             </div>
 
           </div>
@@ -134,11 +143,14 @@
               <b>40.0 km</b><span>left of 88</span>
               <div class="ph-bar"><div style="width:55%;"></div></div>
             </div>
+            <svg viewBox="0 0 160 40" preserveAspectRatio="none" style="width:100%;height:34px;display:block;margin:6px 0;">
+              <path d="M0,30 L26,26 L46,17 L66,23 L86,9 L106,18 L126,12 L146,26 L160,23 L160,40 L0,40 Z" fill="var(--accent)" opacity=".18"/>
+              <path d="M0,30 L26,26 L46,17 L66,23 L86,9 L106,18 L126,12 L146,26 L160,23" fill="none" stroke="var(--accent)" stroke-width="1.6"/>
+              <line x1="88" y1="2" x2="88" y2="40" stroke="var(--accent-2)" stroke-width="1.4" stroke-dasharray="3,2"/>
+              <circle cx="88" cy="10" r="3" fill="var(--accent-2)"/>
+            </svg>
             <div class="ph-kv"><span>Climb left</span><b>612 m</b></div>
-            <div class="ph-kv"><span>Pace needed</span><b class="warn">14.2</b></div>
-            <div class="ph-kv"><span>Rain from</span><b>15:00</b></div>
-            <div class="ph-card"><span class="ph-n">🍽️</span>
-              <div><div class="ph-h">Midge Bite Cafe</div><div class="ph-m">closes 20:00</div></div></div>
+            <div class="ph-kv"><span>Avg. pace needed</span><b class="warn">14.2 km/h</b></div>
             <div class="ph-card"><span class="ph-n">🏠</span>
               <div><div class="ph-h">Ledgowan Bunkhouse</div><div class="ph-m">Achnasheen</div></div></div>
           </div>
@@ -167,21 +179,21 @@
         do not want the same tools.</p>
     </div>
     <div class="chips" style="justify-content:center;">
-      <span class="chip">🗺️ Route &amp; days</span>
-      <span class="chip">📈 Elevation profiles</span>
-      <span class="chip">🌤️ Weather</span>
-      <span class="chip">🎯 Today</span>
-      <span class="chip">📊 Statistics</span>
-      <span class="chip">✈️ Logistics</span>
-      <span class="chip">🏠 Accommodation</span>
-      <span class="chip">🏰 Sights &amp; resupply</span>
-      <span class="chip">🎒 Packing</span>
-      <span class="chip">✅ Tasks</span>
-      <span class="chip">💸 Expenses</span>
-      <span class="chip">📷 Photos</span>
-      <span class="chip">👥 Participants</span>
-      <span class="chip">🔴 Live sharing</span>
-      <span class="chip">📥 Email import</span>
+      <a class="chip" href="features/route.html">🗺️ Route &amp; days</a>
+      <a class="chip" href="features/statistics.html">📈 Elevation profiles</a>
+      <a class="chip" href="features/weather.html">🌤️ Weather</a>
+      <a class="chip" href="features/today.html">🎯 Today</a>
+      <a class="chip" href="features/statistics.html">📊 Statistics</a>
+      <a class="chip" href="features/logistics.html">✈️ Logistics</a>
+      <a class="chip" href="features/accommodation.html">🏠 Accommodation</a>
+      <a class="chip" href="features/sights.html">🏰 Sights &amp; resupply</a>
+      <a class="chip" href="features/packing.html">🎒 Packing</a>
+      <a class="chip" href="features/packing.html">✅ Tasks</a>
+      <a class="chip" href="features/expenses.html">💸 Expenses</a>
+      <a class="chip" href="features/story.html">📸 Story &amp; photos</a>
+      <a class="chip" href="features/participants.html">👥 Participants</a>
+      <a class="chip" href="features/live.html">🔴 Live sharing</a>
+      <a class="chip" href="features/imports.html">📥 Email import</a>
     </div>
   </div>
 </section>
@@ -190,94 +202,90 @@
 <section>
   <div class="wrap">
 
-    <!-- SCENE 1: imports -->
+    <!-- SCENE 3: today -->
     <div class="split">
       <div>
-        <div class="eyebrow">Bookings</div>
-        <h2>Forward the confirmation. We read it.</h2>
-        <p class="lede">Every trip gets its own email address. The flight, train or hotel comes back
-          as a proposal you accept — nothing is written behind your back.</p>
+        <div class="eyebrow">On the road</div>
+        <h2>A tab for the day you are actually having</h2>
+        <p class="lede">Log the kilometres you have done. The pace you need recalculates, and the
+          page your family is watching updates at the same time.</p>
         <ul>
-          <li><strong>Forward, paste or upload</strong> — email, plain text or PDF.</li>
-          <li><strong>Everything goes through review</strong>, so a bad read cannot corrupt the plan.</li>
-          <li><strong>Locked fields</strong> can never be overwritten by an import.</li>
+          <li><strong>Live pace</strong> to reach the bed — or the last train — on time.</li>
+          <li><strong>Climbing still ahead</strong>, read from the profile at your position.</li>
+          <li><strong>One update, two audiences</strong> — your group and everyone at home.</li>
         </ul>
-        <p style="margin-top:20px;"><a class="btn" href="features/imports.html">How importing works →</a></p>
+        <p style="margin-top:20px;"><a class="btn" href="features/today.html">Explore Today →</a></p>
       </div>
       <div class="split-media">
-        <div class="scene sc-import">
-          <div class="scene-head"><span class="s-pill g">Imports</span>
-            <span class="t">Booking email → planner</span>
+        <div class="scene sc-today">
+          <div class="scene-head"><span class="s-pill g">Today</span>
+            <span class="t">Log km → pace → live page</span>
             <button class="scene-replay" type="button">Replay</button></div>
           <div class="scene-stage">
 
             <div class="scene-step st1">
-              <div class="mailbox">
-                <div class="mh">✉️ Forward to <span class="mono" style="color:var(--accent);">trip-a1b2…@triptracker.cc</span></div>
-                <div class="mb">
-                  <div><span class="k">From</span> ScotRail Bookings</div>
-                  <div><span class="k">Subject</span> Your ticket confirmation</div>
-                  <div style="margin-top:8px;padding-top:8px;border-top:1px solid var(--border-hairline);">
-                    Edinburgh Waverley → Inverness<br>
-                    Sun 16 Aug, dep 10:33, arr 14:16<br>
-                    Ref KX8842 · Coach B, seats 41–43 · £72.00
-                  </div>
+              <div class="s-card">
+                <div class="s-row" style="justify-content:space-between;">
+                  <div><div class="s-t" style="font-size:14px;">Ratagan → Achnasheen</div>
+                    <div class="s-m">Day 4 · 88 km · +1160 m</div></div>
+                  <div style="text-align:right;"><div class="mono" style="font-weight:700;color:var(--warning);">8.3/10</div>
+                    <div class="s-m" style="font-size:10px;">Hard</div></div>
                 </div>
+                <div style="margin-top:12px;"><span class="mono" style="font-size:20px;font-weight:700;">0.0</span>
+                  <span class="s-m"> / 88 km</span></div>
+                <div style="height:8px;background:var(--bg-recessed);border-radius:4px;margin-top:8px;"></div>
               </div>
               <div class="fwd-arrow">↓</div>
             </div>
 
-            <div class="scene-step st2">
-              <div class="s-card"><div class="s-row">
-                <span style="font-size:17px;">📥</span>
-                <div style="flex:1;"><div class="s-t">ScotRail confirmation</div>
-                  <div class="s-m">Reading the booking…</div></div>
-                <span class="s-pill o">Parsing</span>
-              </div></div>
-              <div style="margin-top:10px;height:5px;background:var(--bg-recessed);border-radius:3px;overflow:hidden;">
-                <div style="width:70%;height:100%;background:var(--accent);"></div></div>
-              <div class="s-m" style="margin-top:14px;text-align:center;">Extracting times, reference, seats and cost</div>
+            <div class="scene-step st2" style="text-align:center;padding-top:40px;">
+              <div class="s-m" style="margin-bottom:10px;">Log what you have ridden</div>
+              <div style="display:inline-flex;gap:7px;align-items:center;">
+                <span style="padding:9px 14px;border:1.5px solid var(--accent);border-radius:8px;
+                  font-family:var(--font-mono);font-weight:700;font-size:15px;">
+                  <span class="typed">48</span></span>
+                <span style="padding:9px 15px;background:var(--accent);color:var(--text-on-accent);
+                  border-radius:8px;font-size:12.5px;font-weight:600;">Update</span>
+              </div>
+              <div class="s-m" style="margin-top:12px;">or tap +10 / +25</div>
             </div>
 
             <div class="scene-step st3">
-              <div class="s-m" style="margin-bottom:9px;">3 proposals to review</div>
-              <div class="s-card" style="margin-bottom:7px;"><div class="s-row">
-                <div style="flex:1;"><div class="s-t">Departure</div><div class="s-m">— → 10:33, Sun 16 Aug</div></div>
-                <span class="s-pill g">Accept</span></div></div>
-              <div class="s-card" style="margin-bottom:7px;"><div class="s-row">
-                <div style="flex:1;"><div class="s-t">Reference</div><div class="s-m">— → KX8842</div></div>
-                <span class="s-pill g">Accept</span></div></div>
-              <div class="s-card"><div class="s-row">
-                <div style="flex:1;"><div class="s-t">Seats</div><div class="s-m">— → Coach B, 41–43</div></div>
-                <span class="s-pill g">Accept</span></div></div>
+              <div class="s-card">
+                <div><span class="mono" style="font-size:20px;font-weight:700;">48.0</span>
+                  <span class="s-m"> / 88 km · 40 km left</span></div>
+                <div style="height:8px;background:var(--bg-recessed);border-radius:4px;overflow:hidden;margin-top:8px;">
+                  <div class="bar-fill" style="height:100%;background:var(--accent);"></div></div>
+                <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:14px;padding-top:11px;border-top:1px solid var(--border-hairline);">
+                  <div><div class="s-m" style="font-size:9px;text-transform:uppercase;">Req. overall</div>
+                    <div class="mono" style="font-size:13px;font-weight:700;">8.8 km/h</div></div>
+                  <div><div class="s-m" style="font-size:9px;text-transform:uppercase;">Finish by 18:00</div>
+                    <div class="mono" style="font-size:13px;font-weight:700;color:var(--warning);">14.2 km/h</div></div>
+                  <div><div class="s-m" style="font-size:9px;text-transform:uppercase;">Climb ahead</div>
+                    <div class="mono" style="font-size:13px;font-weight:700;">612 m</div></div>
+                </div>
+              </div>
             </div>
 
             <div class="scene-step st4">
-              <div class="s-m" style="margin-bottom:9px;">Logistics · Day 2</div>
-              <div class="s-card">
-                <div class="s-row" style="margin-bottom:11px;">
-                  <span style="font-size:16px;">🚂</span><span class="s-pill g">train</span>
-                  <span class="s-m">ScotRail</span></div>
-                <div class="s-row">
-                  <div><div class="mono" style="font-size:18px;font-weight:700;">10:33</div>
-                    <div class="s-m">Edinburgh Waverley</div></div>
-                  <div style="flex:1;text-align:center;">
-                    <div class="s-m" style="margin-bottom:3px;">3h 43m</div>
-                    <div style="height:2px;border-radius:2px;background:linear-gradient(to right,var(--accent-subtle-border),var(--accent));"></div></div>
-                  <div style="text-align:right;"><div class="mono" style="font-size:18px;font-weight:700;">14:16</div>
-                    <div class="s-m">Inverness</div></div>
-                </div>
-                <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:12px;padding-top:10px;border-top:1px solid var(--border-hairline);">
-                  <div><div class="s-m" style="font-size:9px;text-transform:uppercase;">Ref</div><div class="mono" style="font-size:11.5px;font-weight:600;">KX8842</div></div>
-                  <div><div class="s-m" style="font-size:9px;text-transform:uppercase;">Seats</div><div class="mono" style="font-size:11.5px;font-weight:600;">B · 41–43</div></div>
-                  <div><div class="s-m" style="font-size:9px;text-transform:uppercase;">Cost</div><div class="mono" style="font-size:11.5px;font-weight:600;">£72.00</div></div>
+              <div class="s-m" style="margin-bottom:9px;">…and the public page updates</div>
+              <div class="s-card" style="background:var(--bg-page);">
+                <div class="s-t" style="font-size:14px;">Scottish Highlands Traverse</div>
+                <div class="s-m" style="margin-bottom:9px;">Followed by 11 people at home</div>
+                <div class="mono" style="font-weight:700;font-size:15px;">191 / 513 km</div>
+                <div style="height:7px;background:var(--accent-subtle);border-radius:4px;overflow:hidden;margin-top:7px;">
+                  <div style="width:37%;height:100%;background:var(--accent);"></div></div>
+                <div style="margin-top:12px;padding:10px 12px;border-radius:9px;background:var(--accent-subtle);border:1px solid var(--accent-subtle-border);">
+                  <div style="font-size:9px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--accent);">Today · Day 4 of 8</div>
+                  <div class="s-t" style="margin-top:3px;">Ratagan → Achnasheen</div>
+                  <div class="s-m">48 of 88 km done</div>
                 </div>
               </div>
             </div>
 
           </div>
         </div>
-        <p class="scene-cap">Email → review → planner, without retyping anything.</p>
+        <p class="scene-cap">No group-chat updates from a mountain pass.</p>
       </div>
     </div>
 
@@ -368,90 +376,94 @@
       </div>
     </div>
 
-    <!-- SCENE 3: today -->
+    <!-- SCENE 1: imports -->
     <div class="split">
       <div>
-        <div class="eyebrow">On the road</div>
-        <h2>A tab for the day you are actually having</h2>
-        <p class="lede">Log the kilometres you have done. The pace you need recalculates, and the
-          page your family is watching updates at the same time.</p>
+        <div class="eyebrow">Bookings</div>
+        <h2>Forward the confirmation. We read it.</h2>
+        <p class="lede">Every trip gets its own email address. The flight, train or hotel comes back
+          as a proposal you accept — nothing is written behind your back.</p>
         <ul>
-          <li><strong>Live pace</strong> to reach the bed — or the last train — on time.</li>
-          <li><strong>Climbing still ahead</strong>, read from the profile at your position.</li>
-          <li><strong>One update, two audiences</strong> — your group and everyone at home.</li>
+          <li><strong>Forward, paste or upload</strong> — email, plain text or PDF.</li>
+          <li><strong>Everything goes through review</strong>, so a bad read cannot corrupt the plan.</li>
+          <li><strong>Locked fields</strong> can never be overwritten by an import.</li>
         </ul>
-        <p style="margin-top:20px;"><a class="btn" href="features/today.html">Explore Today →</a></p>
+        <p style="margin-top:20px;"><a class="btn" href="features/imports.html">How importing works →</a></p>
       </div>
       <div class="split-media">
-        <div class="scene sc-today">
-          <div class="scene-head"><span class="s-pill g">Today</span>
-            <span class="t">Log km → pace → live page</span>
+        <div class="scene sc-import">
+          <div class="scene-head"><span class="s-pill g">Imports</span>
+            <span class="t">Booking email → planner</span>
             <button class="scene-replay" type="button">Replay</button></div>
           <div class="scene-stage">
 
             <div class="scene-step st1">
-              <div class="s-card">
-                <div class="s-row" style="justify-content:space-between;">
-                  <div><div class="s-t" style="font-size:14px;">Ratagan → Achnasheen</div>
-                    <div class="s-m">Day 4 · 88 km · +1160 m</div></div>
-                  <div style="text-align:right;"><div class="mono" style="font-weight:700;color:var(--warning);">8.3/10</div>
-                    <div class="s-m" style="font-size:10px;">Hard</div></div>
+              <div class="mailbox">
+                <div class="mh">✉️ Forward to <span class="mono" style="color:var(--accent);">trip-a1b2…@triptracker.cc</span></div>
+                <div class="mb">
+                  <div><span class="k">From</span> ScotRail Bookings</div>
+                  <div><span class="k">Subject</span> Your ticket confirmation</div>
+                  <div style="margin-top:8px;padding-top:8px;border-top:1px solid var(--border-hairline);">
+                    Edinburgh Waverley → Inverness<br>
+                    Sun 16 Aug, dep 10:33, arr 14:16<br>
+                    Ref KX8842 · Coach B, seats 41–43 · £72.00
+                  </div>
                 </div>
-                <div style="margin-top:12px;"><span class="mono" style="font-size:20px;font-weight:700;">0.0</span>
-                  <span class="s-m"> / 88 km</span></div>
-                <div style="height:8px;background:var(--bg-recessed);border-radius:4px;margin-top:8px;"></div>
               </div>
               <div class="fwd-arrow">↓</div>
             </div>
 
-            <div class="scene-step st2" style="text-align:center;padding-top:40px;">
-              <div class="s-m" style="margin-bottom:10px;">Log what you have ridden</div>
-              <div style="display:inline-flex;gap:7px;align-items:center;">
-                <span style="padding:9px 14px;border:1.5px solid var(--accent);border-radius:8px;
-                  font-family:var(--font-mono);font-weight:700;font-size:15px;">
-                  <span class="typed">48</span></span>
-                <span style="padding:9px 15px;background:var(--accent);color:var(--text-on-accent);
-                  border-radius:8px;font-size:12.5px;font-weight:600;">Update</span>
-              </div>
-              <div class="s-m" style="margin-top:12px;">or tap +10 / +25</div>
+            <div class="scene-step st2">
+              <div class="s-card"><div class="s-row">
+                <span style="font-size:17px;">📥</span>
+                <div style="flex:1;"><div class="s-t">ScotRail confirmation</div>
+                  <div class="s-m">Reading the booking…</div></div>
+                <span class="s-pill o">Parsing</span>
+              </div></div>
+              <div style="margin-top:10px;height:5px;background:var(--bg-recessed);border-radius:3px;overflow:hidden;">
+                <div style="width:70%;height:100%;background:var(--accent);"></div></div>
+              <div class="s-m" style="margin-top:14px;text-align:center;">Extracting times, reference, seats and cost</div>
             </div>
 
             <div class="scene-step st3">
-              <div class="s-card">
-                <div><span class="mono" style="font-size:20px;font-weight:700;">48.0</span>
-                  <span class="s-m"> / 88 km · 40 km left</span></div>
-                <div style="height:8px;background:var(--bg-recessed);border-radius:4px;overflow:hidden;margin-top:8px;">
-                  <div class="bar-fill" style="height:100%;background:var(--accent);"></div></div>
-                <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:14px;padding-top:11px;border-top:1px solid var(--border-hairline);">
-                  <div><div class="s-m" style="font-size:9px;text-transform:uppercase;">Req. overall</div>
-                    <div class="mono" style="font-size:13px;font-weight:700;">8.8 km/h</div></div>
-                  <div><div class="s-m" style="font-size:9px;text-transform:uppercase;">Finish by 18:00</div>
-                    <div class="mono" style="font-size:13px;font-weight:700;color:var(--warning);">14.2 km/h</div></div>
-                  <div><div class="s-m" style="font-size:9px;text-transform:uppercase;">Climb ahead</div>
-                    <div class="mono" style="font-size:13px;font-weight:700;">612 m</div></div>
-                </div>
-              </div>
+              <div class="s-m" style="margin-bottom:9px;">3 proposals to review</div>
+              <div class="s-card" style="margin-bottom:7px;"><div class="s-row">
+                <div style="flex:1;"><div class="s-t">Departure</div><div class="s-m">— → 10:33, Sun 16 Aug</div></div>
+                <span class="s-pill g">Accept</span></div></div>
+              <div class="s-card" style="margin-bottom:7px;"><div class="s-row">
+                <div style="flex:1;"><div class="s-t">Reference</div><div class="s-m">— → KX8842</div></div>
+                <span class="s-pill g">Accept</span></div></div>
+              <div class="s-card"><div class="s-row">
+                <div style="flex:1;"><div class="s-t">Seats</div><div class="s-m">— → Coach B, 41–43</div></div>
+                <span class="s-pill g">Accept</span></div></div>
             </div>
 
             <div class="scene-step st4">
-              <div class="s-m" style="margin-bottom:9px;">…and the public page updates</div>
-              <div class="s-card" style="background:var(--bg-page);">
-                <div class="s-t" style="font-size:14px;">Scottish Highlands Traverse</div>
-                <div class="s-m" style="margin-bottom:9px;">Followed by 11 people at home</div>
-                <div class="mono" style="font-weight:700;font-size:15px;">191 / 513 km</div>
-                <div style="height:7px;background:var(--accent-subtle);border-radius:4px;overflow:hidden;margin-top:7px;">
-                  <div style="width:37%;height:100%;background:var(--accent);"></div></div>
-                <div style="margin-top:12px;padding:10px 12px;border-radius:9px;background:var(--accent-subtle);border:1px solid var(--accent-subtle-border);">
-                  <div style="font-size:9px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--accent);">Today · Day 4 of 8</div>
-                  <div class="s-t" style="margin-top:3px;">Ratagan → Achnasheen</div>
-                  <div class="s-m">48 of 88 km done</div>
+              <div class="s-m" style="margin-bottom:9px;">Logistics · Day 2</div>
+              <div class="s-card">
+                <div class="s-row" style="margin-bottom:11px;">
+                  <span style="font-size:16px;">🚂</span><span class="s-pill g">train</span>
+                  <span class="s-m">ScotRail</span></div>
+                <div class="s-row">
+                  <div><div class="mono" style="font-size:18px;font-weight:700;">10:33</div>
+                    <div class="s-m">Edinburgh Waverley</div></div>
+                  <div style="flex:1;text-align:center;">
+                    <div class="s-m" style="margin-bottom:3px;">3h 43m</div>
+                    <div style="height:2px;border-radius:2px;background:linear-gradient(to right,var(--accent-subtle-border),var(--accent));"></div></div>
+                  <div style="text-align:right;"><div class="mono" style="font-size:18px;font-weight:700;">14:16</div>
+                    <div class="s-m">Inverness</div></div>
+                </div>
+                <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:12px;padding-top:10px;border-top:1px solid var(--border-hairline);">
+                  <div><div class="s-m" style="font-size:9px;text-transform:uppercase;">Ref</div><div class="mono" style="font-size:11.5px;font-weight:600;">KX8842</div></div>
+                  <div><div class="s-m" style="font-size:9px;text-transform:uppercase;">Seats</div><div class="mono" style="font-size:11.5px;font-weight:600;">B · 41–43</div></div>
+                  <div><div class="s-m" style="font-size:9px;text-transform:uppercase;">Cost</div><div class="mono" style="font-size:11.5px;font-weight:600;">£72.00</div></div>
                 </div>
               </div>
             </div>
 
           </div>
         </div>
-        <p class="scene-cap">No group-chat updates from a mountain pass.</p>
+        <p class="scene-cap">Email → review → planner, without retyping anything.</p>
       </div>
     </div>
 
@@ -650,6 +662,17 @@
 </footer>
 
 <script>
+// Features menu: hover on desktop (CSS), tap to expand in the hamburger.
+function toggleFeatureMenu(e) {
+  e.preventDefault();
+  var d = document.getElementById('navdrop');
+  var open = d.classList.toggle('open');
+  d.querySelector('button').setAttribute('aria-expanded', open ? 'true' : 'false');
+}
+document.addEventListener('click', function (e) {
+  var d = document.getElementById('navdrop');
+  if (d && !d.contains(e.target)) d.classList.remove('open');
+});
 document.getElementById('navToggle').addEventListener('click', function () {
   var n = document.getElementById('mainnav');
   var open = n.classList.toggle('open');

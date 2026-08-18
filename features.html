@@ -30,7 +30,15 @@
       Trip Tracker
     </a>
     <nav class="mainnav" id="mainnav">
-      <a href="features.html" class="on">Features</a>
+      <div class="navdrop" id="navdrop">
+        <button type="button" class="on" aria-expanded="false" onclick="toggleFeatureMenu(event)">Features
+          <svg class="caret" width="10" height="10" viewBox="0 0 10 10" aria-hidden="true"><path d="M2 4l3 3 3-3" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </button>
+        <div class="navdrop-menu">
+          <a href="features/route.html"><i>🗺️</i><b>Route &amp; Days<span>Stages, elevation, maps</span></b></a><a href="features/today.html"><i>🎯</i><b>Today<span>The on-the-road screen</span></b></a><a href="features/statistics.html"><i>📊</i><b>Statistics<span>Effort and pace charts</span></b></a><a href="features/weather.html"><i>🌤️</i><b>Weather<span>Hourly, per stage</span></b></a><a href="features/logistics.html"><i>✈️</i><b>Logistics<span>Flights, trains, ferries</span></b></a><a href="features/accommodation.html"><i>🏠</i><b>Accommodation<span>Rooms, costs, breakfast</span></b></a><a href="features/sights.html"><i>🏰</i><b>Sights &amp; Resupply<span>Food, shops, water</span></b></a><a href="features/packing.html"><i>🎒</i><b>Packing &amp; Tasks<span>Assigned per person</span></b></a><a href="features/expenses.html"><i>💸</i><b>Expenses<span>Split and settle</span></b></a><a href="features/story.html"><i>📸</i><b>Story &amp; Photos<span>Gallery and story cards</span></b></a><a href="features/live.html"><i>🔴</i><b>Live Sharing<span>One public link</span></b></a><a href="features/imports.html"><i>📥</i><b>Imports<span>Email, PDF, GPX</span></b></a>
+          <a class="all" href="features.html">All features →</a>
+        </div>
+      </div>
       <a href="how-it-works.html">How it works</a>
       <a href="live.html?t=c26dcdbd931c46f8804196172c1179b9">Live demo</a>
       <a href="faq.html">FAQ</a>
@@ -603,6 +611,17 @@
 </footer>
 
 <script>
+// Features menu: hover on desktop (CSS), tap to expand in the hamburger.
+function toggleFeatureMenu(e) {
+  e.preventDefault();
+  var d = document.getElementById('navdrop');
+  var open = d.classList.toggle('open');
+  d.querySelector('button').setAttribute('aria-expanded', open ? 'true' : 'false');
+}
+document.addEventListener('click', function (e) {
+  var d = document.getElementById('navdrop');
+  if (d && !d.contains(e.target)) d.classList.remove('open');
+});
 document.getElementById('navToggle').addEventListener('click', function () {
   var n = document.getElementById('mainnav');
   var open = n.classList.toggle('open');

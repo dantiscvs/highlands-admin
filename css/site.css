@@ -307,3 +307,38 @@ table.cmp td:first-child { font-weight: 600; }
   .ui-sidebar { grid-template-columns: 1fr; }
   .ui-nav { display: none; }
 }
+
+/* ---------- Features dropdown in the top nav ---------- */
+.navdrop { position: relative; }
+.navdrop > button { display: inline-flex; align-items: center; gap: 5px; background: none; border: none;
+  font-family: var(--font-ui); font-size: 14.5px; font-weight: 500; color: var(--text-secondary);
+  padding: 8px 12px; border-radius: var(--radius-sm); cursor: pointer; }
+.navdrop > button:hover, .navdrop.open > button { background: var(--bg-recessed); color: var(--text-primary); }
+.navdrop > button .caret { transition: transform .15s ease; }
+.navdrop.open > button .caret { transform: rotate(180deg); }
+.navdrop-menu { position: absolute; top: calc(100% + 6px); left: 50%; transform: translateX(-50%) translateY(-4px);
+  min-width: 520px; background: var(--bg-card); border: 1px solid var(--border-hairline);
+  border-radius: var(--radius-lg); box-shadow: var(--shadow-3); padding: 10px;
+  display: grid; grid-template-columns: 1fr 1fr; gap: 2px;
+  opacity: 0; visibility: hidden; pointer-events: none; transition: opacity .14s ease, transform .14s ease; z-index: 120; }
+.navdrop:hover .navdrop-menu, .navdrop.open .navdrop-menu, .navdrop-menu:hover {
+  opacity: 1; visibility: visible; pointer-events: auto; transform: translateX(-50%) translateY(0); }
+.navdrop-menu a { display: flex; gap: 9px; align-items: flex-start; padding: 8px 10px;
+  border-radius: var(--radius-sm); color: var(--text-primary); font-size: 13.5px; font-weight: 500; }
+.navdrop-menu a:hover { background: var(--bg-recessed); text-decoration: none; }
+.navdrop-menu a i { font-style: normal; font-size: 15px; line-height: 1.2; flex: none; }
+.navdrop-menu a span { display: block; font-size: 11.5px; color: var(--text-tertiary); font-weight: 400; margin-top: 1px; }
+.navdrop-menu .all { grid-column: 1 / -1; border-top: 1px solid var(--border-hairline); margin-top: 6px;
+  padding-top: 10px; font-weight: 600; color: var(--accent); }
+
+@media (max-width: 940px) {
+  /* In the hamburger the dropdown is just an expandable list. */
+  .navdrop { position: static; }
+  .navdrop > button { width: 100%; justify-content: space-between; padding: 12px; font-size: 15px; }
+  .navdrop-menu { position: static; transform: none; min-width: 0; grid-template-columns: 1fr;
+    box-shadow: none; border: none; border-radius: 0; padding: 0 0 6px 10px;
+    display: none; opacity: 1; visibility: visible; pointer-events: auto; }
+  .navdrop:hover .navdrop-menu { display: none; }
+  .navdrop.open .navdrop-menu { display: grid; }
+  .navdrop-menu a { padding: 9px 10px; }
+  .navdrop-menu a span { display: none; }

@@ -6,7 +6,7 @@ const MODULE_LABELS = {
   accommodation: '🏠 Accommodation', resupply: '🛒 Resupply', poi: '🏰 Sights',
   packing: '🎒 Packing', tasks: '✅ Tasks', expenses: '💸 Expenses',
   sightseeing: 'Sightseeing', transport: '✈️ Logistics', live: '🔴 Live', overlays: 'Overlays',
-  photos: '📷 Photos',
+  photos: '📸 Story',
 };
 
 // Minimal geometric line icons (18x18, 1.5-1.6px stroke, currentColor) per the
@@ -103,7 +103,7 @@ async function renderTripShell(tripId, section) {
     expenses: () => renderExpensesModule(),
     poi: () => renderPoiModule(),
     readiness: renderReadinessChecklist,
-    photos: () => renderPhotosModule(),
+    photos: () => renderStoryModule(),
     share: renderShareSection,
     imports: renderImportsSection,
     participants: renderParticipantsSection,
@@ -149,7 +149,7 @@ function renderTripSidebar(section) {
     ${moduleOn('packing') ? navRow('bag','Packing','packing',section) : ''}
     ${moduleOn('tasks') ? navRow('check','Tasks','tasks',section) : ''}
     ${moduleOn('expenses') ? navRow('wallet','Expenses','expenses',section) : ''}
-    ${moduleOn('photos') ? navRow('camera','Photos','photos',section) : ''}
+    ${moduleOn('photos') ? navRow('camera','Story','photos',section) : ''}
 
     <div class="navgroup">People</div>
     ${navRow('people','Participants','participants',section)}
