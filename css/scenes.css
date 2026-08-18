@@ -65,63 +65,45 @@
   text-underline-offset: 2px; }
 .photo-credit a:hover { color: #fff; }
 
-/* ---------- Hero device shots ---------- */
-.hero-shots { position: relative; }
-.hero-shots .shot-desktop { transform: perspective(1400px) rotateY(-4deg); transform-origin: right center; }
-.hero-shots .shot-phone { position: absolute; left: -34px; bottom: -30px; width: 152px; z-index: 3; }
-.phone { background: #1B1D18; border-radius: 20px; padding: 7px 5px;
-  box-shadow: 0 18px 40px rgba(0,0,0,.42), 0 0 0 1px rgba(255,255,255,.10); }
-.phone .notch { width: 40px; height: 4px; border-radius: 3px; background: rgba(255,255,255,.28);
-  margin: 1px auto 6px; }
-.phone .screen { background: var(--bg-page); border-radius: 14px; padding: 9px 8px; overflow: hidden; }
-.phone .ph-t { font-size: 9.5px; font-weight: 700; color: var(--text-primary); margin-bottom: 6px; }
-.phone .ph-card { background: var(--bg-card); border: 1px solid var(--border-hairline);
-  border-radius: 7px; padding: 6px 7px; margin-bottom: 5px; display: flex; gap: 6px; align-items: center; }
-.phone .ph-n { width: 15px; height: 15px; border-radius: 50%; background: var(--accent-subtle);
-  color: var(--accent); font-family: var(--font-mono); font-weight: 700; font-size: 8px;
-  display: flex; align-items: center; justify-content: center; flex: none; }
-.phone .ph-h { font-size: 8.5px; font-weight: 600; color: var(--text-primary); line-height: 1.25; }
-.phone .ph-m { font-size: 7.5px; color: var(--text-secondary); font-family: var(--font-mono); }
-/* ---- Hero "Today" excerpt ---- */
-.hx-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 10px;
-  padding-bottom: 11px; border-bottom: 1px solid var(--border-hairline); margin-bottom: 11px; }
-.hx-title { font-weight: 700; font-size: 15px; color: var(--text-primary); letter-spacing: -0.01em; }
-.hx-score { text-align: right; flex: none; }
-.hx-score b { display: block; font-family: var(--font-mono); font-weight: 700; font-size: 15px; color: var(--warning); }
-.hx-score span { font-size: 9.5px; color: var(--text-tertiary); text-transform: uppercase; letter-spacing: .04em; }
-.hx-elev { width: 100%; height: 84px; display: block; margin: 4px 0 2px; }
-.hx-elev-ax { display: flex; justify-content: space-between; font-size: 9.5px;
-  color: var(--text-tertiary); font-family: var(--font-mono); margin-bottom: 10px; }
-.hx-elev-ax .you { color: var(--accent-2); font-weight: 700; }
-.hx-prog-top { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; }
-.hx-prog-top b { font-family: var(--font-mono); font-size: 19px; font-weight: 700; letter-spacing: -0.01em; }
-.hx-bar { height: 7px; background: var(--bg-recessed); border-radius: 4px; overflow: hidden; margin-top: 7px; }
-.hx-bar > div { height: 100%; background: var(--accent); border-radius: 4px; }
-.hx-metrics { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin: 12px 0;
-  padding: 10px 0; border-top: 1px solid var(--border-hairline); border-bottom: 1px solid var(--border-hairline); }
-.hx-metrics > div { text-align: center; }
-.hx-k { display: block; font-size: 9px; text-transform: uppercase; letter-spacing: .05em;
-  color: var(--text-tertiary); font-weight: 600; margin-bottom: 2px; }
-.hx-metrics b { font-family: var(--font-mono); font-size: 14px; font-weight: 700; color: var(--text-primary); }
-.hx-metrics b.warn { color: var(--warning); }
-.hx-line { display: flex; gap: 9px; align-items: baseline; padding: 6px 0;
-  border-bottom: 1px solid var(--border-hairline); font-size: 12px; }
-.hx-line.last { border-bottom: none; padding-bottom: 0; }
-.hx-line .hx-ico { flex: none; font-size: 13px; }
-.hx-line b { color: var(--text-primary); font-weight: 600; }
+/* ---------- Hero app screen ----------
+   One frameless screen rather than a laptop panel plus a phone: the product is
+   used on a phone mid-stage, and a bezel around it adds nothing but chrome. */
+.hero-shots { display: flex; justify-content: center; }
+.hero-screen { width: 100%; max-width: 380px; background: var(--bg-card);
+  border: 1px solid rgba(255,255,255,.14); border-radius: 20px; padding: 16px 16px 6px;
+  box-shadow: 0 26px 60px rgba(0,0,0,.42), 0 6px 18px rgba(0,0,0,.24); }
 
-/* phone variants */
-.phone .ph-hero { background: var(--accent-subtle); border: 1px solid var(--accent-subtle-border);
-  border-radius: 8px; padding: 8px 9px; margin-bottom: 7px; }
-.phone .ph-hero b { font-family: var(--font-mono); font-size: 15px; font-weight: 700; color: var(--text-primary); }
-.phone .ph-hero span { font-size: 8.5px; color: var(--text-secondary); margin-left: 4px; }
-.phone .ph-bar { height: 5px; background: rgba(0,0,0,.10); border-radius: 3px; overflow: hidden; margin-top: 6px; }
-.phone .ph-bar > div { height: 100%; background: var(--accent); }
-.phone .ph-kv { display: flex; justify-content: space-between; align-items: baseline;
-  font-size: 8.5px; color: var(--text-secondary); padding: 3px 1px; }
-.phone .ph-kv b { font-family: var(--font-mono); font-size: 9.5px; color: var(--text-primary); }
-.phone .ph-kv b.warn { color: var(--warning); }
-.phone .ph-card:first-of-type { margin-top: 6px; }
+.hs-top { display: flex; justify-content: space-between; align-items: flex-start; gap: 10px;
+  padding-bottom: 11px; border-bottom: 1px solid var(--border-hairline); }
+.hs-trip { font-size: 13px; font-weight: 700; color: var(--text-primary); letter-spacing: -0.01em; }
+.hs-sub { font-size: 10.5px; color: var(--text-tertiary); font-family: var(--font-mono); margin-top: 2px; }
+.hs-badge { flex: none; font-size: 10px; font-weight: 700; padding: 3px 9px; border-radius: 999px;
+  background: var(--accent-2-subtle); color: var(--accent-2); }
+
+.hs-stage { padding: 11px 0 4px; }
+.hs-name { font-size: 16px; font-weight: 700; color: var(--text-primary); letter-spacing: -0.01em; }
+.hs-meta { font-size: 10.5px; color: var(--text-secondary); font-family: var(--font-mono); margin-top: 2px; }
+
+.hs-elev { width: 100%; height: 74px; display: block; margin-top: 6px; }
+.hs-ax { display: flex; justify-content: space-between; font-size: 9.5px; font-family: var(--font-mono);
+  color: var(--text-tertiary); margin-bottom: 11px; }
+.hs-ax .you { color: var(--accent-2); font-weight: 700; }
+
+.hs-metrics { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; text-align: center;
+  padding: 10px 0; border-top: 1px solid var(--border-hairline); border-bottom: 1px solid var(--border-hairline); }
+.hs-metrics span { display: block; font-size: 8.5px; text-transform: uppercase; letter-spacing: .05em;
+  color: var(--text-tertiary); font-weight: 700; margin-bottom: 2px; }
+.hs-metrics b { font-family: var(--font-mono); font-size: 14px; font-weight: 700; color: var(--text-primary); }
+.hs-metrics b.warn { color: var(--warning); }
+
+.hs-row { display: flex; gap: 9px; align-items: flex-start; padding: 8px 0;
+  border-bottom: 1px solid var(--border-hairline); }
+.hs-row.last { border-bottom: none; }
+.hs-ico { flex: none; font-size: 13px; line-height: 1.35; }
+.hs-row b { display: block; font-size: 11.5px; font-weight: 600; color: var(--text-primary); }
+.hs-row em { display: block; font-style: normal; font-size: 10.5px; color: var(--text-secondary); margin-top: 1px; }
+.hs-tag { font-style: normal; font-size: 8.5px; font-weight: 700; padding: 1px 6px; border-radius: 999px;
+  background: var(--accent-subtle); color: var(--accent); margin-left: 5px; vertical-align: 1px; }
 
 .mobile-note { display: inline-flex; align-items: center; gap: 6px; margin-top: 18px;
   padding: 6px 12px; border-radius: var(--radius-full); font-size: 12.5px; font-weight: 600;
@@ -271,10 +253,8 @@
 .nextprev { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 14px; }
 
 @media (max-width: 1080px) {
-  /* Stack, and drop the perspective tilt — it only reads well side-on. */
   .hero-photo .hero-cols { grid-template-columns: 1fr; gap: 36px; }
-  .hero-shots .shot-desktop { transform: none; }
-  .hero-shots .shot-phone { left: auto; right: -10px; bottom: -22px; width: 132px; }
+  .hero-screen { max-width: 400px; }
 }
 @media (max-width: 940px) {
   .detail { grid-template-columns: 1fr; gap: 28px; }
@@ -283,18 +263,14 @@
   .hero-photo .bg { background-position: center 55%; }
 }
 @media (max-width: 700px) {
-  /* On a phone, show the phone. The desktop panel adds nothing here and the
-     overlap gets cramped, so the mobile layout becomes the whole story. */
-  .hero-shots .shot-desktop { display: none; }
-  .hero-shots .shot-phone { position: static; width: 100%; max-width: 210px; margin: 0 auto; }
-  .hero-shots { display: flex; justify-content: center; }
-  .phone { border-radius: 26px; padding: 9px 7px; }
-  .phone .screen { border-radius: 18px; padding: 12px 10px; }
-  .phone .ph-t { font-size: 12px; }
-  .phone .ph-h { font-size: 11px; }
-  .phone .ph-m { font-size: 10px; }
-  .phone .ph-n { width: 19px; height: 19px; font-size: 10px; }
-  .phone .ph-card { padding: 8px 9px; border-radius: 9px; }
+  /* Same content, tighter rhythm — the screen is the richest thing on the page
+     and should not push the whole hero past a phone viewport twice over. */
+  .hero-screen { padding: 13px 13px 4px; border-radius: 18px; }
+  .hero-screen .hs-elev { height: 62px; }
+  .hero-screen .hs-row { padding: 6px 0; }
+  .hero-screen .hs-metrics { padding: 8px 0; }
+  .hero-screen .hs-stage { padding: 9px 0 3px; }
+  .hero-screen .hs-name { font-size: 15px; }
 }
 @media (max-width: 620px) {
   .hero-photo .hero-inner { padding: 48px 0 44px; }

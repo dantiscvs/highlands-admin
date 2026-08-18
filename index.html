@@ -84,76 +84,56 @@
       </div>
 
       <div class="hero-shots">
-        <div class="ui shot-desktop">
-          <div class="ui-bar">
-            <span class="ui-dot"></span><span class="ui-dot"></span><span class="ui-dot"></span>
-            <span class="ui-url">triptracker.cc/app — Today · Day 4 of 8</span>
+        <div class="hero-screen" aria-label="The Today screen during a stage">
+
+          <div class="hs-top">
+            <div>
+              <div class="hs-trip">Scottish Highlands Traverse</div>
+              <div class="hs-sub">Today · Day 4 of 8 · Tue 18 Aug</div>
+            </div>
+            <span class="hs-badge">Riding</span>
           </div>
-          <div class="ui-body">
 
-            <div class="hx-head">
-              <div>
-                <div class="hx-title">Ratagan → Achnasheen</div>
-                <div class="ui-m">Tue 18 Aug · 88 km · +1160 m</div>
-              </div>
-              <div class="hx-score"><b>8.3</b><span>Hard</span></div>
-            </div>
-
-            <!-- Elevation profile with the rider's position on it -->
-            <svg class="hx-elev" viewBox="0 0 400 96" preserveAspectRatio="none" aria-label="Elevation profile with current position">
-              <path d="M0,74 L34,66 L66,46 L96,58 L128,26 L160,44 L192,20 L224,40 L256,28 L288,60 L320,46 L352,70 L400,64 L400,96 L0,96 Z" fill="var(--accent)" opacity=".16"/>
-              <path d="M0,74 L34,66 L66,46 L96,58 L128,26 L160,44 L192,20 L224,40 L256,28 L288,60 L320,46 L352,70 L400,64" fill="none" stroke="var(--accent)" stroke-width="2.2" stroke-linejoin="round"/>
-              <line x1="220" y1="6" x2="220" y2="96" stroke="var(--accent-2)" stroke-width="2" stroke-dasharray="4,3"/>
-              <circle cx="220" cy="39" r="5.5" fill="var(--accent-2)" stroke="var(--bg-card)" stroke-width="2"/>
-            </svg>
-            <div class="hx-elev-ax"><span>0 km</span><span class="you">You are here · 48 km</span><span>88 km</span></div>
-
-            <div class="hx-metrics">
-              <div><span class="hx-k">Distance left</span><b>40.0 km</b></div>
-              <div><span class="hx-k">Climb left</span><b>612 m</b></div>
-              <div><span class="hx-k">Avg. pace needed</span><b class="warn">14.2 km/h</b></div>
-            </div>
-
-            <div class="ui-row">
-              <span class="ui-num" style="background:var(--accent);color:var(--text-on-accent);">4</span>
-              <div style="flex:1;min-width:0;">
-                <div class="ui-t">Ratagan → Achnasheen</div>
-                <div class="ui-m">48 / 88 km · arriving ~17:40</div>
-              </div>
-              <span class="ui-pill pill-orange">Riding</span>
-            </div>
-            <div class="ui-row">
-              <span class="ui-num">5</span>
-              <div style="flex:1;min-width:0;">
-                <div class="ui-t">Achnasheen → Dundonnell</div>
-                <div class="ui-m">Wed 19 Aug · 93 km · +1183 m</div>
-              </div>
-              <span class="ui-pill pill-gray">Planned</span>
-            </div>
-
+          <div class="hs-stage">
+            <div class="hs-name">Ratagan → Achnasheen</div>
+            <div class="hs-meta">88 km · +1160 m · tarmac · effort 8.3/10</div>
           </div>
-        </div>
 
-        <!-- Same day, phone layout — the view you actually use on the road. -->
-        <div class="phone shot-phone" aria-label="The same day on a phone">
-          <div class="notch"></div>
-          <div class="screen">
-            <div class="ph-t">Today · Day 4</div>
-            <div class="ph-hero">
-              <b>40.0 km</b><span>left of 88</span>
-              <div class="ph-bar"><div style="width:55%;"></div></div>
-            </div>
-            <svg viewBox="0 0 160 40" preserveAspectRatio="none" style="width:100%;height:34px;display:block;margin:6px 0;">
-              <path d="M0,30 L26,26 L46,17 L66,23 L86,9 L106,18 L126,12 L146,26 L160,23 L160,40 L0,40 Z" fill="var(--accent)" opacity=".18"/>
-              <path d="M0,30 L26,26 L46,17 L66,23 L86,9 L106,18 L126,12 L146,26 L160,23" fill="none" stroke="var(--accent)" stroke-width="1.6"/>
-              <line x1="88" y1="2" x2="88" y2="40" stroke="var(--accent-2)" stroke-width="1.4" stroke-dasharray="3,2"/>
-              <circle cx="88" cy="10" r="3" fill="var(--accent-2)"/>
-            </svg>
-            <div class="ph-kv"><span>Climb left</span><b>612 m</b></div>
-            <div class="ph-kv"><span>Avg. pace needed</span><b class="warn">14.2 km/h</b></div>
-            <div class="ph-card"><span class="ph-n">🏠</span>
-              <div><div class="ph-h">Ledgowan Bunkhouse</div><div class="ph-m">Achnasheen</div></div></div>
+          <svg class="hs-elev" viewBox="0 0 320 78" preserveAspectRatio="none" aria-label="Elevation profile with current position">
+            <path d="M0,60 L27,53 L53,37 L77,47 L102,21 L128,35 L154,16 L179,32 L205,22 L230,48 L256,37 L282,56 L320,51 L320,78 L0,78 Z" fill="var(--accent)" opacity=".16"/>
+            <path d="M0,60 L27,53 L53,37 L77,47 L102,21 L128,35 L154,16 L179,32 L205,22 L230,48 L256,37 L282,56 L320,51" fill="none" stroke="var(--accent)" stroke-width="2.2" stroke-linejoin="round"/>
+            <line x1="176" y1="4" x2="176" y2="78" stroke="var(--accent-2)" stroke-width="2" stroke-dasharray="4,3"/>
+            <circle cx="176" cy="31" r="5" fill="var(--accent-2)" stroke="var(--bg-card)" stroke-width="2"/>
+          </svg>
+          <div class="hs-ax"><span>0 km</span><span class="you">You are here · 48 km</span><span>88 km</span></div>
+
+          <div class="hs-metrics">
+            <div><span>Distance left</span><b>40.0 km</b></div>
+            <div><span>Climb left</span><b>612 m</b></div>
+            <div><span>Avg. pace needed</span><b class="warn">14.2 km/h</b></div>
           </div>
+
+          <div class="hs-row">
+            <span class="hs-ico">🌧️</span>
+            <div><b>Rain from 15:00</b><em>4 mm · gusts 38 km/h · 13°C</em></div>
+          </div>
+          <div class="hs-row">
+            <span class="hs-ico">🍽️</span>
+            <div><b>Midge Bite Cafe</b><em>6 km ahead · kitchen closes 20:00</em></div>
+          </div>
+          <div class="hs-row">
+            <span class="hs-ico">🛒</span>
+            <div><b>Co-op — last shop for 60 km</b><em>Closes 22:00</em></div>
+          </div>
+          <div class="hs-row">
+            <span class="hs-ico">🏠</span>
+            <div><b>Ledgowan Bunkhouse <i class="hs-tag">paid</i></b><em>2 rooms, private bathroom · Achnasheen</em></div>
+          </div>
+          <div class="hs-row last">
+            <span class="hs-ico">🍳</span>
+            <div><b>Breakfast 07:30–09:00</b><em>Included · sunset tonight 20:56</em></div>
+          </div>
+
         </div>
       </div>
     </div>
