@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Expenses — Trip Tracker</title>
+<meta name="description" content="Log what you paid and who it covered. The balances do the rest.">
+<meta name="theme-color" content="#F7F5F0">
+<script>
+(function () {
+  var h = location.hash || '', q = location.search || '';
+  if (h.indexOf('access_token=') > -1 || q.indexOf('code=') > -1) location.replace('/app.html' + q + h);
+  var t = localStorage.getItem('theme');
+  if (t === 'dark' || t === 'light') document.documentElement.setAttribute('data-theme', t);
+})();
+</script>
+<link rel="stylesheet" href="../css/site.css">
+<link rel="stylesheet" href="../css/scenes.css">
+</head>
+<body>
+
+<header class="site">
+  <div class="wrap bar">
+    <a class="brand" href="../">
+      <svg class="mark" viewBox="0 0 28 28" aria-hidden="true">
+        <circle cx="14" cy="14" r="12.5" fill="none" stroke="currentColor" stroke-width="1.8"/>
+        <circle cx="8" cy="20" r="2.2" fill="currentColor"/><circle cx="20" cy="8" r="2.2" fill="currentColor"/>
+        <path d="M8 20C16 20 12 8 20 8" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+      </svg>
+      Trip Tracker
+    </a>
+    <nav class="mainnav" id="mainnav">
+      <a href="../features.html" class="on">Features</a>
+      <a href="../how-it-works.html">How it works</a>
+      <a href="../live.html?t=c26dcdbd931c46f8804196172c1179b9">Live demo</a>
+      <a href="../faq.html">FAQ</a>
+    </nav>
+    <div class="headcta">
+      <a class="btn btn-ghost btn-sm" href="../app.html">Sign in</a>
+      <a class="btn btn-primary btn-sm" href="../app.html">Get started</a>
+      <button id="navToggle" aria-label="Menu" aria-expanded="false">
+        <svg viewBox="0 0 22 22" width="22" height="22"><path d="M3 6h16M3 11h16M3 16h16" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" fill="none"/></svg>
+      </button>
+    </div>
+  </div>
+</header>
+
+<section class="subhero">
+  <div class="wrap">
+    <div class="crumb"><a href="../">Home</a> → <a href="../features.html">Features</a> → Expenses</div>
+    <div style="display:flex;gap:14px;align-items:flex-start;">
+      <span style="font-size:36px;line-height:1;">💸</span>
+      <div>
+        <h1 style="font-size:clamp(28px,4vw,42px);">Expenses</h1>
+        <p class="lede" style="margin-top:12px;max-width:640px;">Log what you paid and who it covered. The balances do the rest.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="tight">
+  <div class="wrap narrow">
+    <p style="font-size:17px;color:var(--text-secondary);line-height:1.65;">Group trips generate a mess of who-paid-for-what that nobody wants to reconstruct afterwards. Expenses keeps a running balance per person, per currency, so settling up at the end is a single number each rather than an evening with a spreadsheet.</p>
+  </div>
+</section>
+
+<section style="padding-top:0;">
+  <div class="wrap">
+<div class="detail"><div><h3>Split across the people it actually covered</h3><p>Not every cost is shared by everyone. Two people hiring sleeping bags is not a three-way split, and pretending otherwise is how these things go wrong.</p><p>Pick who paid and tick who it was for. Balances update immediately, showing who is up and who is down.</p><ul><li><strong>Choose the participants</strong> per expense.</li><li><strong>Anyone on the trip can log</strong> one, not just the organiser.</li><li><strong>Running balance per person</strong>, always visible.</li></ul></div><div class="detail-media"><div class="ui">
+  <div class="ui-bar"><span class="ui-dot"></span><span class="ui-dot"></span><span class="ui-dot"></span>
+    <span class="ui-url">Expenses</span></div>
+  <div class="ui-body"><div style="padding:11px;border:1px solid var(--border-hairline);border-radius:9px;margin-bottom:11px;"><div style="font-weight:700;font-size:12.5px;">GBP — total 414.00</div><div style="display:flex;gap:14px;margin-top:7px;flex-wrap:wrap;font-size:11.5px;"><span class="muted">Alex <strong style="color:var(--success);">+96.00</strong></span><span class="muted">Sam <strong style="color:var(--danger);">−48.00</strong></span><span class="muted">Jordan <strong style="color:var(--danger);">−48.00</strong></span></div></div><div class="ui-row"><div style="flex:1;min-width:0;"><div class="ui-t">Dinner at the Cluanie Inn</div><div class="ui-m">Alex · split 3 ways</div></div></div><div class="ui-row"><div style="flex:1;min-width:0;"><div class="ui-t">Sleeping bag hire</div><div class="ui-m">Sam · split 2 ways</div></div></div></div>
+</div></div></div>
+<div class="detail" style="grid-template-columns:1fr;max-width:780px;"><div><h3>Currencies stay separate on purpose</h3><p>A trip that spends pounds and euros gets two balances, not one converted total. Converting means picking a rate, and picking a rate means someone is quietly disadvantaged by a decision the app made for them.</p><p>Keeping them apart is less clever and considerably less arguable.</p><ul><li><strong>One balance per currency</strong>.</li><li><strong>No automatic conversion</strong>, by design.</li><li><strong>Hidden from the public page</strong> unless you deliberately show it.</li></ul></div></div>
+  </div>
+</section>
+
+<section class="tight">
+  <div class="wrap narrow">
+    <div class="limits">
+      <h4>Good to know</h4>
+      <ul><li>Splits are even across the selected people. There are no percentage or share-weighted splits.</li><li>There is no settle-up ledger — balances tell you who owes what, but paying it back happens outside the app.</li><li>Expenses are not linked to accommodation or transport costs; those are recorded separately.</li></ul>
+    </div>
+  </div>
+</section>
+
+<section class="alt tight">
+  <div class="wrap">
+    <div class="sec-head" style="margin-bottom:24px;"><h2 style="font-size:24px;">Related</h2></div>
+    <div class="nextprev"><a class="card" href="participants.html"><span class="ico">👥</span><h4>Participants</h4><p>Four roles, invite links, and a way to check what your group sees before you send it.…</p><span class="more">Read more →</span></a><a class="card" href="accommodation.html"><span class="ico">🏠</span><h4>Accommodation</h4><p>Where you sleep, and the details you need at 7pm and again at 7am.…</p><span class="more">Read more →</span></a><a class="card" href="live.html"><span class="ico">🔴</span><h4>Live Sharing</h4><p>One public link for everyone at home, and precise control over what it reveals.…</p><span class="more">Read more →</span></a></div>
+  </div>
+</section>
+
+<section class="tight">
+  <div class="wrap">
+    <div class="cta-band">
+      <h2>Try it on your next trip</h2>
+      <p>Free while in early access. A couple of minutes to set up.</p>
+      <div class="cta-actions">
+        <a class="btn btn-lg" href="../app.html">Get started</a>
+        <a class="btn btn-lg btn-outline" href="../live.html?t=c26dcdbd931c46f8804196172c1179b9">View the demo trip</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<footer class="site">
+  <div class="wrap">
+    <div class="foot-grid">
+      <div>
+        <a class="brand" href="../" style="margin-bottom:12px;">
+          <svg class="mark" viewBox="0 0 28 28" aria-hidden="true">
+            <circle cx="14" cy="14" r="12.5" fill="none" stroke="currentColor" stroke-width="1.8"/>
+            <circle cx="8" cy="20" r="2.2" fill="currentColor"/><circle cx="20" cy="8" r="2.2" fill="currentColor"/>
+            <path d="M8 20C16 20 12 8 20 8" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+          </svg>
+          Trip Tracker
+        </a>
+        <p class="muted" style="max-width:300px;font-size:14px;">Planning and live sharing for multi-day group trips.</p>
+      </div>
+      <div><h4>Product</h4><ul>
+        <li><a href="../features.html">All features</a></li>
+        <li><a href="../how-it-works.html">How it works</a></li>
+        <li><a href="../faq.html">FAQ</a></li></ul></div>
+      <div><h4>Try it</h4><ul>
+        <li><a href="../app.html">Sign in</a></li>
+        <li><a href="../app.html">Create a trip</a></li>
+        <li><a href="../live.html?t=c26dcdbd931c46f8804196172c1179b9">Live demo</a></li></ul></div>
+      <div><h4>Deep dives</h4><ul>
+        <li><a href="route.html">Route &amp; Days</a></li>
+        <li><a href="today.html">Today</a></li>
+        <li><a href="live.html">Live sharing</a></li>
+        <li><a href="imports.html">Imports</a></li></ul></div>
+    </div>
+    <div class="foot-bottom">
+      <span>© 2026 Trip Tracker</span>
+      <span>Early access — <a href="../app.html">free to use</a></span>
+    </div>
+  </div>
+</footer>
+
+<script>
+document.getElementById('navToggle').addEventListener('click', function () {
+  var n = document.getElementById('mainnav');
+  var open = n.classList.toggle('open');
+  this.setAttribute('aria-expanded', open ? 'true' : 'false');
+});
+</script>
+</body>
+</html>

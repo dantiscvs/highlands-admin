@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Packing & Tasks — Trip Tracker</title>
+<meta name="description" content="One multi-tool between three people, but a rain jacket each. The list knows the difference.">
+<meta name="theme-color" content="#F7F5F0">
+<script>
+(function () {
+  var h = location.hash || '', q = location.search || '';
+  if (h.indexOf('access_token=') > -1 || q.indexOf('code=') > -1) location.replace('/app.html' + q + h);
+  var t = localStorage.getItem('theme');
+  if (t === 'dark' || t === 'light') document.documentElement.setAttribute('data-theme', t);
+})();
+</script>
+<link rel="stylesheet" href="../css/site.css">
+<link rel="stylesheet" href="../css/scenes.css">
+</head>
+<body>
+
+<header class="site">
+  <div class="wrap bar">
+    <a class="brand" href="../">
+      <svg class="mark" viewBox="0 0 28 28" aria-hidden="true">
+        <circle cx="14" cy="14" r="12.5" fill="none" stroke="currentColor" stroke-width="1.8"/>
+        <circle cx="8" cy="20" r="2.2" fill="currentColor"/><circle cx="20" cy="8" r="2.2" fill="currentColor"/>
+        <path d="M8 20C16 20 12 8 20 8" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+      </svg>
+      Trip Tracker
+    </a>
+    <nav class="mainnav" id="mainnav">
+      <a href="../features.html" class="on">Features</a>
+      <a href="../how-it-works.html">How it works</a>
+      <a href="../live.html?t=c26dcdbd931c46f8804196172c1179b9">Live demo</a>
+      <a href="../faq.html">FAQ</a>
+    </nav>
+    <div class="headcta">
+      <a class="btn btn-ghost btn-sm" href="../app.html">Sign in</a>
+      <a class="btn btn-primary btn-sm" href="../app.html">Get started</a>
+      <button id="navToggle" aria-label="Menu" aria-expanded="false">
+        <svg viewBox="0 0 22 22" width="22" height="22"><path d="M3 6h16M3 11h16M3 16h16" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" fill="none"/></svg>
+      </button>
+    </div>
+  </div>
+</header>
+
+<section class="subhero">
+  <div class="wrap">
+    <div class="crumb"><a href="../">Home</a> → <a href="../features.html">Features</a> → Packing &amp; Tasks</div>
+    <div style="display:flex;gap:14px;align-items:flex-start;">
+      <span style="font-size:36px;line-height:1;">🎒</span>
+      <div>
+        <h1 style="font-size:clamp(28px,4vw,42px);">Packing &amp; Tasks</h1>
+        <p class="lede" style="margin-top:12px;max-width:640px;">One multi-tool between three people, but a rain jacket each. The list knows the difference.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="tight">
+  <div class="wrap narrow">
+    <p style="font-size:17px;color:var(--text-secondary);line-height:1.65;">Packing and tasks share the same model. Every item can be assigned to everyone or to specific people, and each person ticks only their own boxes — so a shared list stops turning into three of everything or none of the one thing that mattered.</p>
+  </div>
+</section>
+
+<section style="padding-top:0;">
+  <div class="wrap">
+<div class="detail"><div><h3>Assignment is the whole point</h3><p>Most shared checklists assume everyone needs everything, which is wrong for group trips in both directions. You end up with three pumps and no chain tool.</p><p>An unassigned item means everyone — that is the sensible default and most items stay that way. Assign one to a specific person and it disappears from everyone else's column, replaced by a dash, so it is obvious it is covered and by whom.</p><ul><li><strong>Assign to everyone or specific people</strong>, per item.</li><li><strong>You tick only your own</strong> — you cannot tick for someone else.</li><li><strong>You can see who has not</strong>, which is the useful part before departure.</li><li><strong>Same model for tasks</strong> — insurance, bike service, generating tracks.</li></ul></div><div class="detail-media"><div class="ui">
+  <div class="ui-bar"><span class="ui-dot"></span><span class="ui-dot"></span><span class="ui-dot"></span>
+    <span class="ui-url">Packing</span></div>
+  <div class="ui-body"><table style="width:100%;border-collapse:collapse;font-size:12px;"><tr style="color:var(--text-tertiary);font-size:9.5px;text-transform:uppercase;letter-spacing:.05em;"><th style="text-align:left;padding:6px 4px;">Item</th><th style="padding:6px 4px;">Assigned</th><th style="padding:6px 4px;">AM</th><th style="padding:6px 4px;">SR</th><th style="padding:6px 4px;">JB</th></tr><tr style="border-top:1px solid var(--border-hairline);"><td style="padding:8px 4px;">Rain jacket</td><td style="text-align:center;"><span class="ui-pill pill-gray">All</span></td><td style="text-align:center;">✅</td><td style="text-align:center;">✅</td><td style="text-align:center;">☐</td></tr><tr style="border-top:1px solid var(--border-hairline);"><td style="padding:8px 4px;">Bike multi-tool</td><td style="text-align:center;"><span class="ui-pill pill-orange">SR</span></td><td style="text-align:center;color:var(--text-tertiary);">—</td><td style="text-align:center;">✅</td><td style="text-align:center;color:var(--text-tertiary);">—</td></tr><tr style="border-top:1px solid var(--border-hairline);"><td style="padding:8px 4px;">Mini pump</td><td style="text-align:center;"><span class="ui-pill pill-orange">JB</span></td><td style="text-align:center;color:var(--text-tertiary);">—</td><td style="text-align:center;color:var(--text-tertiary);">—</td><td style="text-align:center;">☐</td></tr></table></div>
+</div></div></div>
+<div class="detail" style="grid-template-columns:1fr;max-width:780px;"><div><h3>Starting lists you then argue with</h3><p>Creating a trip from a template seeds a packing list and a task list appropriate to its length. They are a starting point, not a prescription — the point is that you edit an existing list rather than staring at an empty one.</p><p>Duplicating a trip you run every year carries both lists over, which is usually most of the value of duplicating at all.</p><ul><li><strong>Templates</strong> seed sensible starting lists.</li><li><strong>Duplicating a trip</strong> carries packing and tasks across.</li><li><strong>Anyone can be assigned</strong>, including people who are not riding.</li></ul></div></div>
+  </div>
+</section>
+
+<section class="tight">
+  <div class="wrap narrow">
+    <div class="limits">
+      <h4>Good to know</h4>
+      <ul><li>Items have no quantity field — 'two spare tubes' is expressed in the title.</li><li>There are no categories or sections within a list yet; ordering is manual.</li><li>Assignment is per item, not per day, so a list is for the whole trip.</li></ul>
+    </div>
+  </div>
+</section>
+
+<section class="alt tight">
+  <div class="wrap">
+    <div class="sec-head" style="margin-bottom:24px;"><h2 style="font-size:24px;">Related</h2></div>
+    <div class="nextprev"><a class="card" href="participants.html"><span class="ico">👥</span><h4>Participants</h4><p>Four roles, invite links, and a way to check what your group sees before you send it.…</p><span class="more">Read more →</span></a><a class="card" href="readiness.html"><span class="ico">☑️</span><h4>Readiness</h4><p>What is still missing, a week before you leave.…</p><span class="more">Read more →</span></a><a class="card" href="expenses.html"><span class="ico">💸</span><h4>Expenses</h4><p>Log what you paid and who it covered. The balances do the rest.…</p><span class="more">Read more →</span></a></div>
+  </div>
+</section>
+
+<section class="tight">
+  <div class="wrap">
+    <div class="cta-band">
+      <h2>Try it on your next trip</h2>
+      <p>Free while in early access. A couple of minutes to set up.</p>
+      <div class="cta-actions">
+        <a class="btn btn-lg" href="../app.html">Get started</a>
+        <a class="btn btn-lg btn-outline" href="../live.html?t=c26dcdbd931c46f8804196172c1179b9">View the demo trip</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<footer class="site">
+  <div class="wrap">
+    <div class="foot-grid">
+      <div>
+        <a class="brand" href="../" style="margin-bottom:12px;">
+          <svg class="mark" viewBox="0 0 28 28" aria-hidden="true">
+            <circle cx="14" cy="14" r="12.5" fill="none" stroke="currentColor" stroke-width="1.8"/>
+            <circle cx="8" cy="20" r="2.2" fill="currentColor"/><circle cx="20" cy="8" r="2.2" fill="currentColor"/>
+            <path d="M8 20C16 20 12 8 20 8" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+          </svg>
+          Trip Tracker
+        </a>
+        <p class="muted" style="max-width:300px;font-size:14px;">Planning and live sharing for multi-day group trips.</p>
+      </div>
+      <div><h4>Product</h4><ul>
+        <li><a href="../features.html">All features</a></li>
+        <li><a href="../how-it-works.html">How it works</a></li>
+        <li><a href="../faq.html">FAQ</a></li></ul></div>
+      <div><h4>Try it</h4><ul>
+        <li><a href="../app.html">Sign in</a></li>
+        <li><a href="../app.html">Create a trip</a></li>
+        <li><a href="../live.html?t=c26dcdbd931c46f8804196172c1179b9">Live demo</a></li></ul></div>
+      <div><h4>Deep dives</h4><ul>
+        <li><a href="route.html">Route &amp; Days</a></li>
+        <li><a href="today.html">Today</a></li>
+        <li><a href="live.html">Live sharing</a></li>
+        <li><a href="imports.html">Imports</a></li></ul></div>
+    </div>
+    <div class="foot-bottom">
+      <span>© 2026 Trip Tracker</span>
+      <span>Early access — <a href="../app.html">free to use</a></span>
+    </div>
+  </div>
+</footer>
+
+<script>
+document.getElementById('navToggle').addEventListener('click', function () {
+  var n = document.getElementById('mainnav');
+  var open = n.classList.toggle('open');
+  this.setAttribute('aria-expanded', open ? 'true' : 'false');
+});
+</script>
+</body>
+</html>

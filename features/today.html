@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Today — Trip Tracker</title>
+<meta name="description" content="The screen you actually use while moving. One stage, what is left of it, and whether you are going to make it.">
+<meta name="theme-color" content="#F7F5F0">
+<script>
+(function () {
+  var h = location.hash || '', q = location.search || '';
+  if (h.indexOf('access_token=') > -1 || q.indexOf('code=') > -1) location.replace('/app.html' + q + h);
+  var t = localStorage.getItem('theme');
+  if (t === 'dark' || t === 'light') document.documentElement.setAttribute('data-theme', t);
+})();
+</script>
+<link rel="stylesheet" href="../css/site.css">
+<link rel="stylesheet" href="../css/scenes.css">
+</head>
+<body>
+
+<header class="site">
+  <div class="wrap bar">
+    <a class="brand" href="../">
+      <svg class="mark" viewBox="0 0 28 28" aria-hidden="true">
+        <circle cx="14" cy="14" r="12.5" fill="none" stroke="currentColor" stroke-width="1.8"/>
+        <circle cx="8" cy="20" r="2.2" fill="currentColor"/><circle cx="20" cy="8" r="2.2" fill="currentColor"/>
+        <path d="M8 20C16 20 12 8 20 8" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+      </svg>
+      Trip Tracker
+    </a>
+    <nav class="mainnav" id="mainnav">
+      <a href="../features.html" class="on">Features</a>
+      <a href="../how-it-works.html">How it works</a>
+      <a href="../live.html?t=c26dcdbd931c46f8804196172c1179b9">Live demo</a>
+      <a href="../faq.html">FAQ</a>
+    </nav>
+    <div class="headcta">
+      <a class="btn btn-ghost btn-sm" href="../app.html">Sign in</a>
+      <a class="btn btn-primary btn-sm" href="../app.html">Get started</a>
+      <button id="navToggle" aria-label="Menu" aria-expanded="false">
+        <svg viewBox="0 0 22 22" width="22" height="22"><path d="M3 6h16M3 11h16M3 16h16" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" fill="none"/></svg>
+      </button>
+    </div>
+  </div>
+</header>
+
+<section class="subhero">
+  <div class="wrap">
+    <div class="crumb"><a href="../">Home</a> → <a href="../features.html">Features</a> → Today</div>
+    <div style="display:flex;gap:14px;align-items:flex-start;">
+      <span style="font-size:36px;line-height:1;">🎯</span>
+      <div>
+        <h1 style="font-size:clamp(28px,4vw,42px);">Today</h1>
+        <p class="lede" style="margin-top:12px;max-width:640px;">The screen you actually use while moving. One stage, what is left of it, and whether you are going to make it.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="tight">
+  <div class="wrap narrow">
+    <p style="font-size:17px;color:var(--text-secondary);line-height:1.65;">Everything else in Trip Tracker is about planning. Today is about the next few hours. It shows the stage you are on, how much of it you have done, what is still ahead, and the pace you need to hold to arrive on time — recalculated from the real clock every time you open it.</p>
+  </div>
+</section>
+
+<section style="padding-top:0;">
+  <div class="wrap">
+<div class="detail"><div><h3>Log progress in two taps</h3><p>Type the kilometres you have ridden, or tap +10 and +25 when you cannot be bothered. The progress bar, the remaining distance and every pace figure update together.</p><p>The same number also feeds the public page your family is watching, so one update covers both audiences. There is no separate 'post an update' step to remember.</p><ul><li><strong>Riders can log too</strong>, not just the organiser.</li><li><strong>Quick-add buttons</strong> for when you are wearing gloves.</li><li><strong>Feeds the live page</strong> automatically.</li></ul></div><div class="detail-media"><div class="ui">
+  <div class="ui-bar"><span class="ui-dot"></span><span class="ui-dot"></span><span class="ui-dot"></span>
+    <span class="ui-url">Today — progress</span></div>
+  <div class="ui-body"><div><span class="mono" style="font-size:21px;font-weight:700;">48.0</span><span class="ui-m"> / 88 km · 40 km left</span></div><div style="height:8px;background:var(--bg-recessed);border-radius:4px;overflow:hidden;margin:9px 0 12px;"><div style="width:55%;height:100%;background:var(--accent);"></div></div><div style="display:flex;gap:7px;flex-wrap:wrap;"><span style="padding:7px 11px;border:1px solid var(--border-strong);border-radius:7px;font-size:11.5px;">km done</span><span style="padding:7px 11px;background:var(--accent);color:var(--text-on-accent);border-radius:7px;font-size:11.5px;font-weight:600;">Update</span><span style="padding:7px 11px;border:1px solid var(--border-strong);border-radius:7px;font-size:11.5px;">+10</span><span style="padding:7px 11px;border:1px solid var(--border-strong);border-radius:7px;font-size:11.5px;">+25</span></div></div>
+</div></div></div>
+<div class="detail flip"><div><h3>Pace that knows what time it is</h3><p>Planned pace is useful before you leave. Mid-stage it is nearly useless — what you want to know is how fast you need to go <em>from here</em> to reach the bed before the kitchen closes, or the station before the last train.</p><p>If the day has a target finish time, Today divides the distance you have left by the hours you have left and colours the answer: green if it is relaxed, amber if you should stop dawdling, red if you are going to have to push. Once the target time has passed it says so plainly rather than showing an impossible number.</p><ul><li><strong>Required pace from now</strong>, not from the planned start.</li><li><strong>Colour-banded</strong> so you can read it at a glance.</li><li><strong>Climbing still ahead</strong>, taken from the elevation profile at your position.</li><li><strong>Honest when you are late</strong> rather than optimistic.</li></ul></div><div class="detail-media"><div class="ui">
+  <div class="ui-bar"><span class="ui-dot"></span><span class="ui-dot"></span><span class="ui-dot"></span>
+    <span class="ui-url">Today — pace</span></div>
+  <div class="ui-body"><div style="display:grid;grid-template-columns:repeat(3,1fr);gap:9px;margin-top:12px;padding-top:10px;border-top:1px solid var(--border-hairline);"><div><div class="ui-m" style="font-size:9px;text-transform:uppercase;letter-spacing:.05em;">Req. overall</div><div class="mono" style="font-size:12px;font-weight:600;">8.8 km/h</div></div><div><div class="ui-m" style="font-size:9px;text-transform:uppercase;letter-spacing:.05em;">Finish by 18:00</div><div class="mono" style="font-size:12px;font-weight:600;">14.2 km/h</div></div><div><div class="ui-m" style="font-size:9px;text-transform:uppercase;letter-spacing:.05em;">Climb ahead</div><div class="mono" style="font-size:12px;font-weight:600;">612 m</div></div></div><div class="ui-m" style="margin-top:10px;">Amber: faster than planned, still doable.</div></div>
+</div></div></div>
+<div class="detail"><div><h3>What to remember about this day</h3><p>The rest of Today is the stuff you would otherwise be scrolling three tabs to find: the food, resupply and water points for this stage with their opening hours, today's transport legs, tonight's bed, and tomorrow's outline.</p><p>Breakfast is attached to the stay you slept at, not the one you are heading for, so it appears on the morning you actually eat it.</p><ul><li><strong>Food, resupply and water</strong> with hours and links.</li><li><strong>Today's transport</strong>, so you do not miss the ferry.</li><li><strong>Tonight's stay</strong> with map, phone and check-in detail.</li><li><strong>Tomorrow at a glance</strong>, so nothing is a surprise.</li></ul></div><div class="detail-media"><div class="ui">
+  <div class="ui-bar"><span class="ui-dot"></span><span class="ui-dot"></span><span class="ui-dot"></span>
+    <span class="ui-url">Today — resupply</span></div>
+  <div class="ui-body"><div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--text-tertiary);margin-bottom:8px;">🛒 Resupply / water</div><div style="display:flex;gap:8px;padding:7px 0;border-top:1px solid var(--border-hairline);"><span>🛒</span><div><div style="font-weight:600;font-size:12.5px;">Co-op Fort Augustus</div><div class="ui-m" style="font-size:11px;">🕐 07:00–22:00 · last shop for 60 km</div></div></div><div style="display:flex;gap:8px;padding:7px 0;border-top:1px solid var(--border-hairline);"><span>💧</span><div><div style="font-weight:600;font-size:12.5px;">Loch Maree layby tap</div><div class="ui-m" style="font-size:11px;">🕐 Always open</div></div></div></div>
+</div></div></div>
+  </div>
+</section>
+
+<section class="tight">
+  <div class="wrap narrow">
+    <div class="limits">
+      <h4>Good to know</h4>
+      <ul><li>Today is chosen by comparing your device's date to the day's date. A trip crossing many time zones may show the neighbouring stage until local midnight catches up.</li><li>Progress is entered by hand. Trip Tracker does not read your GPS — connect a Garmin or Wahoo share link if you want automatic tracking.</li><li>Live pace needs a target finish time on the day. Without one you still get the planned estimate, but not the from-here figure.</li></ul>
+    </div>
+  </div>
+</section>
+
+<section class="alt tight">
+  <div class="wrap">
+    <div class="sec-head" style="margin-bottom:24px;"><h2 style="font-size:24px;">Related</h2></div>
+    <div class="nextprev"><a class="card" href="route.html"><span class="ico">🗺️</span><h4>Route &amp; Days</h4><p>The backbone of every trip. One row per stage, with everything else in the app hanging off…</p><span class="more">Read more →</span></a><a class="card" href="statistics.html"><span class="ico">📊</span><h4>Statistics</h4><p>Which day is going to hurt, and whether the pace you have assumed is realistic.…</p><span class="more">Read more →</span></a><a class="card" href="live.html"><span class="ico">🔴</span><h4>Live Sharing</h4><p>One public link for everyone at home, and precise control over what it reveals.…</p><span class="more">Read more →</span></a></div>
+  </div>
+</section>
+
+<section class="tight">
+  <div class="wrap">
+    <div class="cta-band">
+      <h2>Try it on your next trip</h2>
+      <p>Free while in early access. A couple of minutes to set up.</p>
+      <div class="cta-actions">
+        <a class="btn btn-lg" href="../app.html">Get started</a>
+        <a class="btn btn-lg btn-outline" href="../live.html?t=c26dcdbd931c46f8804196172c1179b9">View the demo trip</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<footer class="site">
+  <div class="wrap">
+    <div class="foot-grid">
+      <div>
+        <a class="brand" href="../" style="margin-bottom:12px;">
+          <svg class="mark" viewBox="0 0 28 28" aria-hidden="true">
+            <circle cx="14" cy="14" r="12.5" fill="none" stroke="currentColor" stroke-width="1.8"/>
+            <circle cx="8" cy="20" r="2.2" fill="currentColor"/><circle cx="20" cy="8" r="2.2" fill="currentColor"/>
+            <path d="M8 20C16 20 12 8 20 8" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+          </svg>
+          Trip Tracker
+        </a>
+        <p class="muted" style="max-width:300px;font-size:14px;">Planning and live sharing for multi-day group trips.</p>
+      </div>
+      <div><h4>Product</h4><ul>
+        <li><a href="../features.html">All features</a></li>
+        <li><a href="../how-it-works.html">How it works</a></li>
+        <li><a href="../faq.html">FAQ</a></li></ul></div>
+      <div><h4>Try it</h4><ul>
+        <li><a href="../app.html">Sign in</a></li>
+        <li><a href="../app.html">Create a trip</a></li>
+        <li><a href="../live.html?t=c26dcdbd931c46f8804196172c1179b9">Live demo</a></li></ul></div>
+      <div><h4>Deep dives</h4><ul>
+        <li><a href="route.html">Route &amp; Days</a></li>
+        <li><a href="today.html">Today</a></li>
+        <li><a href="live.html">Live sharing</a></li>
+        <li><a href="imports.html">Imports</a></li></ul></div>
+    </div>
+    <div class="foot-bottom">
+      <span>© 2026 Trip Tracker</span>
+      <span>Early access — <a href="../app.html">free to use</a></span>
+    </div>
+  </div>
+</footer>
+
+<script>
+document.getElementById('navToggle').addEventListener('click', function () {
+  var n = document.getElementById('mainnav');
+  var open = n.classList.toggle('open');
+  this.setAttribute('aria-expanded', open ? 'true' : 'false');
+});
+</script>
+</body>
+</html>

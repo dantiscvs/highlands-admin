@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Readiness — Trip Tracker</title>
+<meta name="description" content="What is still missing, a week before you leave.">
+<meta name="theme-color" content="#F7F5F0">
+<script>
+(function () {
+  var h = location.hash || '', q = location.search || '';
+  if (h.indexOf('access_token=') > -1 || q.indexOf('code=') > -1) location.replace('/app.html' + q + h);
+  var t = localStorage.getItem('theme');
+  if (t === 'dark' || t === 'light') document.documentElement.setAttribute('data-theme', t);
+})();
+</script>
+<link rel="stylesheet" href="../css/site.css">
+<link rel="stylesheet" href="../css/scenes.css">
+</head>
+<body>
+
+<header class="site">
+  <div class="wrap bar">
+    <a class="brand" href="../">
+      <svg class="mark" viewBox="0 0 28 28" aria-hidden="true">
+        <circle cx="14" cy="14" r="12.5" fill="none" stroke="currentColor" stroke-width="1.8"/>
+        <circle cx="8" cy="20" r="2.2" fill="currentColor"/><circle cx="20" cy="8" r="2.2" fill="currentColor"/>
+        <path d="M8 20C16 20 12 8 20 8" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+      </svg>
+      Trip Tracker
+    </a>
+    <nav class="mainnav" id="mainnav">
+      <a href="../features.html" class="on">Features</a>
+      <a href="../how-it-works.html">How it works</a>
+      <a href="../live.html?t=c26dcdbd931c46f8804196172c1179b9">Live demo</a>
+      <a href="../faq.html">FAQ</a>
+    </nav>
+    <div class="headcta">
+      <a class="btn btn-ghost btn-sm" href="../app.html">Sign in</a>
+      <a class="btn btn-primary btn-sm" href="../app.html">Get started</a>
+      <button id="navToggle" aria-label="Menu" aria-expanded="false">
+        <svg viewBox="0 0 22 22" width="22" height="22"><path d="M3 6h16M3 11h16M3 16h16" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" fill="none"/></svg>
+      </button>
+    </div>
+  </div>
+</header>
+
+<section class="subhero">
+  <div class="wrap">
+    <div class="crumb"><a href="../">Home</a> → <a href="../features.html">Features</a> → Readiness</div>
+    <div style="display:flex;gap:14px;align-items:flex-start;">
+      <span style="font-size:36px;line-height:1;">☑️</span>
+      <div>
+        <h1 style="font-size:clamp(28px,4vw,42px);">Readiness</h1>
+        <p class="lede" style="margin-top:12px;max-width:640px;">What is still missing, a week before you leave.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="tight">
+  <div class="wrap narrow">
+    <p style="font-size:17px;color:var(--text-secondary);line-height:1.65;">Readiness is a standing check across the whole trip. It looks for the gaps that matter — a night with no bed, a long stage with no shop — and reports them as warnings you can act on or dismiss. It never blocks anything.</p>
+  </div>
+</section>
+
+<section style="padding-top:0;">
+  <div class="wrap">
+<div class="detail"><div><h3>Warnings, never blockers</h3><p>Plenty of trips deliberately have a night with no accommodation, because you are camping or because you have not decided yet. A tool that refuses to let you continue is wrong about your trip more often than it is right.</p><p>So Readiness tells you what looks unfinished, shows a completion percentage, and lets you dismiss any check that does not apply.</p><ul><li><strong>Nights with no accommodation</strong> that are not rest days.</li><li><strong>Long stages with no resupply or water</strong> point.</li><li><strong>Stays marked booked</strong> with no reference or confirmation link.</li><li><strong>Riders with no tracking link</strong>, if you are sharing live.</li><li><strong>Dismiss anything</strong> that does not apply.</li></ul></div><div class="detail-media"><div class="ui">
+  <div class="ui-bar"><span class="ui-dot"></span><span class="ui-dot"></span><span class="ui-dot"></span>
+    <span class="ui-url">Readiness — 88%</span></div>
+  <div class="ui-body"><div style="display:flex;gap:9px;padding:11px 13px;border-radius:9px;background:var(--accent-subtle);border:1px solid var(--accent-subtle-border);margin-bottom:8px;"><span>✓</span><div><div style="font-weight:600;font-size:12.5px;">Every night has a bed</div><div class="ui-m" style="font-size:11px;">All clear</div></div></div><div style="display:flex;gap:9px;padding:11px 13px;border-radius:9px;background:var(--accent-2-subtle);border:1px solid var(--accent-2);"><span>⚠</span><div><div style="font-weight:600;font-size:12.5px;">Long days with no resupply</div><div class="ui-m" style="font-size:11px;">Day 5, Day 6</div></div></div></div>
+</div></div></div>
+  </div>
+</section>
+
+<section class="tight">
+  <div class="wrap narrow">
+    <div class="limits">
+      <h4>Good to know</h4>
+      <ul><li>The completion percentage counts days with accommodation, so a camping trip will always read low unless those days are marked as rest days.</li><li>The long-stage threshold is fixed at 60 km and is not yet configurable per activity type.</li><li>Dismissals are stored in your browser, so they do not follow you to another device.</li></ul>
+    </div>
+  </div>
+</section>
+
+<section class="alt tight">
+  <div class="wrap">
+    <div class="sec-head" style="margin-bottom:24px;"><h2 style="font-size:24px;">Related</h2></div>
+    <div class="nextprev"><a class="card" href="route.html"><span class="ico">🗺️</span><h4>Route &amp; Days</h4><p>The backbone of every trip. One row per stage, with everything else in the app hanging off…</p><span class="more">Read more →</span></a><a class="card" href="accommodation.html"><span class="ico">🏠</span><h4>Accommodation</h4><p>Where you sleep, and the details you need at 7pm and again at 7am.…</p><span class="more">Read more →</span></a><a class="card" href="sights.html"><span class="ico">🏰</span><h4>Sights &amp; Resupply</h4><p>Castles worth the detour, the last shop for sixty kilometres, and the pub that stops servi…</p><span class="more">Read more →</span></a></div>
+  </div>
+</section>
+
+<section class="tight">
+  <div class="wrap">
+    <div class="cta-band">
+      <h2>Try it on your next trip</h2>
+      <p>Free while in early access. A couple of minutes to set up.</p>
+      <div class="cta-actions">
+        <a class="btn btn-lg" href="../app.html">Get started</a>
+        <a class="btn btn-lg btn-outline" href="../live.html?t=c26dcdbd931c46f8804196172c1179b9">View the demo trip</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<footer class="site">
+  <div class="wrap">
+    <div class="foot-grid">
+      <div>
+        <a class="brand" href="../" style="margin-bottom:12px;">
+          <svg class="mark" viewBox="0 0 28 28" aria-hidden="true">
+            <circle cx="14" cy="14" r="12.5" fill="none" stroke="currentColor" stroke-width="1.8"/>
+            <circle cx="8" cy="20" r="2.2" fill="currentColor"/><circle cx="20" cy="8" r="2.2" fill="currentColor"/>
+            <path d="M8 20C16 20 12 8 20 8" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+          </svg>
+          Trip Tracker
+        </a>
+        <p class="muted" style="max-width:300px;font-size:14px;">Planning and live sharing for multi-day group trips.</p>
+      </div>
+      <div><h4>Product</h4><ul>
+        <li><a href="../features.html">All features</a></li>
+        <li><a href="../how-it-works.html">How it works</a></li>
+        <li><a href="../faq.html">FAQ</a></li></ul></div>
+      <div><h4>Try it</h4><ul>
+        <li><a href="../app.html">Sign in</a></li>
+        <li><a href="../app.html">Create a trip</a></li>
+        <li><a href="../live.html?t=c26dcdbd931c46f8804196172c1179b9">Live demo</a></li></ul></div>
+      <div><h4>Deep dives</h4><ul>
+        <li><a href="route.html">Route &amp; Days</a></li>
+        <li><a href="today.html">Today</a></li>
+        <li><a href="live.html">Live sharing</a></li>
+        <li><a href="imports.html">Imports</a></li></ul></div>
+    </div>
+    <div class="foot-bottom">
+      <span>© 2026 Trip Tracker</span>
+      <span>Early access — <a href="../app.html">free to use</a></span>
+    </div>
+  </div>
+</footer>
+
+<script>
+document.getElementById('navToggle').addEventListener('click', function () {
+  var n = document.getElementById('mainnav');
+  var open = n.classList.toggle('open');
+  this.setAttribute('aria-expanded', open ? 'true' : 'false');
+});
+</script>
+</body>
+</html>

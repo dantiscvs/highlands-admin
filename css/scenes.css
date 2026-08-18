@@ -1,0 +1,193 @@
+/* ============================================================
+   Trip Tracker — photo hero + animated feature scenes
+   Scenes are pure CSS keyframes driven by a `.play` class that
+   JS adds when the scene scrolls into view. Everything degrades
+   to the finished end-state when motion is reduced or JS is off.
+   ============================================================ */
+
+/* ---------- Photo hero ---------- */
+.hero-photo { position: relative; overflow: hidden; padding: 0;
+  border-bottom: 1px solid var(--border-hairline); }
+.hero-photo .bg { position: absolute; inset: 0; background-image: var(--hero-img);
+  background-size: cover; background-position: center 42%; transform: scale(1.04); }
+/* Two scrims: a vertical one for text contrast, a warm one to tie the photo
+   into the palette instead of it sitting on the page like a sticker. */
+.hero-photo .scrim { position: absolute; inset: 0;
+  background:
+    linear-gradient(180deg, rgba(16,20,14,.72) 0%, rgba(16,20,14,.55) 45%, rgba(16,20,14,.80) 100%),
+    linear-gradient(100deg, rgba(46,83,57,.42) 0%, rgba(46,83,57,0) 60%); }
+.hero-photo .wrap { position: relative; z-index: 2; }
+.hero-photo .hero-inner { padding: clamp(64px, 10vw, 132px) 0 clamp(56px, 8vw, 104px); max-width: 680px; }
+.hero-photo h1 { color: #FBFAF6; margin-bottom: 18px; text-wrap: balance; }
+.hero-photo .lede { color: rgba(251,250,246,.86); font-size: clamp(17px, 2vw, 21px); max-width: 540px; }
+.hero-photo .eyebrow { color: #B9D9BE; }
+.hero-photo .hero-cta .btn { border-color: transparent; }
+.hero-photo .hero-cta .btn-primary { background: #FBFAF6; color: #23261E; }
+.hero-photo .hero-cta .btn-primary:hover { background: #fff; }
+.hero-photo .hero-cta .btn-glass { background: rgba(251,250,246,.12); color: #FBFAF6;
+  border: 1px solid rgba(251,250,246,.42); backdrop-filter: blur(6px); }
+.hero-photo .hero-cta .btn-glass:hover { background: rgba(251,250,246,.2); }
+
+/* Small proof chips under the CTAs */
+.hero-callouts { display: flex; flex-wrap: wrap; gap: 8px 18px; margin-top: 26px; }
+.hero-callouts span { display: inline-flex; align-items: center; gap: 7px;
+  font-size: 13.5px; font-weight: 500; color: rgba(251,250,246,.82); }
+.hero-callouts span::before { content: ''; width: 15px; height: 15px; flex: none; border-radius: 50%;
+  background-color: rgba(251,250,246,.16);
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12'%3E%3Cpolyline points='3,6.3 5,8.4 9,3.8' fill='none' stroke='%23FBFAF6' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+  background-repeat: no-repeat; background-position: center; }
+.photo-credit { position: absolute; right: 10px; bottom: 8px; z-index: 3;
+  font-size: 10.5px; color: rgba(251,250,246,.5); letter-spacing: .02em; }
+
+/* A stat strip that sits directly under the photo */
+.hero-strip { background: var(--bg-card); border-bottom: 1px solid var(--border-hairline); }
+.hero-strip .row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 18px; padding: 22px 0; }
+.hero-strip .s { text-align: center; }
+.hero-strip .s b { display: block; font-family: var(--font-mono); font-size: 21px; font-weight: 700;
+  color: var(--text-primary); letter-spacing: -0.01em; }
+.hero-strip .s span { font-size: 12.5px; color: var(--text-secondary); }
+
+/* ---------- Scene shell ---------- */
+.scene { position: relative; background: var(--bg-card); border: 1px solid var(--border-strong);
+  border-radius: var(--radius-lg); box-shadow: var(--shadow-3); overflow: hidden; }
+.scene-head { display: flex; align-items: center; gap: 8px; padding: 9px 13px;
+  background: var(--bg-recessed); border-bottom: 1px solid var(--border-hairline); }
+.scene-head .t { font-size: 11.5px; font-weight: 600; color: var(--text-secondary); }
+.scene-replay { margin-left: auto; background: none; border: 1px solid var(--border-hairline);
+  color: var(--text-secondary); border-radius: var(--radius-full); font-size: 10.5px; font-weight: 600;
+  padding: 3px 10px; cursor: pointer; font-family: var(--font-ui); }
+.scene-replay:hover { color: var(--text-primary); border-color: var(--border-strong); }
+.scene-stage { padding: 16px; position: relative; min-height: 250px; }
+.scene-step { position: absolute; left: 16px; right: 16px; top: 16px; opacity: 0; }
+.scene-cap { font-size: 12.5px; color: var(--text-tertiary); text-align: center; margin-top: 12px; }
+
+/* Shared bits reused by the scenes */
+.s-card { background: var(--bg-card); border: 1px solid var(--border-hairline);
+  border-radius: var(--radius-md); padding: 11px 13px; }
+.s-row { display: flex; gap: 10px; align-items: center; }
+.s-t { font-weight: 600; font-size: 13px; }
+.s-m { font-size: 11.5px; color: var(--text-secondary); font-family: var(--font-mono); }
+.s-pill { display: inline-flex; align-items: center; gap: 4px; padding: 2px 9px;
+  border-radius: var(--radius-full); font-size: 10.5px; font-weight: 700; }
+.s-pill.g { background: var(--accent-subtle); color: var(--accent); }
+.s-pill.o { background: var(--accent-2-subtle); color: var(--accent-2); }
+
+/* The last step is the finished diagram, and it is what shows whenever the
+   scene is NOT playing — no JS, reduced motion, or the visibility check never
+   running. Animation is purely additive, so a scene can never render blank. */
+.scene:not(.play) .scene-step:last-child { opacity: 1; }
+.scene:not(.js) .scene-replay { display: none; }
+
+@media (prefers-reduced-motion: reduce) {
+  .scene .scene-step { animation: none !important; }
+  .scene .scene-step:last-child { opacity: 1; }
+  .scene .scene-replay { display: none; }
+  .hero-photo .bg { transform: none; }
+}
+
+/* ---------- Scene 1: booking email → import → planner ---------- */
+.sc-import .scene-step { animation-duration: 9s; animation-iteration-count: infinite; animation-timing-function: ease-in-out; }
+.scene.play.sc-import .st1 { animation-name: st1; }
+.scene.play.sc-import .st2 { animation-name: st2; }
+.scene.play.sc-import .st3 { animation-name: st3; }
+.scene.play.sc-import .st4 { animation-name: st4; }
+/* 0–22% step1, 22–48% step2, 48–72% step3, 72–100% step4 */
+@keyframes st1 { 0%,2% {opacity:0;transform:translateY(8px);} 6%,20% {opacity:1;transform:none;} 24%,100% {opacity:0;transform:translateY(-8px);} }
+@keyframes st2 { 0%,22% {opacity:0;transform:translateY(8px);} 27%,45% {opacity:1;transform:none;} 50%,100% {opacity:0;transform:translateY(-8px);} }
+@keyframes st3 { 0%,48% {opacity:0;transform:translateY(8px);} 53%,68% {opacity:1;transform:none;} 74%,100% {opacity:0;transform:translateY(-8px);} }
+@keyframes st4 { 0%,72% {opacity:0;transform:translateY(8px);} 78%,96% {opacity:1;transform:none;} 100% {opacity:0;} }
+
+.mailbox { border: 1px solid var(--border-hairline); border-radius: var(--radius-md); overflow: hidden; }
+.mailbox .mh { background: var(--bg-recessed); padding: 7px 11px; font-size: 11px; color: var(--text-secondary);
+  border-bottom: 1px solid var(--border-hairline); display: flex; gap: 7px; align-items: center; }
+.mailbox .mb { padding: 12px; font-size: 12px; line-height: 1.6; }
+.mailbox .mb .k { color: var(--text-tertiary); }
+.fwd-arrow { text-align: center; font-size: 20px; color: var(--accent); margin: 10px 0; }
+.scene.play.sc-import .fwd-arrow { animation: nudge 1.4s ease-in-out infinite; }
+@keyframes nudge { 0%,100% { transform: translateY(0); } 50% { transform: translateY(4px); } }
+
+/* ---------- Scene 2: GPX → days → elevation ---------- */
+.sc-route .scene-step { animation-duration: 9s; animation-iteration-count: infinite; animation-timing-function: ease-in-out; }
+.scene.play.sc-route .st1 { animation-name: st1; }
+.scene.play.sc-route .st2 { animation-name: st2; }
+.scene.play.sc-route .st3 { animation-name: st3; }
+.scene.play.sc-route .st4 { animation-name: st4; }
+.scene.play.sc-route .dayrow-in { opacity: 0; animation: rowIn .5s ease-out forwards; }
+.scene.play.sc-route .dayrow-in:nth-child(1) { animation-delay: .1s; }
+.scene.play.sc-route .dayrow-in:nth-child(2) { animation-delay: .22s; }
+.scene.play.sc-route .dayrow-in:nth-child(3) { animation-delay: .34s; }
+.scene.play.sc-route .dayrow-in:nth-child(4) { animation-delay: .46s; }
+@keyframes rowIn { from { opacity: 0; transform: translateX(-10px); } to { opacity: 1; transform: none; } }
+.elev-line { stroke-dasharray: 900; stroke-dashoffset: 900; }
+.scene.play.sc-route .elev-line { animation: draw 2.2s ease-out .3s forwards; }
+@keyframes draw { to { stroke-dashoffset: 0; } }
+.elev-fill { opacity: 0; }
+.scene.play.sc-route .elev-fill { animation: fadeIn .8s ease-out 1.6s forwards; }
+@keyframes fadeIn { to { opacity: .18; } }
+
+/* ---------- Scene 3: log km → pace + live page update ---------- */
+.sc-today .scene-step { animation-duration: 9s; animation-iteration-count: infinite; animation-timing-function: ease-in-out; }
+.scene.play.sc-today .st1 { animation-name: st1; }
+.scene.play.sc-today .st2 { animation-name: st2; }
+.scene.play.sc-today .st3 { animation-name: st3; }
+.scene.play.sc-today .st4 { animation-name: st4; }
+.bar-fill { width: 0; }
+.scene.play.sc-today .bar-fill { animation: fill 2.4s cubic-bezier(.3,.8,.4,1) .4s forwards; }
+@keyframes fill { to { width: 55%; } }
+.typed { display: inline-block; }
+.scene.play.sc-today .typed { animation: pop .35s ease-out .9s backwards; }
+@keyframes pop { from { opacity: 0; transform: scale(.85); } to { opacity: 1; transform: none; } }
+
+/* ---------- Scene 4: assign packing → per-person checks ---------- */
+.sc-pack .scene-step { animation-duration: 9s; animation-iteration-count: infinite; animation-timing-function: ease-in-out; }
+.scene.play.sc-pack .st1 { animation-name: st1; }
+.scene.play.sc-pack .st2 { animation-name: st2; }
+.scene.play.sc-pack .st3 { animation-name: st3; }
+.scene.play.sc-pack .st4 { animation-name: st4; }
+.tick { opacity: 0; }
+.scene.play.sc-pack .tick { animation: tickIn .4s ease-out forwards; }
+.scene.play.sc-pack .tick:nth-of-type(1) { animation-delay: .5s; }
+.scene.play.sc-pack .tick:nth-of-type(2) { animation-delay: .75s; }
+.scene.play.sc-pack .tick:nth-of-type(3) { animation-delay: 1s; }
+@keyframes tickIn { from { opacity: 0; transform: scale(.6); } to { opacity: 1; transform: none; } }
+
+/* ---------- Feature subpage bits ---------- */
+.subhero { background: var(--bg-alt); border-bottom: 1px solid var(--border-hairline);
+  padding: clamp(40px, 6vw, 72px) 0 clamp(36px, 5vw, 60px); }
+.crumb { font-size: 13px; color: var(--text-tertiary); margin-bottom: 14px; }
+.crumb a { color: var(--text-secondary); }
+.detail { display: grid; grid-template-columns: 1fr 1fr; gap: 48px; align-items: start; }
+.detail + .detail { margin-top: clamp(44px, 6vw, 72px); padding-top: clamp(44px, 6vw, 72px);
+  border-top: 1px solid var(--border-hairline); }
+.detail.flip .detail-media { order: -1; }
+.detail > * { min-width: 0; }
+.detail h3 { margin-bottom: 10px; }
+.detail p { color: var(--text-secondary); }
+.detail p + p { margin-top: 10px; }
+.detail ul { list-style: none; margin-top: 16px; display: flex; flex-direction: column; gap: 9px; }
+.detail li { display: flex; gap: 9px; font-size: 15px; color: var(--text-secondary); align-items: flex-start; }
+.detail li::before { content: ''; width: 16px; height: 16px; flex: none; margin-top: 3px; border-radius: 50%;
+  background-color: var(--accent-subtle); border: 1px solid var(--accent-subtle-border);
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12'%3E%3Cpolyline points='3,6.3 5,8.4 9,3.8' fill='none' stroke='%232E5339' stroke-width='1.7' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+  background-repeat: no-repeat; background-position: center; }
+.detail li strong { color: var(--text-primary); font-weight: 600; }
+
+.limits { background: var(--bg-recessed); border: 1px solid var(--border-hairline);
+  border-radius: var(--radius-lg); padding: 22px 26px; }
+.limits h4 { margin-bottom: 10px; }
+.limits ul { list-style: none; display: flex; flex-direction: column; gap: 8px; }
+.limits li { font-size: 14.5px; color: var(--text-secondary); padding-left: 20px; position: relative; }
+.limits li::before { content: '—'; position: absolute; left: 0; color: var(--text-tertiary); }
+
+.nextprev { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 14px; }
+
+@media (max-width: 940px) {
+  .detail { grid-template-columns: 1fr; gap: 28px; }
+  .detail.flip .detail-media { order: 0; }
+  .hero-strip .row { grid-template-columns: repeat(2, 1fr); }
+  .hero-photo .bg { background-position: center 40%; }
+}
+@media (max-width: 620px) {
+  .hero-photo .hero-inner { padding: 56px 0 48px; }
+  .scene-stage { min-height: 300px; }
+}

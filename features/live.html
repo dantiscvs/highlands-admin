@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Live Sharing — Trip Tracker</title>
+<meta name="description" content="One public link for everyone at home, and precise control over what it reveals.">
+<meta name="theme-color" content="#F7F5F0">
+<script>
+(function () {
+  var h = location.hash || '', q = location.search || '';
+  if (h.indexOf('access_token=') > -1 || q.indexOf('code=') > -1) location.replace('/app.html' + q + h);
+  var t = localStorage.getItem('theme');
+  if (t === 'dark' || t === 'light') document.documentElement.setAttribute('data-theme', t);
+})();
+</script>
+<link rel="stylesheet" href="../css/site.css">
+<link rel="stylesheet" href="../css/scenes.css">
+</head>
+<body>
+
+<header class="site">
+  <div class="wrap bar">
+    <a class="brand" href="../">
+      <svg class="mark" viewBox="0 0 28 28" aria-hidden="true">
+        <circle cx="14" cy="14" r="12.5" fill="none" stroke="currentColor" stroke-width="1.8"/>
+        <circle cx="8" cy="20" r="2.2" fill="currentColor"/><circle cx="20" cy="8" r="2.2" fill="currentColor"/>
+        <path d="M8 20C16 20 12 8 20 8" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+      </svg>
+      Trip Tracker
+    </a>
+    <nav class="mainnav" id="mainnav">
+      <a href="../features.html" class="on">Features</a>
+      <a href="../how-it-works.html">How it works</a>
+      <a href="../live.html?t=c26dcdbd931c46f8804196172c1179b9">Live demo</a>
+      <a href="../faq.html">FAQ</a>
+    </nav>
+    <div class="headcta">
+      <a class="btn btn-ghost btn-sm" href="../app.html">Sign in</a>
+      <a class="btn btn-primary btn-sm" href="../app.html">Get started</a>
+      <button id="navToggle" aria-label="Menu" aria-expanded="false">
+        <svg viewBox="0 0 22 22" width="22" height="22"><path d="M3 6h16M3 11h16M3 16h16" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" fill="none"/></svg>
+      </button>
+    </div>
+  </div>
+</header>
+
+<section class="subhero">
+  <div class="wrap">
+    <div class="crumb"><a href="../">Home</a> → <a href="../features.html">Features</a> → Live Sharing</div>
+    <div style="display:flex;gap:14px;align-items:flex-start;">
+      <span style="font-size:36px;line-height:1;">🔴</span>
+      <div>
+        <h1 style="font-size:clamp(28px,4vw,42px);">Live Sharing</h1>
+        <p class="lede" style="margin-top:12px;max-width:640px;">One public link for everyone at home, and precise control over what it reveals.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="tight">
+  <div class="wrap narrow">
+    <p style="font-size:17px;color:var(--text-secondary);line-height:1.65;">Family and friends want to follow along without installing anything or making an account. The live page is a single read-only link that shows the route, today's stage, progress, elevation profiles and photos — with every sensitive field behind its own switch.</p>
+  </div>
+</section>
+
+<section style="padding-top:0;">
+  <div class="wrap">
+<div class="detail"><div><h3>Off until you turn it on</h3><p>Nothing about your trip is public by default. Enabling sharing generates an unguessable token; there is no directory and nothing is indexed.</p><p>If even that is too open, add a passcode and the page asks for it before showing anything.</p><ul><li><strong>Disabled by default</strong>.</li><li><strong>Unguessable link</strong>, not a slug someone could try.</li><li><strong>Optional passcode</strong> on top.</li><li><strong>Revocable</strong> — turn it off and the link stops working.</li></ul></div><div class="detail-media"><div class="ui">
+  <div class="ui-bar"><span class="ui-dot"></span><span class="ui-dot"></span><span class="ui-dot"></span>
+    <span class="ui-url">Share &amp; live — visibility</span></div>
+  <div class="ui-body"><div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border-hairline);font-size:12.5px;"><span>Show photos</span><span class="ui-pill pill-green">On</span></div><div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border-hairline);font-size:12.5px;"><span>Show costs</span><span class="ui-pill pill-green">On</span></div><div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border-hairline);font-size:12.5px;"><span>Show exact addresses</span><span class="ui-pill pill-gray">Off</span></div><div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border-hairline);font-size:12.5px;"><span>Show phone numbers</span><span class="ui-pill pill-gray">Off</span></div><div style="display:flex;justify-content:space-between;padding:8px 0;font-size:12.5px;"><span>Show booking references</span><span class="ui-pill pill-gray">Off</span></div></div>
+</div></div></div>
+<div class="detail" style="grid-template-columns:1fr;max-width:780px;"><div><h3>Field-level, not all-or-nothing</h3><p>Sharing your route is not the same as sharing the address of the house you are sleeping in, or what you paid for it. Each of those is a separate switch, and the public read path enforces them server-side rather than just hiding them in the page.</p><p>That distinction matters: a hidden field is not sent to the browser at all, so it cannot be recovered by anyone poking at the page.</p><ul><li><strong>Exact addresses</strong> — separate switch.</li><li><strong>Costs and expense balances</strong> — separate switch.</li><li><strong>Phone numbers</strong> — separate switch.</li><li><strong>Booking references</strong> — separate switch.</li><li><strong>Enforced server-side</strong>, not hidden client-side.</li></ul></div></div>
+<div class="detail" style="grid-template-columns:1fr;max-width:780px;"><div><h3>What followers actually see</h3><p>A trip header with total progress, a highlighted card for today's stage, the full day list, elevation profiles they can switch between, any tracking links you have added, and the photo gallery.</p><p>Progress updates as riders log kilometres, so the page is genuinely live rather than a static itinerary.</p><ul><li><strong>Today's stage</strong> highlighted with distance, climbing and tonight's stay.</li><li><strong>Elevation profiles</strong>, whole trip or per day, with a progress marker.</li><li><strong>Photo gallery</strong> with a lightbox.</li><li><strong>Tracking links</strong> from Garmin, Wahoo and similar.</li></ul></div></div>
+  </div>
+</section>
+
+<section class="tight">
+  <div class="wrap narrow">
+    <div class="limits">
+      <h4>Good to know</h4>
+      <ul><li>The page shows the stage matching the viewer's own local date; a follower in a very different time zone may see the neighbouring day around midnight.</li><li>There is no live GPS position unless you add an external tracking link.</li><li>Followers cannot comment or react — it is deliberately one-way.</li></ul>
+    </div>
+  </div>
+</section>
+
+<section class="alt tight">
+  <div class="wrap">
+    <div class="sec-head" style="margin-bottom:24px;"><h2 style="font-size:24px;">Related</h2></div>
+    <div class="nextprev"><a class="card" href="today.html"><span class="ico">🎯</span><h4>Today</h4><p>The screen you actually use while moving. One stage, what is left of it, and whether you a…</p><span class="more">Read more →</span></a><a class="card" href="participants.html"><span class="ico">👥</span><h4>Participants</h4><p>Four roles, invite links, and a way to check what your group sees before you send it.…</p><span class="more">Read more →</span></a><a class="card" href="statistics.html"><span class="ico">📊</span><h4>Statistics</h4><p>Which day is going to hurt, and whether the pace you have assumed is realistic.…</p><span class="more">Read more →</span></a></div>
+  </div>
+</section>
+
+<section class="tight">
+  <div class="wrap">
+    <div class="cta-band">
+      <h2>Try it on your next trip</h2>
+      <p>Free while in early access. A couple of minutes to set up.</p>
+      <div class="cta-actions">
+        <a class="btn btn-lg" href="../app.html">Get started</a>
+        <a class="btn btn-lg btn-outline" href="../live.html?t=c26dcdbd931c46f8804196172c1179b9">View the demo trip</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<footer class="site">
+  <div class="wrap">
+    <div class="foot-grid">
+      <div>
+        <a class="brand" href="../" style="margin-bottom:12px;">
+          <svg class="mark" viewBox="0 0 28 28" aria-hidden="true">
+            <circle cx="14" cy="14" r="12.5" fill="none" stroke="currentColor" stroke-width="1.8"/>
+            <circle cx="8" cy="20" r="2.2" fill="currentColor"/><circle cx="20" cy="8" r="2.2" fill="currentColor"/>
+            <path d="M8 20C16 20 12 8 20 8" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+          </svg>
+          Trip Tracker
+        </a>
+        <p class="muted" style="max-width:300px;font-size:14px;">Planning and live sharing for multi-day group trips.</p>
+      </div>
+      <div><h4>Product</h4><ul>
+        <li><a href="../features.html">All features</a></li>
+        <li><a href="../how-it-works.html">How it works</a></li>
+        <li><a href="../faq.html">FAQ</a></li></ul></div>
+      <div><h4>Try it</h4><ul>
+        <li><a href="../app.html">Sign in</a></li>
+        <li><a href="../app.html">Create a trip</a></li>
+        <li><a href="../live.html?t=c26dcdbd931c46f8804196172c1179b9">Live demo</a></li></ul></div>
+      <div><h4>Deep dives</h4><ul>
+        <li><a href="route.html">Route &amp; Days</a></li>
+        <li><a href="today.html">Today</a></li>
+        <li><a href="live.html">Live sharing</a></li>
+        <li><a href="imports.html">Imports</a></li></ul></div>
+    </div>
+    <div class="foot-bottom">
+      <span>© 2026 Trip Tracker</span>
+      <span>Early access — <a href="../app.html">free to use</a></span>
+    </div>
+  </div>
+</footer>
+
+<script>
+document.getElementById('navToggle').addEventListener('click', function () {
+  var n = document.getElementById('mainnav');
+  var open = n.classList.toggle('open');
+  this.setAttribute('aria-expanded', open ? 'true' : 'false');
+});
+</script>
+</body>
+</html>

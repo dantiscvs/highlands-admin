@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Statistics — Trip Tracker</title>
+<meta name="description" content="Which day is going to hurt, and whether the pace you have assumed is realistic.">
+<meta name="theme-color" content="#F7F5F0">
+<script>
+(function () {
+  var h = location.hash || '', q = location.search || '';
+  if (h.indexOf('access_token=') > -1 || q.indexOf('code=') > -1) location.replace('/app.html' + q + h);
+  var t = localStorage.getItem('theme');
+  if (t === 'dark' || t === 'light') document.documentElement.setAttribute('data-theme', t);
+})();
+</script>
+<link rel="stylesheet" href="../css/site.css">
+<link rel="stylesheet" href="../css/scenes.css">
+</head>
+<body>
+
+<header class="site">
+  <div class="wrap bar">
+    <a class="brand" href="../">
+      <svg class="mark" viewBox="0 0 28 28" aria-hidden="true">
+        <circle cx="14" cy="14" r="12.5" fill="none" stroke="currentColor" stroke-width="1.8"/>
+        <circle cx="8" cy="20" r="2.2" fill="currentColor"/><circle cx="20" cy="8" r="2.2" fill="currentColor"/>
+        <path d="M8 20C16 20 12 8 20 8" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+      </svg>
+      Trip Tracker
+    </a>
+    <nav class="mainnav" id="mainnav">
+      <a href="../features.html" class="on">Features</a>
+      <a href="../how-it-works.html">How it works</a>
+      <a href="../live.html?t=c26dcdbd931c46f8804196172c1179b9">Live demo</a>
+      <a href="../faq.html">FAQ</a>
+    </nav>
+    <div class="headcta">
+      <a class="btn btn-ghost btn-sm" href="../app.html">Sign in</a>
+      <a class="btn btn-primary btn-sm" href="../app.html">Get started</a>
+      <button id="navToggle" aria-label="Menu" aria-expanded="false">
+        <svg viewBox="0 0 22 22" width="22" height="22"><path d="M3 6h16M3 11h16M3 16h16" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" fill="none"/></svg>
+      </button>
+    </div>
+  </div>
+</header>
+
+<section class="subhero">
+  <div class="wrap">
+    <div class="crumb"><a href="../">Home</a> → <a href="../features.html">Features</a> → Statistics</div>
+    <div style="display:flex;gap:14px;align-items:flex-start;">
+      <span style="font-size:36px;line-height:1;">📊</span>
+      <div>
+        <h1 style="font-size:clamp(28px,4vw,42px);">Statistics</h1>
+        <p class="lede" style="margin-top:12px;max-width:640px;">Which day is going to hurt, and whether the pace you have assumed is realistic.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="tight">
+  <div class="wrap narrow">
+    <p style="font-size:17px;color:var(--text-secondary);line-height:1.65;">Statistics turns the plan into numbers you can compare. Every active day gets a difficulty score, and the charts show distance, climbing and required pace side by side so an unreasonable stage stands out before you are standing at the bottom of it.</p>
+  </div>
+</section>
+
+<section style="padding-top:0;">
+  <div class="wrap">
+<div class="detail"><div><h3>One number per day</h3><p>Distance alone does not tell you much — 90 flat kilometres and 90 kilometres with 1,500 metres of climbing are different days. The difficulty score combines both into a single 0–10 figure, so stages are comparable at a glance.</p><p>The formula is deliberately simple and published rather than hidden: distance in kilometres plus climbing in metres divided by 100, all divided by 12, capped at 10. A 90 km day with 900 m of climbing scores 8.3 — hard.</p><ul><li><strong>Under 3</strong> — very easy.</li><li><strong>3 to 5</strong> — easy.</li><li><strong>5 to 7</strong> — moderate.</li><li><strong>7 to 8.5</strong> — hard.</li><li><strong>8.5 to 9.5</strong> — very hard.</li><li><strong>Above 9.5</strong> — extreme.</li></ul></div><div class="detail-media"><div class="ui">
+  <div class="ui-bar"><span class="ui-dot"></span><span class="ui-dot"></span><span class="ui-dot"></span>
+    <span class="ui-url">Stage difficulty</span></div>
+  <div class="ui-body"><div class="ui-bars"><i style="height:46%;background:var(--info);"></i><i style="height:78%;background:var(--warning);"></i><i style="height:76%;background:var(--warning);"></i><i style="height:84%;background:var(--danger);"></i><i style="height:66%;background:var(--info);"></i><i style="height:58%;background:var(--accent);"></i></div><div class="ui-axis"><span>16 Aug</span><span>17</span><span>18</span><span>19</span><span>20</span><span>21</span></div><div class="ui-m" style="margin-top:9px;text-align:center;">5.5 · 8.0 · 8.3 · 9.1 · 7.2 · 6.0</div></div>
+</div></div></div>
+<div class="detail flip"><div><h3>Required pace, not hoped-for pace</h3><p>Give a day a start time and a target finish and Statistics can answer the question that actually matters: how fast do you have to move to make that window?</p><p>It reports two figures. <em>Moving</em> pace excludes your daily overhead — the cafe stops, the punctures, the photographs. <em>Overall</em> pace includes it, which makes it the number to check your watch against mid-ride. If overall pace looks fine but moving pace looks brutal, your overhead assumption is the problem, not your legs.</p><ul><li><strong>Both figures per day</strong>, colour-banded by how demanding they are.</li><li><strong>Based on your own assumptions</strong>, editable in trip settings.</li><li><strong>Hidden until you set the times</strong>, rather than showing a made-up number.</li></ul></div><div class="detail-media"><div class="ui">
+  <div class="ui-bar"><span class="ui-dot"></span><span class="ui-dot"></span><span class="ui-dot"></span>
+    <span class="ui-url">Required overall pace</span></div>
+  <div class="ui-body"><div class="ui-bars"><i style="height:44%;background:var(--accent);"></i><i style="height:62%;background:var(--info);"></i><i style="height:68%;background:var(--info);"></i><i style="height:80%;background:var(--warning);"></i><i style="height:58%;background:var(--accent);"></i><i style="height:72%;background:var(--info);"></i></div><div class="ui-axis"><span>16 Aug</span><span>17</span><span>18</span><span>19</span><span>20</span><span>21</span></div><div class="ui-m" style="margin-top:9px;text-align:center;">Under 8 relaxed · 8–10 solid · 10–12 watch the clock · 12+ risk of running late</div></div>
+</div></div></div>
+<div class="detail"><div><h3>Elevation you can actually read</h3><p>Profiles are drawn from the real GPX track, smoothed to remove barometric noise, and shown either per day or as one continuous profile across the whole trip with cumulative distance along the bottom.</p><p>The whole-trip view is the one people find most useful when deciding whether a plan is sane — it makes an unbroken week of climbing obvious in a way a table of totals never does.</p><ul><li><strong>Per day or whole trip</strong>, switchable.</li><li><strong>Real track data</strong>, not an approximation from totals.</li><li><strong>Min and max altitude</strong> alongside total climbing.</li></ul></div><div class="detail-media"><div class="ui">
+  <div class="ui-bar"><span class="ui-dot"></span><span class="ui-dot"></span><span class="ui-dot"></span>
+    <span class="ui-url">Elevation — whole trip</span></div>
+  <div class="ui-body"><svg viewBox="0 0 400 120" style="width:100%;display:block;"><line x1="30" y1="28" x2="392" y2="28" stroke="var(--border-hairline)"/><line x1="30" y1="62" x2="392" y2="62" stroke="var(--border-hairline)"/><line x1="30" y1="96" x2="392" y2="96" stroke="var(--border-hairline)"/><text x="25" y="31" text-anchor="end" font-size="8" fill="var(--text-tertiary)">550</text><text x="25" y="65" text-anchor="end" font-size="8" fill="var(--text-tertiary)">280</text><text x="25" y="99" text-anchor="end" font-size="8" fill="var(--text-tertiary)">10</text><path fill="var(--accent)" opacity=".18" d="M30,94 L62,84 L92,60 L122,74 L154,38 L186,58 L216,32 L248,54 L278,40 L310,76 L342,58 L372,88 L392,82 L392,108 L30,108 Z"/><path fill="none" stroke="var(--accent)" stroke-width="2" d="M30,94 L62,84 L92,60 L122,74 L154,38 L186,58 L216,32 L248,54 L278,40 L310,76 L342,58 L372,88 L392,82"/></svg><div class="ui-m" style="text-align:center;margin-top:6px;">514 km · +6156 m · 10–550 m</div></div>
+</div></div></div>
+  </div>
+</section>
+
+<section class="tight">
+  <div class="wrap narrow">
+    <div class="limits">
+      <h4>Good to know</h4>
+      <ul><li>The difficulty score does not know about wind, heat, road surface or how loaded your bike is. It compares your days to each other, not to somebody else's trip.</li><li>Pace assumptions are yours to set. The defaults are reference values, not measurements of you.</li><li>Required-pace charts stay hidden until a day has both a start and a target finish time.</li></ul>
+    </div>
+  </div>
+</section>
+
+<section class="alt tight">
+  <div class="wrap">
+    <div class="sec-head" style="margin-bottom:24px;"><h2 style="font-size:24px;">Related</h2></div>
+    <div class="nextprev"><a class="card" href="route.html"><span class="ico">🗺️</span><h4>Route &amp; Days</h4><p>The backbone of every trip. One row per stage, with everything else in the app hanging off…</p><span class="more">Read more →</span></a><a class="card" href="today.html"><span class="ico">🎯</span><h4>Today</h4><p>The screen you actually use while moving. One stage, what is left of it, and whether you a…</p><span class="more">Read more →</span></a><a class="card" href="live.html"><span class="ico">🔴</span><h4>Live Sharing</h4><p>One public link for everyone at home, and precise control over what it reveals.…</p><span class="more">Read more →</span></a></div>
+  </div>
+</section>
+
+<section class="tight">
+  <div class="wrap">
+    <div class="cta-band">
+      <h2>Try it on your next trip</h2>
+      <p>Free while in early access. A couple of minutes to set up.</p>
+      <div class="cta-actions">
+        <a class="btn btn-lg" href="../app.html">Get started</a>
+        <a class="btn btn-lg btn-outline" href="../live.html?t=c26dcdbd931c46f8804196172c1179b9">View the demo trip</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<footer class="site">
+  <div class="wrap">
+    <div class="foot-grid">
+      <div>
+        <a class="brand" href="../" style="margin-bottom:12px;">
+          <svg class="mark" viewBox="0 0 28 28" aria-hidden="true">
+            <circle cx="14" cy="14" r="12.5" fill="none" stroke="currentColor" stroke-width="1.8"/>
+            <circle cx="8" cy="20" r="2.2" fill="currentColor"/><circle cx="20" cy="8" r="2.2" fill="currentColor"/>
+            <path d="M8 20C16 20 12 8 20 8" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+          </svg>
+          Trip Tracker
+        </a>
+        <p class="muted" style="max-width:300px;font-size:14px;">Planning and live sharing for multi-day group trips.</p>
+      </div>
+      <div><h4>Product</h4><ul>
+        <li><a href="../features.html">All features</a></li>
+        <li><a href="../how-it-works.html">How it works</a></li>
+        <li><a href="../faq.html">FAQ</a></li></ul></div>
+      <div><h4>Try it</h4><ul>
+        <li><a href="../app.html">Sign in</a></li>
+        <li><a href="../app.html">Create a trip</a></li>
+        <li><a href="../live.html?t=c26dcdbd931c46f8804196172c1179b9">Live demo</a></li></ul></div>
+      <div><h4>Deep dives</h4><ul>
+        <li><a href="route.html">Route &amp; Days</a></li>
+        <li><a href="today.html">Today</a></li>
+        <li><a href="live.html">Live sharing</a></li>
+        <li><a href="imports.html">Imports</a></li></ul></div>
+    </div>
+    <div class="foot-bottom">
+      <span>© 2026 Trip Tracker</span>
+      <span>Early access — <a href="../app.html">free to use</a></span>
+    </div>
+  </div>
+</footer>
+
+<script>
+document.getElementById('navToggle').addEventListener('click', function () {
+  var n = document.getElementById('mainnav');
+  var open = n.classList.toggle('open');
+  this.setAttribute('aria-expanded', open ? 'true' : 'false');
+});
+</script>
+</body>
+</html>
