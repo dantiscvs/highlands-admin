@@ -2,5 +2,11 @@
   "buildCommand": null,
   "installCommand": null,
   "outputDirectory": ".",
-  "framework": null
+  "framework": null,
+  "cleanUrls": true,
+  "trailingSlash": false,
+  "rewrites": [
+    { "source": "/app", "destination": "/app.html" },
+    { "source": "/live", "destination": "/live.html" }
+  ]
 }

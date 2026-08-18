@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Trip Tracker</title>
+<meta name="theme-color" content="#F7F5F0">
+<script>
+(function () {
+  var saved = localStorage.getItem('theme');
+  if (saved === 'dark' || saved === 'light') document.documentElement.setAttribute('data-theme', saved);
+})();
+</script>
+<link rel="stylesheet" href="css/app.css">
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdn.sheetjs.com/xlsx-latest/package/dist/xlsx.full.min.js"></script>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+</head>
+<body>
+
+<div id="authGate" style="min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px;"></div>
+
+<div id="appShell">
+  <header id="mobilebar">
+    <button id="navToggle" onclick="toggleSidebar()" aria-label="Menu">
+      <svg viewBox="0 0 22 22" width="22" height="22"><path d="M3 6h16M3 11h16M3 16h16" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" fill="none"/></svg>
+    </button>
+    <span id="mobileTitle">Trip Tracker</span>
+  </header>
+  <div id="sidebarScrim" onclick="closeSidebar()"></div>
+  <nav id="sidebar"></nav>
+  <main id="main"></main>
+</div>
+
+<div id="drawerOverlay" onclick="closeDayDrawer()"></div>
+<div id="drawer"></div>
+
+<script src="js/client.js"></script>
+<script src="js/activity-types.js"></script>
+<script src="js/auth.js"></script>
+<script src="js/router.js"></script>
+<script src="js/trips-list.js"></script>
+<script src="js/trip-shell.js"></script>
+<script src="js/trip-grid.js"></script>
+<script src="js/trip-modules.js"></script>
+<script src="js/trip-pace.js"></script>
+<script src="js/trip-elevation.js"></script>
+<script src="js/trip-stats.js"></script>
+<script src="js/trip-today.js"></script>
+<script src="js/trip-share.js"></script>
+<script src="js/trip-imports.js"></script>
+<script src="js/trip-participants.js"></script>
+<script src="js/account.js"></script>
+<script>
+renderAuthForm();
+initAuth();
+</script>
+</body>
+</html>

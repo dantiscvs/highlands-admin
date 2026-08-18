@@ -1,0 +1,331 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>How it works — Trip Tracker</title>
+<meta name="description" content="From a GPX file to a running trip: create, import, plan, invite your group, ride, and share a live page with family at home.">
+<meta name="theme-color" content="#F7F5F0">
+<script>
+(function () {
+  var h = location.hash || '', q = location.search || '';
+  if (h.indexOf('access_token=') > -1 || q.indexOf('code=') > -1) location.replace('/app.html' + q + h);
+  var t = localStorage.getItem('theme');
+  if (t === 'dark' || t === 'light') document.documentElement.setAttribute('data-theme', t);
+})();
+</script>
+<link rel="stylesheet" href="css/site.css">
+</head>
+<body>
+
+<header class="site">
+  <div class="wrap bar">
+    <a class="brand" href="/">
+      <svg class="mark" viewBox="0 0 28 28" aria-hidden="true">
+        <circle cx="14" cy="14" r="12.5" fill="none" stroke="currentColor" stroke-width="1.8"/>
+        <circle cx="8" cy="20" r="2.2" fill="currentColor"/><circle cx="20" cy="8" r="2.2" fill="currentColor"/>
+        <path d="M8 20C16 20 12 8 20 8" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+      </svg>
+      Trip Tracker
+    </a>
+    <nav class="mainnav" id="mainnav">
+      <a href="features.html">Features</a>
+      <a href="how-it-works.html" class="on">How it works</a>
+      <a href="live.html?t=c26dcdbd931c46f8804196172c1179b9">Live demo</a>
+      <a href="faq.html">FAQ</a>
+    </nav>
+    <div class="headcta">
+      <a class="btn btn-ghost btn-sm" href="app.html">Sign in</a>
+      <a class="btn btn-primary btn-sm" href="app.html">Get started</a>
+      <button id="navToggle" aria-label="Menu" aria-expanded="false">
+        <svg viewBox="0 0 22 22" width="22" height="22"><path d="M3 6h16M3 11h16M3 16h16" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" fill="none"/></svg>
+      </button>
+    </div>
+  </div>
+</header>
+
+<section class="tight">
+  <div class="wrap narrow">
+    <div class="eyebrow">How it works</div>
+    <h1 style="font-size:clamp(30px,4.4vw,46px);">From a GPX file to a trip you can run</h1>
+    <p class="lede" style="margin-top:16px;">Six stages, roughly in order. Most trips are usable
+      after the first two — the rest is detail you add as the plan firms up.</p>
+  </div>
+</section>
+
+<section style="padding-top:0;">
+  <div class="wrap">
+
+    <!-- 1 -->
+    <div class="feature-block">
+      <div class="split">
+        <div>
+          <div class="eyebrow">Step 1</div>
+          <h2>Create the trip</h2>
+          <p class="lede">Four ways in, depending on what you already have.</p>
+          <ul>
+            <li><strong>Upload a GPX</strong> — one file split by track segment into days, or one file per day.</li>
+            <li><strong>Upload a spreadsheet</strong> — CSV or XLSX with your stages already listed.</li>
+            <li><strong>Start from a template</strong> — weekend, week-long tour, or expedition, each with a sensible module set and starter checklists.</li>
+            <li><strong>Start empty</strong> and add days by hand.</li>
+          </ul>
+          <p style="margin-top:18px;" class="muted">Then pick the activity type — cycling, hiking,
+            paddling, driving, public transport or mixed. That decides which fields appear and how
+            pace is estimated, and you can change it later.</p>
+        </div>
+        <div class="split-media">
+          <div class="ui">
+            <div class="ui-bar"><span class="ui-dot"></span><span class="ui-dot"></span><span class="ui-dot"></span><span class="ui-url">New trip</span></div>
+            <div class="ui-body">
+              <div class="ui-row"><span style="font-size:16px;">🛰️</span><div style="flex:1;"><div class="ui-t">Import a GPX</div><div class="ui-m">Splits into days automatically</div></div></div>
+              <div class="ui-row"><span style="font-size:16px;">📄</span><div style="flex:1;"><div class="ui-t">Import a spreadsheet</div><div class="ui-m">CSV or XLSX</div></div></div>
+              <div class="ui-row"><span style="font-size:16px;">🧩</span><div style="flex:1;"><div class="ui-t">Start from a template</div><div class="ui-m">Weekend · Tour · Expedition</div></div></div>
+              <div class="ui-row"><span style="font-size:16px;">✏️</span><div style="flex:1;"><div class="ui-t">Start empty</div><div class="ui-m">Add days by hand</div></div></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 2 -->
+    <div class="feature-block">
+      <div class="split flip">
+        <div>
+          <div class="eyebrow">Step 2</div>
+          <h2>Shape the route</h2>
+          <p class="lede">Get the days right first — everything else hangs off them.</p>
+          <ul>
+            <li><strong>Fill the grid</strong> — dates, titles, start and end points, distance, climbing, surface.</li>
+            <li><strong>Attach a GPX per day</strong> and the elevation profile and whole-trip map appear on their own.</li>
+            <li><strong>Set start and target finish times</strong> to unlock required-pace figures.</li>
+            <li><strong>Mark rest days</strong> so they drop out of the effort and pace maths.</li>
+          </ul>
+          <div class="note" style="margin-top:20px;">The trip's own date range follows the grid.
+            Add a day at the end and the header updates itself.</div>
+        </div>
+        <div class="split-media">
+          <div class="ui">
+            <div class="ui-bar"><span class="ui-dot"></span><span class="ui-dot"></span><span class="ui-dot"></span><span class="ui-url">Route &amp; Days — grid</span></div>
+            <div class="ui-body" style="padding:0;">
+              <table style="width:100%;border-collapse:collapse;font-size:11.5px;">
+                <tr style="background:var(--bg-recessed);color:var(--text-tertiary);font-size:9px;text-transform:uppercase;letter-spacing:.05em;">
+                  <th style="padding:7px 8px;text-align:left;">Date</th><th style="padding:7px 8px;text-align:left;">Title</th>
+                  <th style="padding:7px 8px;text-align:left;">km</th><th style="padding:7px 8px;text-align:left;">Ascent</th></tr>
+                <tr style="border-top:1px solid var(--border-hairline);"><td class="mono" style="padding:8px;">16 Aug</td><td style="padding:8px;">Edinburgh → Fort Augustus</td><td class="mono" style="padding:8px;">56.9</td><td class="mono" style="padding:8px;">585</td></tr>
+                <tr style="border-top:1px solid var(--border-hairline);"><td class="mono" style="padding:8px;">17 Aug</td><td style="padding:8px;">Fort Augustus → Ratagan</td><td class="mono" style="padding:8px;">85.9</td><td class="mono" style="padding:8px;">1161</td></tr>
+                <tr style="border-top:1px solid var(--border-hairline);background:var(--accent-subtle);"><td class="mono" style="padding:8px;">18 Aug</td><td style="padding:8px;">Ratagan → Achnasheen</td><td class="mono" style="padding:8px;">88</td><td class="mono" style="padding:8px;">1160</td></tr>
+                <tr style="border-top:1px solid var(--border-hairline);"><td class="mono" style="padding:8px;">19 Aug</td><td style="padding:8px;">Achnasheen → Dundonnell</td><td class="mono" style="padding:8px;">93</td><td class="mono" style="padding:8px;">1183</td></tr>
+              </table>
+            </div>
+          </div>
+          <p class="ui-cap">Tab and arrow keys move between cells. Changes save when you leave one.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- 3 -->
+    <div class="feature-block">
+      <div class="split">
+        <div>
+          <div class="eyebrow">Step 3</div>
+          <h2>Add the bookings without retyping them</h2>
+          <p class="lede">This is the part people dread, so it is the part we automated.</p>
+          <ul>
+            <li><strong>Forward the confirmation</strong> to the trip's own import address.</li>
+            <li><strong>Or paste the text</strong>, or upload the PDF, from the Imports tab.</li>
+            <li><strong>Review the proposals</strong> — each extracted field is offered separately, and nothing is written until you accept.</li>
+            <li><strong>Lock anything</strong> you have written by hand so a later import cannot overwrite it.</li>
+          </ul>
+          <p class="muted" style="margin-top:18px;">Works for flights, trains, ferries, transfers
+            and hotel bookings. Whatever it cannot read confidently, it leaves for you.</p>
+        </div>
+        <div class="split-media">
+          <div class="ui">
+            <div class="ui-bar"><span class="ui-dot"></span><span class="ui-dot"></span><span class="ui-dot"></span><span class="ui-url">Imports</span></div>
+            <div class="ui-body">
+              <div style="padding:11px 13px;border-radius:9px;background:var(--accent-subtle);border:1px solid var(--accent-subtle-border);margin-bottom:11px;">
+                <div class="ui-m" style="font-size:10px;text-transform:uppercase;letter-spacing:.05em;">Forward bookings to</div>
+                <div class="mono" style="font-size:11.5px;font-weight:600;margin-top:3px;word-break:break-all;">trip-a1b2c3…@triptracker.cc</div>
+              </div>
+              <div class="ui-row"><div style="flex:1;"><div class="ui-t">ScotRail confirmation</div><div class="ui-m">17 proposals · 2 min ago</div></div><span class="ui-pill pill-orange">Review</span></div>
+              <div class="ui-row"><div style="flex:1;"><div class="ui-t">Booking.com — Dunroamin</div><div class="ui-m">9 proposals · accepted</div></div><span class="ui-pill pill-green">Done</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 4 -->
+    <div class="feature-block">
+      <div class="split flip">
+        <div>
+          <div class="eyebrow">Step 4</div>
+          <h2>Bring the group in</h2>
+          <p class="lede">Send one link each. They sign in with an email — no password to invent.</p>
+          <ul>
+            <li><strong>Invite by link</strong> and set a role: editor, rider or viewer.</li>
+            <li><strong>Assign packing and tasks</strong> — to everyone, or to the one person actually carrying it.</li>
+            <li><strong>Preview as a participant</strong> to see exactly what they will get before you send.</li>
+            <li><strong>Check readiness</strong> — unbooked nights, long stages with no resupply, riders with no tracking link.</li>
+          </ul>
+        </div>
+        <div class="split-media">
+          <div class="ui">
+            <div class="ui-bar"><span class="ui-dot"></span><span class="ui-dot"></span><span class="ui-dot"></span><span class="ui-url">Participants</span></div>
+            <div class="ui-body">
+              <div class="ui-row"><span class="ui-num" style="background:var(--accent);color:var(--text-on-accent);">AM</span>
+                <div style="flex:1;"><div class="ui-t">Alex Morgan</div><div class="ui-m">On the trip</div></div><span class="ui-pill pill-green">Owner</span></div>
+              <div class="ui-row"><span class="ui-num" style="background:var(--accent-2-subtle);color:var(--accent-2);">SR</span>
+                <div style="flex:1;"><div class="ui-t">Sam Rivera</div><div class="ui-m">On the trip</div></div><span class="ui-pill pill-gray">Rider</span></div>
+              <div class="ui-row"><span class="ui-num">JB</span>
+                <div style="flex:1;"><div class="ui-t">Jordan Blake</div><div class="ui-m">On the trip</div></div><span class="ui-pill pill-gray">Rider</span></div>
+              <div class="ui-row"><span class="ui-num">CD</span>
+                <div style="flex:1;"><div class="ui-t">Casey Doyle</div><div class="ui-m">Following from home</div></div><span class="ui-pill pill-gray">Viewer</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 5 -->
+    <div class="feature-block">
+      <div class="split">
+        <div>
+          <div class="eyebrow">Step 5</div>
+          <h2>Run the trip</h2>
+          <p class="lede">On the road, you mostly live in one tab.</p>
+          <ul>
+            <li><strong>Today</strong> shows the stage, what is left, and the pace needed to arrive on time.</li>
+            <li><strong>Log kilometres</strong> as you go — it recalculates and updates the public page at once.</li>
+            <li><strong>Check the profile</strong> to see how much climbing is still ahead of you.</li>
+            <li><strong>Post photos</strong> from the road; anyone on the trip can.</li>
+            <li><strong>Tick things off</strong> — your own packing and tasks, nobody else's.</li>
+          </ul>
+        </div>
+        <div class="split-media">
+          <div class="ui">
+            <div class="ui-bar"><span class="ui-dot"></span><span class="ui-dot"></span><span class="ui-dot"></span><span class="ui-url">Today — progress</span></div>
+            <div class="ui-body">
+              <div style="display:flex;align-items:baseline;gap:7px;"><span class="mono" style="font-size:21px;font-weight:700;">48.0</span><span class="ui-m">/ 88 km · 40 km left</span></div>
+              <div style="height:8px;background:var(--bg-recessed);border-radius:4px;overflow:hidden;margin:9px 0 12px;"><div style="width:55%;height:100%;background:var(--accent);"></div></div>
+              <div style="display:flex;gap:7px;flex-wrap:wrap;">
+                <span style="padding:7px 11px;border:1px solid var(--border-strong);border-radius:7px;font-size:11.5px;">km done</span>
+                <span style="padding:7px 11px;background:var(--accent);color:var(--text-on-accent);border-radius:7px;font-size:11.5px;font-weight:600;">Update</span>
+                <span style="padding:7px 11px;border:1px solid var(--border-strong);border-radius:7px;font-size:11.5px;">+10</span>
+                <span style="padding:7px 11px;border:1px solid var(--border-strong);border-radius:7px;font-size:11.5px;">+25</span>
+              </div>
+              <div class="ui-m" style="margin-top:9px;font-size:11px;">This also updates the public page your family sees.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 6 -->
+    <div class="feature-block">
+      <div class="split flip">
+        <div>
+          <div class="eyebrow">Step 6</div>
+          <h2>Share it with everyone at home</h2>
+          <p class="lede">Turn on the public link, decide what it reveals, and send it once.</p>
+          <ul>
+            <li><strong>Enable the link</strong> — it is off until you do.</li>
+            <li><strong>Choose what shows</strong> — addresses, costs, phones, booking references and balances are each separate switches.</li>
+            <li><strong>Add a passcode</strong> if it should not be fully open.</li>
+            <li><strong>They see</strong> the route, today's stage, elevation profiles, progress and photos — with no account needed.</li>
+          </ul>
+          <p style="margin-top:22px;"><a class="btn" href="live.html?t=c26dcdbd931c46f8804196172c1179b9">Open a real live page →</a></p>
+        </div>
+        <div class="split-media">
+          <div class="ui">
+            <div class="ui-bar"><span class="ui-dot"></span><span class="ui-dot"></span><span class="ui-dot"></span><span class="ui-url">triptracker.cc/live.html?t=…</span></div>
+            <div class="ui-body" style="background:var(--bg-page);">
+              <div style="font-weight:700;font-size:15px;">Scottish Highlands Traverse</div>
+              <div class="ui-m" style="margin-bottom:9px;">15 Aug – 22 Aug</div>
+              <div class="mono" style="font-weight:700;">191 / 513 km</div>
+              <div style="height:7px;background:var(--accent-subtle);border-radius:4px;overflow:hidden;margin-top:6px;"><div style="width:37%;height:100%;background:var(--accent);"></div></div>
+              <div class="ui-m" style="margin-top:7px;font-size:11px;">Total ascent: +5692 m</div>
+              <div style="margin-top:12px;padding-top:10px;border-top:1px solid var(--border-hairline);">
+                <div style="font-size:9.5px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--text-tertiary);margin-bottom:6px;">Elevation profile</div>
+                <svg viewBox="0 0 300 60" style="width:100%;display:block;">
+                  <path d="M4,52 L34,44 L64,30 L94,40 L124,18 L154,34 L184,22 L214,44 L244,32 L274,48 L296,42 L296,58 L4,58 Z" fill="var(--accent)" opacity=".18"/>
+                  <path d="M4,52 L34,44 L64,30 L94,40 L124,18 L154,34 L184,22 L214,44 L244,32 L274,48 L296,42" fill="none" stroke="var(--accent)" stroke-width="1.8"/>
+                </svg>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<section class="alt tight">
+  <div class="wrap narrow">
+    <div class="sec-head"><h2>What you need before you start</h2></div>
+    <div class="grid g2">
+      <div class="card"><h4>An email address</h4><p>That is the whole signup. You get a link, you click it, you are in.</p></div>
+      <div class="card"><h4>A rough route</h4><p>A GPX helps a lot, but a list of towns and dates is enough to begin.</p></div>
+      <div class="card"><h4>Your booking emails</h4><p>Keep them — forwarding beats retyping, and the import reads most formats.</p></div>
+      <div class="card"><h4>Your group's emails</h4><p>Only if you want them ticking their own lists. Followers need nothing.</p></div>
+    </div>
+  </div>
+</section>
+
+<section class="tight">
+  <div class="wrap">
+    <div class="cta-band">
+      <h2>Ready to try it?</h2>
+      <p>Free while in early access. Start with a GPX and see how much fills itself in.</p>
+      <div class="cta-actions">
+        <a class="btn btn-lg" href="app.html">Create your first trip</a>
+        <a class="btn btn-lg btn-outline" href="features.html">Browse the features</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<footer class="site">
+  <div class="wrap">
+    <div class="foot-grid">
+      <div>
+        <a class="brand" href="/" style="margin-bottom:12px;">
+          <svg class="mark" viewBox="0 0 28 28" aria-hidden="true">
+            <circle cx="14" cy="14" r="12.5" fill="none" stroke="currentColor" stroke-width="1.8"/>
+            <circle cx="8" cy="20" r="2.2" fill="currentColor"/><circle cx="20" cy="8" r="2.2" fill="currentColor"/>
+            <path d="M8 20C16 20 12 8 20 8" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+          </svg>
+          Trip Tracker
+        </a>
+        <p class="muted" style="max-width:300px;font-size:14px;">Planning and live sharing for multi-day group trips.</p>
+      </div>
+      <div><h4>Product</h4><ul>
+        <li><a href="features.html">Features</a></li>
+        <li><a href="how-it-works.html">How it works</a></li>
+        <li><a href="faq.html">FAQ</a></li></ul></div>
+      <div><h4>Try it</h4><ul>
+        <li><a href="app.html">Sign in</a></li>
+        <li><a href="app.html">Create a trip</a></li>
+        <li><a href="live.html?t=c26dcdbd931c46f8804196172c1179b9">Live demo</a></li></ul></div>
+      <div><h4>Modules</h4><ul>
+        <li><a href="features.html#route">Route &amp; days</a></li>
+        <li><a href="features.html#live">Live sharing</a></li>
+        <li><a href="features.html#imports">Imports</a></li></ul></div>
+    </div>
+    <div class="foot-bottom">
+      <span>© 2026 Trip Tracker</span>
+      <span>Early access — <a href="app.html">free to use</a></span>
+    </div>
+  </div>
+</footer>
+
+<script>
+document.getElementById('navToggle').addEventListener('click', function () {
+  var n = document.getElementById('mainnav');
+  var open = n.classList.toggle('open');
+  this.setAttribute('aria-expanded', open ? 'true' : 'false');
+});
+</script>
+</body>
+</html>

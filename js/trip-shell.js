@@ -164,6 +164,7 @@ function renderTripSidebar(section) {
       ${themeToggleHtml()}
       <div class="navitem" onclick="goAccount()"><span class="navicon">${NAV_ICONS.account}</span><span>Account</span></div>
       <div class="navitem" onclick="signOut()"><span class="navicon">${NAV_ICONS.logout}</span><span>Sign out</span></div>
+      <a class="navitem" href="/" style="text-decoration:none;"><span class="navicon">${NAV_ICONS.home}</span><span>Trip Tracker home</span></a>
     </div>
   `;
 }

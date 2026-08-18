@@ -1,4 +1,4 @@
-const LIVE_VIEW_BASE = 'live.html'; // sibling file in this repo, deployed alongside index.html
+const LIVE_VIEW_BASE = 'live.html'; // sibling file, deployed alongside the app
 
 async function renderShareSection() {
   const [{ data: providers }, { data: myLinks }, { data: allLinks }, { data: members }] = await Promise.all([
@@ -8,7 +8,7 @@ async function renderShareSection() {
     db().from('trip_memberships').select('*').eq('trip_id', activeTrip.id),
   ]);
   const vis = activeTrip.visibility || {};
-  const shareUrl = activeTrip.share_token ? `${location.origin}${location.pathname.replace(/index\.html$/, '')}${LIVE_VIEW_BASE}?t=${activeTrip.share_token}` : null;
+  const shareUrl = activeTrip.share_token ? `${location.origin}${location.pathname.replace(/[^/]*$/, '')}${LIVE_VIEW_BASE}?t=${activeTrip.share_token}` : null;
 
   document.getElementById('main').innerHTML = `
     <div class="pagehead"><div><h1>Share &amp; live</h1><div class="subtitle">A public, read-only page for anyone with the link — no account needed.</div></div></div>

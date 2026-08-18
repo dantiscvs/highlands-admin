@@ -1,0 +1,552 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Features — Trip Tracker</title>
+<meta name="description" content="Every module in Trip Tracker: route and elevation, logistics, accommodation, sights, packing, tasks, expenses, photos, statistics, live sharing and email import.">
+<meta name="theme-color" content="#F7F5F0">
+<script>
+(function () {
+  var h = location.hash || '', q = location.search || '';
+  if (h.indexOf('access_token=') > -1 || q.indexOf('code=') > -1) location.replace('/app.html' + q + h);
+  var t = localStorage.getItem('theme');
+  if (t === 'dark' || t === 'light') document.documentElement.setAttribute('data-theme', t);
+})();
+</script>
+<link rel="stylesheet" href="css/site.css">
+</head>
+<body>
+
+<header class="site">
+  <div class="wrap bar">
+    <a class="brand" href="/">
+      <svg class="mark" viewBox="0 0 28 28" aria-hidden="true">
+        <circle cx="14" cy="14" r="12.5" fill="none" stroke="currentColor" stroke-width="1.8"/>
+        <circle cx="8" cy="20" r="2.2" fill="currentColor"/><circle cx="20" cy="8" r="2.2" fill="currentColor"/>
+        <path d="M8 20C16 20 12 8 20 8" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+      </svg>
+      Trip Tracker
+    </a>
+    <nav class="mainnav" id="mainnav">
+      <a href="features.html" class="on">Features</a>
+      <a href="how-it-works.html">How it works</a>
+      <a href="live.html?t=c26dcdbd931c46f8804196172c1179b9">Live demo</a>
+      <a href="faq.html">FAQ</a>
+    </nav>
+    <div class="headcta">
+      <a class="btn btn-ghost btn-sm" href="app.html">Sign in</a>
+      <a class="btn btn-primary btn-sm" href="app.html">Get started</a>
+      <button id="navToggle" aria-label="Menu" aria-expanded="false">
+        <svg viewBox="0 0 22 22" width="22" height="22"><path d="M3 6h16M3 11h16M3 16h16" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" fill="none"/></svg>
+      </button>
+    </div>
+  </div>
+</header>
+
+<section class="tight">
+  <div class="wrap">
+    <div class="sec-head" style="margin-bottom:0;">
+      <div class="eyebrow">Features</div>
+      <h1 style="font-size:clamp(30px,4.4vw,46px);">Everything Trip Tracker does</h1>
+      <p class="lede">Each area is a module you can switch on or off per trip. A weekend ride
+        does not need expense splitting; a three-week expedition probably does.</p>
+    </div>
+    <div class="anchor-list">
+      <a href="#route">Route &amp; days</a>
+      <a href="#elevation">Elevation &amp; statistics</a>
+      <a href="#today">Today</a>
+      <a href="#logistics">Logistics</a>
+      <a href="#stays">Accommodation</a>
+      <a href="#sights">Sights &amp; resupply</a>
+      <a href="#packing">Packing &amp; tasks</a>
+      <a href="#expenses">Expenses</a>
+      <a href="#people">People &amp; roles</a>
+      <a href="#live">Live sharing</a>
+      <a href="#imports">Imports</a>
+      <a href="#readiness">Readiness</a>
+    </div>
+  </div>
+</section>
+
+<section style="padding-top:0;">
+  <div class="wrap">
+
+    <!-- ROUTE -->
+    <div class="feature-block" id="route">
+      <div class="split">
+        <div>
+          <div class="eyebrow">Route &amp; days</div>
+          <h2>The backbone of the trip</h2>
+          <p class="lede">One row per day: date, title, start, end, distance, climbing, surface.
+            Edit it like a spreadsheet, or read it as cards.</p>
+          <ul>
+            <li><strong>Inline grid editing</strong> with keyboard navigation — Tab, Enter and arrow keys move between cells, and changes save when you leave one.</li>
+            <li><strong>Card view</strong> for phones, where each day expands to show everything attached to it.</li>
+            <li><strong>Per-day detail</strong> — description, notes, map embed, GPX track, planned start and target finish time.</li>
+            <li><strong>Rest days</strong> marked so they drop out of pace and effort calculations.</li>
+            <li><strong>Activity-aware columns</strong> — ascent disappears for a campervan trip, water conditions replace surface for paddling.</li>
+            <li><strong>Trip dates follow the grid</strong>, so adding a day never leaves the header stale.</li>
+          </ul>
+        </div>
+        <div class="split-media">
+          <div class="ui">
+            <div class="ui-bar"><span class="ui-dot"></span><span class="ui-dot"></span><span class="ui-dot"></span><span class="ui-url">Route &amp; Days — card view</span></div>
+            <div class="ui-body">
+              <div class="ui-row" style="align-items:flex-start;flex-direction:column;gap:8px;">
+                <div style="display:flex;gap:10px;align-items:center;width:100%;">
+                  <span class="ui-num">4</span>
+                  <div style="flex:1;"><div class="ui-t">Ratagan → Achnasheen</div>
+                    <div class="ui-m">Tue 18 Aug · 88 km · +1160 m · tarmac</div></div>
+                </div>
+                <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:6px;width:100%;">
+                  <div class="ui-stat"><b>88</b><span>km</span></div>
+                  <div class="ui-stat"><b>+1160</b><span>m</span></div>
+                  <div class="ui-stat"><b>18.0</b><span>km/h avg</span></div>
+                  <div class="ui-stat"><b>8.9h</b><span>est. total</span></div>
+                </div>
+                <div style="width:100%;font-size:11.5px;color:var(--text-secondary);border-top:1px solid var(--border-hairline);padding-top:7px;">
+                  🍳 <strong style="color:var(--text-primary);">Breakfast</strong> — Self-catered, 7 GBP pp <span style="opacity:.7;">· at Ratagan, last night's stay</span>
+                </div>
+                <div style="width:100%;font-size:11.5px;color:var(--text-secondary);">
+                  🏰 <strong style="color:var(--text-primary);">Sights</strong> — Eilean Donan Castle · Plockton · Torridon Hills
+                </div>
+                <div style="width:100%;font-size:11.5px;color:var(--text-secondary);">
+                  🏠 <strong style="color:var(--text-primary);">Stay</strong> — Ledgowan Bunkhouse <span class="ui-pill pill-green">paid</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ELEVATION -->
+    <div class="feature-block" id="elevation">
+      <div class="split flip">
+        <div>
+          <div class="eyebrow">Elevation &amp; statistics</div>
+          <h2>Know which day is going to hurt</h2>
+          <p class="lede">Real elevation profiles read from your GPX, plus a difficulty score that
+            combines distance and climbing into one number you can compare across days.</p>
+          <ul>
+            <li><strong>Elevation profile per day</strong>, or one continuous profile across the whole trip.</li>
+            <li><strong>Difficulty 0–10</strong> from distance plus climbing, banded from very easy to extreme.</li>
+            <li><strong>Distance and climbing charts</strong> per day, colour-coded by how demanding they are.</li>
+            <li><strong>Required pace</strong> — set a start and target finish time and see the speed each day actually demands, both moving and including stops.</li>
+            <li><strong>Whole-trip map</strong> with every day's GPX drawn in its own colour.</li>
+          </ul>
+        </div>
+        <div class="split-media">
+          <div class="ui">
+            <div class="ui-bar"><span class="ui-dot"></span><span class="ui-dot"></span><span class="ui-dot"></span><span class="ui-url">Statistics — stage difficulty</span></div>
+            <div class="ui-body">
+              <div class="ui-bars">
+                <i style="height:46%;background:var(--info);"></i>
+                <i style="height:78%;background:var(--warning);"></i>
+                <i style="height:76%;background:var(--warning);"></i>
+                <i style="height:84%;background:var(--danger);"></i>
+                <i style="height:66%;background:var(--info);"></i>
+                <i style="height:58%;background:var(--accent);"></i>
+              </div>
+              <div class="ui-axis"><span>16 Aug</span><span>17</span><span>18</span><span>19</span><span>20</span><span>21</span></div>
+              <div class="ui-m" style="margin-top:9px;text-align:center;">5.5 · 8.0 · 8.3 · 9.1 · 7.2 · 6.0 out of 10</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- TODAY -->
+    <div class="feature-block" id="today">
+      <div class="split">
+        <div>
+          <div class="eyebrow">Today</div>
+          <h2>The screen you use while moving</h2>
+          <p class="lede">Everything about the stage you are on, and nothing about the other seven.</p>
+          <ul>
+            <li><strong>Progress logging</strong> — type the kilometres done, or tap +10 / +25.</li>
+            <li><strong>Live required pace</strong> from your remaining distance and the actual clock.</li>
+            <li><strong>Climbing still ahead</strong>, read off the profile at your current position.</li>
+            <li><strong>Today's transport</strong>, so you do not miss the ferry.</li>
+            <li><strong>Food, resupply and water</strong> with opening hours.</li>
+            <li><strong>Updates the public page</strong> at the same time — logging progress once is enough.</li>
+          </ul>
+        </div>
+        <div class="split-media">
+          <div class="ui">
+            <div class="ui-bar"><span class="ui-dot"></span><span class="ui-dot"></span><span class="ui-dot"></span><span class="ui-url">Today — resupply</span></div>
+            <div class="ui-body">
+              <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--text-tertiary);margin-bottom:8px;">🛒 Resupply / water</div>
+              <div style="display:flex;gap:8px;padding:7px 0;border-top:1px solid var(--border-hairline);">
+                <span>🛒</span><div><div style="font-weight:600;font-size:12.5px;">Co-op Fort Augustus</div>
+                <div class="ui-m" style="font-size:11px;">🕐 07:00–22:00 · Last proper supermarket before the remote stretch.</div></div>
+              </div>
+              <div style="display:flex;gap:8px;padding:7px 0;border-top:1px solid var(--border-hairline);">
+                <span>💧</span><div><div style="font-weight:600;font-size:12.5px;">Loch Maree layby tap</div>
+                <div class="ui-m" style="font-size:11px;">🕐 Always open · Reliable drinking water refill.</div></div>
+              </div>
+              <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--text-tertiary);margin:14px 0 8px;">🍽️ Food</div>
+              <div style="display:flex;gap:8px;padding:7px 0;border-top:1px solid var(--border-hairline);">
+                <span>🍽️</span><div><div style="font-weight:600;font-size:12.5px;">Midge Bite Cafe</div>
+                <div class="ui-m" style="font-size:11px;">🕐 08:00–16:00 · Cyclist-friendly, big portions.</div></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- LOGISTICS -->
+    <div class="feature-block" id="logistics">
+      <div class="split flip">
+        <div>
+          <div class="eyebrow">Logistics</div>
+          <h2>Flights, trains, ferries, bike boxes</h2>
+          <p class="lede">Anything that moves you or your gear between places, whether it is at the
+            start of the trip or a mid-week hop between two stages.</p>
+          <ul>
+            <li><strong>Ten leg types</strong> — flight, train, bus, ferry, boat, car, campervan, transfer, bike shipping, other.</li>
+            <li><strong>Anchored anywhere</strong> — to the start, to the end, or to a specific day.</li>
+            <li><strong>Full detail</strong> — carrier, reference, seats, departure and arrival with real times, cost and notes.</li>
+            <li><strong>Boarding-pass layout</strong> for everyone reading, editing form for organisers.</li>
+          </ul>
+        </div>
+        <div class="split-media">
+          <div class="ui">
+            <div class="ui-bar"><span class="ui-dot"></span><span class="ui-dot"></span><span class="ui-dot"></span><span class="ui-url">Logistics</span></div>
+            <div class="ui-body">
+              <div class="ui-row"><span style="font-size:15px;">✈️</span>
+                <div style="flex:1;"><div class="ui-t">Ryanair FR 1801</div><div class="ui-m">Gdansk (GDN) 19:25 → Edinburgh (EDI) 20:55</div></div>
+                <span class="ui-pill pill-green">Trip start</span></div>
+              <div class="ui-row"><span style="font-size:15px;">🚂</span>
+                <div style="flex:1;"><div class="ui-t">ScotRail</div><div class="ui-m">Waverley 10:33 → Inverness 14:16 · Coach B</div></div>
+                <span class="ui-pill pill-gray">Day 2</span></div>
+              <div class="ui-row"><span style="font-size:15px;">📦</span>
+                <div style="flex:1;"><div class="ui-t">City Bike Store</div><div class="ui-m">3 hard cases hired · 60 GBP</div></div>
+                <span class="ui-pill pill-gray">Trip start</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- STAYS -->
+    <div class="feature-block" id="stays">
+      <div class="split">
+        <div>
+          <div class="eyebrow">Accommodation</div>
+          <h2>Where you sleep, and what that involves</h2>
+          <p class="lede">More than a name and a date — the details you actually need at 7pm after
+            a long day, and again at 7am the next morning.</p>
+          <ul>
+            <li><strong>Room type</strong>, address, phone, map link and booking link.</li>
+            <li><strong>Pay status</strong> — unpaid, partial, paid or free — visible at a glance.</li>
+            <li><strong>Cancellation policy</strong> and booking reference stored with the stay.</li>
+            <li><strong>Breakfast details</strong> that appear on the morning you actually eat them, not the evening you arrive.</li>
+            <li><strong>Multi-night stays</strong> can stay unlinked from any single day.</li>
+          </ul>
+        </div>
+        <div class="split-media">
+          <div class="ui">
+            <div class="ui-bar"><span class="ui-dot"></span><span class="ui-dot"></span><span class="ui-dot"></span><span class="ui-url">Accommodation</span></div>
+            <div class="ui-body">
+              <div style="display:flex;gap:7px;align-items:center;margin-bottom:10px;flex-wrap:wrap;">
+                <span style="font-size:15px;">🏠</span><span class="ui-pill pill-gray">Day 4</span><span class="ui-pill pill-green">paid</span>
+              </div>
+              <div style="font-weight:700;font-size:14px;">Ledgowan Bunkhouse</div>
+              <div style="font-size:12px;color:var(--accent-2);font-weight:600;margin-top:2px;">🛏️ Bunkhouse — 3 beds</div>
+              <div style="display:flex;gap:12px;margin-top:9px;font-size:12px;"><a href="#route">Booking ↗</a><a href="#route">Map ↗</a></div>
+              <div style="margin-top:11px;padding-top:9px;border-top:1px solid var(--border-hairline);font-size:12px;color:var(--text-secondary);">
+                🍳 <strong style="color:var(--text-primary);">Breakfast</strong> — Self-catered, 7 GBP per person</div>
+              <div style="font-size:12px;color:var(--text-secondary);margin-top:6px;">⚠️ <strong style="color:var(--text-primary);">Cancellation</strong> — none possible</div>
+              <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:9px;margin-top:11px;padding-top:9px;border-top:1px solid var(--border-hairline);">
+                <div><div class="ui-m" style="font-size:9px;text-transform:uppercase;">Reference</div><div class="mono" style="font-size:12px;font-weight:600;">DEMO-8F0406</div></div>
+                <div><div class="ui-m" style="font-size:9px;text-transform:uppercase;">Cost</div><div class="mono" style="font-size:12px;font-weight:600;">150 GBP</div></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SIGHTS -->
+    <div class="feature-block" id="sights">
+      <div class="split flip">
+        <div>
+          <div class="eyebrow">Sights &amp; resupply</div>
+          <h2>The points that make the day work</h2>
+          <p class="lede">Castles worth the detour, the last shop for 60 km, a reliable water tap,
+            and the pub that stops serving at nine.</p>
+          <ul>
+            <li><strong>Five categories</strong> — sight, food, resupply, water, other — grouped when you read them.</li>
+            <li><strong>Opening hours and links</strong> on every point, because a closed shop is not a resupply.</li>
+            <li><strong>Drag to reorder</strong> so points sit in the order you will actually pass them.</li>
+            <li><strong>Shown on the day</strong> they belong to, in Route &amp; Days and in Today.</li>
+          </ul>
+        </div>
+        <div class="split-media">
+          <div class="ui">
+            <div class="ui-bar"><span class="ui-dot"></span><span class="ui-dot"></span><span class="ui-dot"></span><span class="ui-url">Sights &amp; resupply — Day 4</span></div>
+            <div class="ui-body">
+              <div class="ui-row"><span>⠿</span><span>🏰</span><div style="flex:1;"><div class="ui-t">Eilean Donan Castle</div><div class="ui-m">Scotland's icon, where three sea lochs meet</div></div></div>
+              <div class="ui-row"><span>⠿</span><span>🐬</span><div style="flex:1;"><div class="ui-t">Plockton</div><div class="ui-m">Fishing village with palm trees</div></div></div>
+              <div class="ui-row"><span>⠿</span><span>🛒</span><div style="flex:1;"><div class="ui-t">Co-op Fort Augustus</div><div class="ui-m">🕐 07:00–22:00</div></div></div>
+              <div class="ui-row"><span>⠿</span><span>🍽️</span><div style="flex:1;"><div class="ui-t">The Cluanie Inn</div><div class="ui-m">🕐 12:00–21:00</div></div></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- PACKING -->
+    <div class="feature-block" id="packing">
+      <div class="split">
+        <div>
+          <div class="eyebrow">Packing &amp; tasks</div>
+          <h2>Not everyone carries everything</h2>
+          <p class="lede">One multi-tool between three people. A rain jacket each. Trip Tracker knows
+            the difference, and so does everyone's checklist.</p>
+          <ul>
+            <li><strong>Assign per item</strong> — to everyone, or to specific people.</li>
+            <li><strong>Everyone ticks their own</strong> — you cannot tick someone else's box, and you can see who has not.</li>
+            <li><strong>Same model for tasks</strong> — book the insurance, service the bikes, generate the tracks.</li>
+            <li><strong>Templates</strong> seed a sensible starting list you then edit.</li>
+          </ul>
+        </div>
+        <div class="split-media">
+          <div class="ui">
+            <div class="ui-bar"><span class="ui-dot"></span><span class="ui-dot"></span><span class="ui-dot"></span><span class="ui-url">Packing</span></div>
+            <div class="ui-body">
+              <table style="width:100%;border-collapse:collapse;font-size:12px;">
+                <tr style="color:var(--text-tertiary);font-size:9.5px;text-transform:uppercase;letter-spacing:.05em;">
+                  <th style="text-align:left;padding:6px 4px;">Item</th><th style="padding:6px 4px;">Assigned</th>
+                  <th style="padding:6px 4px;">AM</th><th style="padding:6px 4px;">SR</th><th style="padding:6px 4px;">JB</th></tr>
+                <tr style="border-top:1px solid var(--border-hairline);"><td style="padding:8px 4px;">Rain jacket</td>
+                  <td style="text-align:center;"><span class="ui-pill pill-gray">All</span></td>
+                  <td style="text-align:center;">✅</td><td style="text-align:center;">✅</td><td style="text-align:center;">☐</td></tr>
+                <tr style="border-top:1px solid var(--border-hairline);"><td style="padding:8px 4px;">Bike multi-tool</td>
+                  <td style="text-align:center;"><span class="ui-pill pill-orange">SR</span></td>
+                  <td style="text-align:center;color:var(--text-tertiary);">—</td><td style="text-align:center;">✅</td><td style="text-align:center;color:var(--text-tertiary);">—</td></tr>
+                <tr style="border-top:1px solid var(--border-hairline);"><td style="padding:8px 4px;">Mini pump</td>
+                  <td style="text-align:center;"><span class="ui-pill pill-orange">JB</span></td>
+                  <td style="text-align:center;color:var(--text-tertiary);">—</td><td style="text-align:center;color:var(--text-tertiary);">—</td><td style="text-align:center;">☐</td></tr>
+                <tr style="border-top:1px solid var(--border-hairline);"><td style="padding:8px 4px;">Helmet</td>
+                  <td style="text-align:center;"><span class="ui-pill pill-gray">All</span></td>
+                  <td style="text-align:center;">✅</td><td style="text-align:center;">✅</td><td style="text-align:center;">✅</td></tr>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- EXPENSES -->
+    <div class="feature-block" id="expenses">
+      <div class="split flip">
+        <div>
+          <div class="eyebrow">Expenses</div>
+          <h2>Settle up without the forensics</h2>
+          <p class="lede">Log what you paid and who it covered. The balance per person updates as you go,
+            per currency, so the end of the trip is not an archaeology project.</p>
+          <ul>
+            <li><strong>Split across selected people</strong>, not always the whole group.</li>
+            <li><strong>Multi-currency</strong> — balances stay separate per currency rather than guessing a rate.</li>
+            <li><strong>Anyone on the trip can log</strong> an expense, not just the organiser.</li>
+            <li><strong>Hidden from the public page</strong> unless you deliberately show it.</li>
+          </ul>
+        </div>
+        <div class="split-media">
+          <div class="ui">
+            <div class="ui-bar"><span class="ui-dot"></span><span class="ui-dot"></span><span class="ui-dot"></span><span class="ui-url">Expenses</span></div>
+            <div class="ui-body">
+              <div style="padding:11px;border:1px solid var(--border-hairline);border-radius:9px;margin-bottom:11px;">
+                <div style="font-weight:700;font-size:12.5px;">GBP — total 414.00</div>
+                <div style="display:flex;gap:14px;margin-top:7px;flex-wrap:wrap;font-size:11.5px;">
+                  <span class="muted">Alex <strong style="color:var(--success);">+96.00</strong></span>
+                  <span class="muted">Sam <strong style="color:var(--danger);">−48.00</strong></span>
+                  <span class="muted">Jordan <strong style="color:var(--danger);">−48.00</strong></span>
+                </div>
+              </div>
+              <div class="ui-row"><div style="flex:1;"><div class="ui-t">Dinner at the Cluanie Inn</div><div class="ui-m">Alex · split 3 ways</div></div><span class="mono" style="font-weight:600;">64.00</span></div>
+              <div class="ui-row"><div style="flex:1;"><div class="ui-t">Rail tickets to Inverness</div><div class="ui-m">Sam · split 3 ways</div></div><span class="mono" style="font-weight:600;">72.00</span></div>
+              <div class="ui-row"><div style="flex:1;"><div class="ui-t">Sleeping bag hire</div><div class="ui-m">Sam · split 2 ways</div></div><span class="mono" style="font-weight:600;">20.00</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- PEOPLE -->
+    <div class="feature-block" id="people">
+      <div class="split">
+        <div>
+          <div class="eyebrow">People &amp; roles</div>
+          <h2>Four roles, no confusion</h2>
+          <p class="lede">Everyone gets exactly the access their part of the trip needs.</p>
+        </div>
+        <div class="split-media">
+          <div class="tablewrap">
+            <table class="cmp">
+              <tr><th>Role</th><th>Can do</th></tr>
+              <tr><td>Owner</td><td>Everything, including settings, sharing and deleting the trip.</td></tr>
+              <tr><td>Editor</td><td>Change the plan — days, bookings, stays, lists.</td></tr>
+              <tr><td>Rider</td><td>Tick their own packing and tasks, log progress and expenses, post photos.</td></tr>
+              <tr><td>Viewer</td><td>Read the trip. For a partner at home who wants detail but not edit rights.</td></tr>
+            </table>
+          </div>
+          <p class="ui-cap">Invite by link. Preview the whole app as a participant to check what they see.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- LIVE -->
+    <div class="feature-block" id="live">
+      <div class="split flip">
+        <div>
+          <div class="eyebrow">Live sharing</div>
+          <h2>One public link, and you control it</h2>
+          <p class="lede">A read-only page for family and friends. No account, nothing to install,
+            and no more group-chat updates from a mountain pass.</p>
+          <ul>
+            <li><strong>Off by default</strong> — nothing is public until you enable the link.</li>
+            <li><strong>Field-level visibility</strong> — exact addresses, costs, phone numbers, booking references and expense balances are each shown or hidden by choice.</li>
+            <li><strong>Optional passcode</strong> for a link you want limited.</li>
+            <li><strong>Elevation profiles, today's stage, progress and photos</strong> — the good parts, without the private ones.</li>
+            <li><strong>Tracking links</strong> from Garmin, Wahoo and similar can be surfaced too.</li>
+          </ul>
+          <p style="margin-top:22px;"><a class="btn" href="live.html?t=c26dcdbd931c46f8804196172c1179b9">Open the demo live page →</a></p>
+        </div>
+        <div class="split-media">
+          <div class="ui">
+            <div class="ui-bar"><span class="ui-dot"></span><span class="ui-dot"></span><span class="ui-dot"></span><span class="ui-url">Share &amp; live — visibility</span></div>
+            <div class="ui-body">
+              <div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border-hairline);font-size:12.5px;"><span>Show photos</span><span class="ui-pill pill-green">On</span></div>
+              <div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border-hairline);font-size:12.5px;"><span>Show costs</span><span class="ui-pill pill-green">On</span></div>
+              <div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border-hairline);font-size:12.5px;"><span>Show exact addresses</span><span class="ui-pill pill-gray">Off</span></div>
+              <div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border-hairline);font-size:12.5px;"><span>Show phone numbers</span><span class="ui-pill pill-gray">Off</span></div>
+              <div style="display:flex;justify-content:space-between;padding:8px 0;font-size:12.5px;"><span>Show booking references</span><span class="ui-pill pill-gray">Off</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- IMPORTS -->
+    <div class="feature-block" id="imports">
+      <div class="split">
+        <div>
+          <div class="eyebrow">Imports</div>
+          <h2>Stop retyping confirmations</h2>
+          <p class="lede">Every trip gets its own email address. Forward the booking and the details
+            come back as proposals you review.</p>
+          <ul>
+            <li><strong>Forward an email</strong> to the trip's address, or paste the text, or upload a PDF.</li>
+            <li><strong>A review queue</strong> — nothing is written to the trip until you accept it.</li>
+            <li><strong>Locked fields</strong> can never be silently overwritten by an import.</li>
+            <li><strong>Route import</strong> from GPX, CSV or XLSX, either one file for the trip or one per day.</li>
+          </ul>
+        </div>
+        <div class="split-media">
+          <div class="ui">
+            <div class="ui-bar"><span class="ui-dot"></span><span class="ui-dot"></span><span class="ui-dot"></span><span class="ui-url">Imports — review queue</span></div>
+            <div class="ui-body">
+              <div class="ui-m" style="margin-bottom:10px;">From: ScotRail booking confirmation</div>
+              <div class="ui-row"><div style="flex:1;"><div class="ui-t">Departure time</div><div class="ui-m">— → 10:33, 16 Aug</div></div><span class="ui-pill pill-green">Accept</span></div>
+              <div class="ui-row"><div style="flex:1;"><div class="ui-t">Reference</div><div class="ui-m">— → DEMO-RAIL-2201</div></div><span class="ui-pill pill-green">Accept</span></div>
+              <div class="ui-row"><div style="flex:1;"><div class="ui-t">Seat number</div><div class="ui-m">— → Coach B, 41–43</div></div><span class="ui-pill pill-green">Accept</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- READINESS -->
+    <div class="feature-block" id="readiness">
+      <div class="split flip">
+        <div>
+          <div class="eyebrow">Readiness</div>
+          <h2>What is still missing, a week out</h2>
+          <p class="lede">A standing check across the whole trip. Warnings, never blockers — it tells
+            you what looks unfinished and lets you decide.</p>
+          <ul>
+            <li><strong>Nights with no accommodation</strong> that are not marked as rest or camping.</li>
+            <li><strong>Long stages with no resupply or water</strong> point set.</li>
+            <li><strong>Stays marked booked</strong> with no confirmation link or reference.</li>
+            <li><strong>Riders with no tracking link</strong> if you are sharing live.</li>
+            <li><strong>Dismiss anything</strong> that does not apply to your trip.</li>
+          </ul>
+        </div>
+        <div class="split-media">
+          <div class="ui">
+            <div class="ui-bar"><span class="ui-dot"></span><span class="ui-dot"></span><span class="ui-dot"></span><span class="ui-url">Readiness — 88%</span></div>
+            <div class="ui-body">
+              <div style="display:flex;gap:9px;padding:11px 13px;border-radius:9px;background:var(--accent-subtle);border:1px solid var(--accent-subtle-border);margin-bottom:8px;">
+                <span>✓</span><div><div style="font-weight:600;font-size:12.5px;">Every night has a bed</div><div class="ui-m" style="font-size:11px;">All clear</div></div></div>
+              <div style="display:flex;gap:9px;padding:11px 13px;border-radius:9px;background:var(--accent-2-subtle);border:1px solid var(--accent-2);">
+                <span>⚠</span><div><div style="font-weight:600;font-size:12.5px;">Long days with no resupply</div><div class="ui-m" style="font-size:11px;">Day 5, Day 6</div></div></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<section class="tight">
+  <div class="wrap">
+    <div class="cta-band">
+      <h2>See it with your own trip</h2>
+      <p>Free while in early access. Import a GPX and the whole plan starts filling itself in.</p>
+      <div class="cta-actions">
+        <a class="btn btn-lg" href="app.html">Get started</a>
+        <a class="btn btn-lg btn-outline" href="how-it-works.html">How it works</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<footer class="site">
+  <div class="wrap">
+    <div class="foot-grid">
+      <div>
+        <a class="brand" href="/" style="margin-bottom:12px;">
+          <svg class="mark" viewBox="0 0 28 28" aria-hidden="true">
+            <circle cx="14" cy="14" r="12.5" fill="none" stroke="currentColor" stroke-width="1.8"/>
+            <circle cx="8" cy="20" r="2.2" fill="currentColor"/><circle cx="20" cy="8" r="2.2" fill="currentColor"/>
+            <path d="M8 20C16 20 12 8 20 8" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+          </svg>
+          Trip Tracker
+        </a>
+        <p class="muted" style="max-width:300px;font-size:14px;">Planning and live sharing for multi-day group trips.</p>
+      </div>
+      <div><h4>Product</h4><ul>
+        <li><a href="features.html">Features</a></li>
+        <li><a href="how-it-works.html">How it works</a></li>
+        <li><a href="faq.html">FAQ</a></li></ul></div>
+      <div><h4>Try it</h4><ul>
+        <li><a href="app.html">Sign in</a></li>
+        <li><a href="app.html">Create a trip</a></li>
+        <li><a href="live.html?t=c26dcdbd931c46f8804196172c1179b9">Live demo</a></li></ul></div>
+      <div><h4>Modules</h4><ul>
+        <li><a href="#route">Route &amp; days</a></li>
+        <li><a href="#live">Live sharing</a></li>
+        <li><a href="#imports">Imports</a></li></ul></div>
+    </div>
+    <div class="foot-bottom">
+      <span>© 2026 Trip Tracker</span>
+      <span>Early access — <a href="app.html">free to use</a></span>
+    </div>
+  </div>
+</footer>
+
+<script>
+document.getElementById('navToggle').addEventListener('click', function () {
+  var n = document.getElementById('mainnav');
+  var open = n.classList.toggle('open');
+  this.setAttribute('aria-expanded', open ? 'true' : 'false');
+});
+</script>
+</body>
+</html>

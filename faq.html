@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FAQ — Trip Tracker</title>
+<meta name="description" content="Answers about accounts, privacy, sharing, imports, offline use, activity types and pricing in Trip Tracker.">
+<meta name="theme-color" content="#F7F5F0">
+<script>
+(function () {
+  var h = location.hash || '', q = location.search || '';
+  if (h.indexOf('access_token=') > -1 || q.indexOf('code=') > -1) location.replace('/app.html' + q + h);
+  var t = localStorage.getItem('theme');
+  if (t === 'dark' || t === 'light') document.documentElement.setAttribute('data-theme', t);
+})();
+</script>
+<link rel="stylesheet" href="css/site.css">
+</head>
+<body>
+
+<header class="site">
+  <div class="wrap bar">
+    <a class="brand" href="/">
+      <svg class="mark" viewBox="0 0 28 28" aria-hidden="true">
+        <circle cx="14" cy="14" r="12.5" fill="none" stroke="currentColor" stroke-width="1.8"/>
+        <circle cx="8" cy="20" r="2.2" fill="currentColor"/><circle cx="20" cy="8" r="2.2" fill="currentColor"/>
+        <path d="M8 20C16 20 12 8 20 8" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+      </svg>
+      Trip Tracker
+    </a>
+    <nav class="mainnav" id="mainnav">
+      <a href="features.html">Features</a>
+      <a href="how-it-works.html">How it works</a>
+      <a href="live.html?t=c26dcdbd931c46f8804196172c1179b9">Live demo</a>
+      <a href="faq.html" class="on">FAQ</a>
+    </nav>
+    <div class="headcta">
+      <a class="btn btn-ghost btn-sm" href="app.html">Sign in</a>
+      <a class="btn btn-primary btn-sm" href="app.html">Get started</a>
+      <button id="navToggle" aria-label="Menu" aria-expanded="false">
+        <svg viewBox="0 0 22 22" width="22" height="22"><path d="M3 6h16M3 11h16M3 16h16" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" fill="none"/></svg>
+      </button>
+    </div>
+  </div>
+</header>
+
+<section class="tight">
+  <div class="wrap narrow">
+    <div class="eyebrow">FAQ</div>
+    <h1 style="font-size:clamp(30px,4.4vw,46px);">Questions, answered plainly</h1>
+    <p class="lede" style="margin-top:16px;">Including the ones where the honest answer is
+      "not yet".</p>
+  </div>
+</section>
+
+<section style="padding-top:0;">
+  <div class="wrap narrow">
+
+    <h2 style="margin-bottom:6px;">Getting started</h2>
+    <div class="faq" style="margin-bottom:44px;">
+      <details open>
+        <summary>What does it cost?</summary>
+        <div class="a"><p>Nothing while Trip Tracker is in early access. We are onboarding the first
+          groups and would rather have feedback than revenue. If that changes, existing trips will not
+          be held hostage — you will get warning and a way to export.</p></div>
+      </details>
+      <details>
+        <summary>How do I sign up?</summary>
+        <div class="a"><p>Enter your email and click the link we send. That is the whole process —
+          there is no password to invent, and an account is created automatically the first time
+          you use the link.</p></div>
+      </details>
+      <details>
+        <summary>What if I already have my trip in a spreadsheet?</summary>
+        <div class="a"><p>Upload it. CSV and XLSX both work, and each row becomes a day. A GPX works
+          too — one file for the whole trip split by track segment, or one file per stage.</p></div>
+      </details>
+      <details>
+        <summary>Is it only for cycling?</summary>
+        <div class="a"><p>No. Cycling, hiking, kayaking, campervan and public-transport trips are all
+          supported, plus a mixed mode for trips that do several. The trip type changes which fields
+          appear, how they are labelled, and how pace and arrival times are estimated — a campervan
+          trip has no ascent column, a paddling trip talks about water conditions rather than surface.</p></div>
+      </details>
+    </div>
+
+    <h2 style="margin-bottom:6px;">Your group</h2>
+    <div class="faq" style="margin-bottom:44px;">
+      <details>
+        <summary>Does everyone need an account?</summary>
+        <div class="a">
+          <p>It depends what they are doing:</p>
+          <ul>
+            <li><strong>Following the trip</strong> — no account, no app. The live page is a public link.</li>
+            <li><strong>Ticking their own packing, logging expenses or progress</strong> — yes, but signing in is just an email and a link.</li>
+          </ul>
+        </div>
+      </details>
+      <details>
+        <summary>Can I stop people editing the plan?</summary>
+        <div class="a"><p>Yes. Owners and editors change the plan. Riders can tick their own boxes,
+          log progress and post photos, but cannot rewrite the route. Viewers only read.</p></div>
+      </details>
+      <details>
+        <summary>We do not all carry the same kit. Does that work?</summary>
+        <div class="a"><p>Yes, and it was one of the first things we fixed. Any packing item or task can
+          be assigned to everyone or to specific people. One multi-tool between three riders shows up on
+          one person's list; a rain jacket shows up on all three.</p></div>
+      </details>
+      <details>
+        <summary>How do expenses get settled?</summary>
+        <div class="a"><p>Log what you paid and tick who it covered. Balances update per person and per
+          currency — we deliberately do not convert between currencies, because guessing a rate causes
+          more arguments than it solves.</p></div>
+      </details>
+    </div>
+
+    <h2 style="margin-bottom:6px;">Privacy &amp; sharing</h2>
+    <div class="faq" style="margin-bottom:44px;">
+      <details>
+        <summary>Is my trip public?</summary>
+        <div class="a"><p>No. Sharing is off until you switch it on, and even then it is a single
+          unguessable link rather than anything listed or searchable.</p></div>
+      </details>
+      <details>
+        <summary>What exactly does the public page show?</summary>
+        <div class="a">
+          <p>The route, day titles and distances, today's stage, elevation profiles, progress and photos.
+            Everything sensitive is a separate switch you control:</p>
+          <ul>
+            <li>Exact addresses</li>
+            <li>Costs and expense balances</li>
+            <li>Phone numbers</li>
+            <li>Booking references</li>
+          </ul>
+          <p>All of those are off unless you turn them on. You can also put a passcode on the link.</p>
+        </div>
+      </details>
+      <details>
+        <summary>Can I see what my group sees before I invite them?</summary>
+        <div class="a"><p>Yes — there is a "preview as participant" toggle that re-renders the whole app
+          read-only, exactly as a rider or viewer would get it.</p></div>
+      </details>
+    </div>
+
+    <h2 style="margin-bottom:6px;">Imports</h2>
+    <div class="faq" style="margin-bottom:44px;">
+      <details>
+        <summary>How does the email import work?</summary>
+        <div class="a"><p>Each trip gets its own address. Forward a booking confirmation to it and the
+          details come back as proposals in a review queue — departure time, reference, seat, cost and
+          so on, each offered separately. Nothing is written to your trip until you accept it.</p></div>
+      </details>
+      <details>
+        <summary>What if it reads something wrong?</summary>
+        <div class="a"><p>You reject that proposal and it is discarded. Because everything goes through
+          review, a bad extraction cannot quietly corrupt your plan. You can also lock fields you have
+          written yourself so no import can ever overwrite them.</p></div>
+      </details>
+      <details>
+        <summary>Which providers does it understand?</summary>
+        <div class="a"><p>It is not a per-provider integration — it reads the text of the confirmation,
+          so most airlines, rail operators and hotel booking sites work. Tested against real ScotRail
+          and Booking.com confirmations. Unusual formats may extract less; you will see exactly what it
+          found before accepting.</p></div>
+      </details>
+    </div>
+
+    <h2 style="margin-bottom:6px;">On the road</h2>
+    <div class="faq" style="margin-bottom:44px;">
+      <details>
+        <summary>Does it work on a phone?</summary>
+        <div class="a"><p>Yes. The planning grid is designed for a laptop, but every screen also has a
+          card layout built for a phone — which is what you will actually use once the trip starts.</p></div>
+      </details>
+      <details>
+        <summary>Does it work offline?</summary>
+        <div class="a"><p>Not yet, and this is worth knowing before a remote trip. Trip Tracker currently
+          needs a connection to load and to save. Download your GPX tracks and offline maps in your usual
+          navigation app as well — do not rely on this as your only source of the route in the field.</p></div>
+      </details>
+      <details>
+        <summary>Does it track my location automatically?</summary>
+        <div class="a"><p>No. Progress is something you enter — a distance, when you feel like it. If you
+          want automatic live tracking, add your Garmin, Wahoo or similar share link and it appears
+          alongside the trip on the public page.</p></div>
+      </details>
+      <details>
+        <summary>How accurate are the pace estimates?</summary>
+        <div class="a"><p>They are as good as the assumptions you give them. You set your own speeds by
+          surface and a climbing rate, and there are beginner, moderate and experienced reference values
+          to start from. Treat them as planning figures, not promises — weather and wind are not modelled.</p></div>
+      </details>
+    </div>
+
+    <h2 style="margin-bottom:6px;">Data</h2>
+    <div class="faq">
+      <details>
+        <summary>Where is my data stored?</summary>
+        <div class="a"><p>In a hosted Postgres database with row-level security, so trips are only readable
+          by their own members. The public share page reads through a single restricted function that
+          returns only the fields your visibility settings permit.</p></div>
+      </details>
+      <details>
+        <summary>Can I duplicate a trip I run every year?</summary>
+        <div class="a"><p>Yes. Duplicating copies the day structure, route, sights, packing list and tasks,
+          and deliberately leaves behind dates, bookings, expenses, photos and tracking — the things that
+          will be different next time.</p></div>
+      </details>
+      <details>
+        <summary>Can I delete a trip?</summary>
+        <div class="a"><p>Yes, and it takes everything attached to it with it. There is no undo, so it asks
+          first.</p></div>
+      </details>
+      <details>
+        <summary>Can I export my data?</summary>
+        <div class="a"><p>Not as a one-click export yet — this is on the list. Your GPX files remain yours
+          and stay downloadable per day in the meantime. If you need everything out before that ships,
+          ask and we will help.</p></div>
+      </details>
+    </div>
+
+    <div class="note" style="margin-top:40px;">
+      Something not answered here? Trip Tracker is in early access and the roadmap is genuinely shaped by
+      what the first groups ask for — tell us what is missing.
+    </div>
+  </div>
+</section>
+
+<section class="tight">
+  <div class="wrap">
+    <div class="cta-band">
+      <h2>Try it on your next trip</h2>
+      <p>Free while in early access. A couple of minutes to set up.</p>
+      <div class="cta-actions">
+        <a class="btn btn-lg" href="app.html">Get started</a>
+        <a class="btn btn-lg btn-outline" href="live.html?t=c26dcdbd931c46f8804196172c1179b9">View the demo trip</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<footer class="site">
+  <div class="wrap">
+    <div class="foot-grid">
+      <div>
+        <a class="brand" href="/" style="margin-bottom:12px;">
+          <svg class="mark" viewBox="0 0 28 28" aria-hidden="true">
+            <circle cx="14" cy="14" r="12.5" fill="none" stroke="currentColor" stroke-width="1.8"/>
+            <circle cx="8" cy="20" r="2.2" fill="currentColor"/><circle cx="20" cy="8" r="2.2" fill="currentColor"/>
+            <path d="M8 20C16 20 12 8 20 8" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+          </svg>
+          Trip Tracker
+        </a>
+        <p class="muted" style="max-width:300px;font-size:14px;">Planning and live sharing for multi-day group trips.</p>
+      </div>
+      <div><h4>Product</h4><ul>
+        <li><a href="features.html">Features</a></li>
+        <li><a href="how-it-works.html">How it works</a></li>
+        <li><a href="faq.html">FAQ</a></li></ul></div>
+      <div><h4>Try it</h4><ul>
+        <li><a href="app.html">Sign in</a></li>
+        <li><a href="app.html">Create a trip</a></li>
+        <li><a href="live.html?t=c26dcdbd931c46f8804196172c1179b9">Live demo</a></li></ul></div>
+      <div><h4>Modules</h4><ul>
+        <li><a href="features.html#route">Route &amp; days</a></li>
+        <li><a href="features.html#live">Live sharing</a></li>
+        <li><a href="features.html#imports">Imports</a></li></ul></div>
+    </div>
+    <div class="foot-bottom">
+      <span>© 2026 Trip Tracker</span>
+      <span>Early access — <a href="app.html">free to use</a></span>
+    </div>
+  </div>
+</footer>
+
+<script>
+document.getElementById('navToggle').addEventListener('click', function () {
+  var n = document.getElementById('mainnav');
+  var open = n.classList.toggle('open');
+  this.setAttribute('aria-expanded', open ? 'true' : 'false');
+});
+</script>
+</body>
+</html>
