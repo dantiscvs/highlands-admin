@@ -129,7 +129,10 @@ function render(data) {
   const totalKm = days.reduce((s,d) => s + (Number(d.distanceKm)||0), 0);
   const totalAscent = days.reduce((s,d) => s + (Number(d.ascentM)||0), 0);
   const daysWithData = days.filter(d => d.distanceKm || d.ascentM || d.isRestDay);
-  const todayIso = new Date().toISOString().slice(0,10);
+  // Local date, not toISOString(): the UTC date rolls over at a different
+  // moment than the viewer's own day, which highlighted the wrong stage.
+  const _n = new Date();
+  const todayIso = `${_n.getFullYear()}-${String(_n.getMonth()+1).padStart(2,'0')}-${String(_n.getDate()).padStart(2,'0')}`;
   const todayDay = days.find(d => d.date === todayIso);
 
   document.getElementById('app').innerHTML = `
