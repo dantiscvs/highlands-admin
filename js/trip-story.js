@@ -1,9 +1,11 @@
 // Story — the photo gallery plus a story-card generator.
 //
-// The legacy PWA could export one fixed 1080x1920 image. This version keeps
-// that idea and makes the overlay configurable: pick a background photo, choose
-// which stats to burn in, and download. Everything renders client-side on a
-// canvas, so nothing is uploaded to make a card.
+// The legacy PWA could export one fixed 1080x1920 image with a hard-coded
+// Highlands basemap. This version keeps the idea and makes it general and
+// configurable: pick a background photo, pick whether the card is about one
+// day or the whole trip (that choice now consistently drives every number and
+// chart on it, which the previous version did not), toggle which elements are
+// burned in, and save the combination as a reusable preset.
 
 const STORY_W = 1080, STORY_H = 1920;
 const STORY_THEMES = {
@@ -11,12 +13,14 @@ const STORY_THEMES = {
   ember:  { bg: '#2A1B12', accent: '#E08A54', text: '#FBFAF6', dim: 'rgba(251,250,246,.72)' },
   slate:  { bg: '#1B1D18', accent: '#86B4CC', text: '#FBFAF6', dim: 'rgba(251,250,246,.72)' },
 };
+const STORY_PRESETS_KEY = 'storyPresets'; // global — a look you like is worth reusing on the next trip
 
 let storyState = {
   photoUrl: null,          // background photo, or null for a gradient
   dayId: null,
+  scope: 'day',             // 'day' | 'trip' — drives every stat and chart consistently
   theme: 'trail',
-  show: { title: true, day: true, distance: true, elevation: true, profile: true, stay: false, url: true },
+  show: { title: true, day: true, distance: true, elevation: true, profile: true, map: false, stay: false, url: true },
   dim: 0.5,
 };
 let _storyDays = [], _storyPhotos = [], _storyProgress = {};
@@ -56,7 +60,14 @@ async function renderStoryModule() {
             1080 × 1920, sized for Instagram and WhatsApp stories. Rendered in your browser — the photo
             never leaves the page to make one.</p>
 
-          <div class="field"><label>Day</label>
+          <div class="field"><label>About</label>
+            <div class="storyscope">
+              <button class="btn btn-sm ${storyState.scope === 'day' ? 'btn-primary' : ''}" onclick="storySet('scope','day')">This day</button>
+              <button class="btn btn-sm ${storyState.scope === 'trip' ? 'btn-primary' : ''}" onclick="storySet('scope','trip')">Whole trip</button>
+            </div>
+          </div>
+
+          <div class="field"><label>${storyState.scope === 'trip' ? 'Progress marker on' : 'Day'}</label>
             <select onchange="storySet('dayId', this.value)">
               ${_storyDays.map(d => `<option value="${d.id}" ${d.id === storyState.dayId ? 'selected' : ''}>Day ${d.day_number}${d.title ? ' — ' + esc(d.title) : ''}</option>`).join('')}
             </select>
@@ -76,7 +87,7 @@ async function renderStoryModule() {
 
           <div class="field"><label>Theme</label>
             <div style="display:flex;gap:6px;">
-              ${Object.keys(STORY_THEMES).map(k => `<button class="btn btn-sm ${storyState.theme === k ? 'btn-primary' : ''}" onclick="storySet('theme','${k}')" style="text-transform:capitalize;">${k}</button>`).join('')}
+              ${Object.keys(STORY_THEMES).map(k => `<button class="btn btn-sm storytheme ${storyState.theme === k ? 'btn-primary' : ''}" data-theme-btn="${k}" onclick="storySet('theme','${k}')" style="text-transform:capitalize;">${k}</button>`).join('')}
             </div>
           </div>
 
@@ -88,9 +99,22 @@ async function renderStoryModule() {
           <div class="field"><label>Show on the card</label>
             <div class="storytoggles">
               ${[['title','Trip name'],['day','Day counter'],['distance','Distance'],['elevation','Climbing'],
-                 ['profile','Elevation profile'],['stay','Tonight\'s stay'],['url','Follow link']]
+                 ['profile','Elevation profile'],['map', storyState.scope === 'trip' ? 'Route map (all days)' : 'Route map (this day)'],
+                 ['stay','Tonight\'s stay'],['url','Follow link']]
                 .map(([k, l]) => `<label><input type="checkbox" ${storyState.show[k] ? 'checked' : ''}
                   onchange="storyToggle('${k}', this.checked)"> ${l}</label>`).join('')}
+            </div>
+          </div>
+
+          <div class="field"><label>Presets</label>
+            <div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center;">
+              <select id="storyPresetSelect" style="flex:1;min-width:120px;">
+                <option value="">Choose a preset…</option>
+                ${storyPresets().map((p, i) => `<option value="${i}">${esc(p.name)}</option>`).join('')}
+              </select>
+              <button class="btn btn-sm" onclick="storyApplyPreset()">Apply</button>
+              <button class="btn btn-sm" onclick="storySavePreset()">Save current…</button>
+              <button class="btn btn-sm btn-danger" onclick="storyDeletePreset()">Delete</button>
             </div>
           </div>
 
@@ -103,7 +127,7 @@ async function renderStoryModule() {
 
       <div>
         <div class="storypreview"><canvas id="storyCanvas" width="${STORY_W}" height="${STORY_H}"></canvas></div>
-        <div class="muted" style="font-size:var(--text-xs);text-align:center;margin-top:8px;">Live preview</div>
+        <div class="muted" style="font-size:var(--text-xs);text-align:center;margin-top:8px;" id="storyPreviewCap">Live preview</div>
       </div>
     </div>
 
@@ -145,14 +169,160 @@ async function renderStoryModule() {
   drawStoryCard();
 }
 
-function storySet(k, v) { storyState[k] = v; if (k === 'dayId' || k === 'photoUrl') renderStoryModule(); else { drawStoryCard(); refreshStoryControls(); } }
+// ---- controls ----
+function storySet(k, v) {
+  storyState[k] = v;
+  if (k === 'dayId' || k === 'photoUrl' || k === 'scope') renderStoryModule();
+  else { drawStoryCard(); refreshStoryControls(); }
+}
 function storySetPhoto(url) { storyState.photoUrl = url; renderStoryModule(); }
 function storyToggle(k, on) { storyState.show[k] = on; drawStoryCard(); }
 function refreshStoryControls() {
-  document.querySelectorAll('.storygrid .btn').forEach(b => {
-    const m = (b.getAttribute('onclick') || '').match(/storySet\('theme','(\w+)'\)/);
-    if (m) b.classList.toggle('btn-primary', m[1] === storyState.theme);
+  document.querySelectorAll('.storytheme').forEach(b => b.classList.toggle('btn-primary', b.dataset.themeBtn === storyState.theme));
+}
+
+// ---- presets ----
+function storyPresets() {
+  try { return JSON.parse(localStorage.getItem(STORY_PRESETS_KEY) || '[]'); } catch (e) { return []; }
+}
+function storySavePreset() {
+  const name = prompt('Name this preset:');
+  if (!name) return;
+  const presets = storyPresets();
+  presets.push({ name, theme: storyState.theme, dim: storyState.dim, scope: storyState.scope, show: { ...storyState.show } });
+  localStorage.setItem(STORY_PRESETS_KEY, JSON.stringify(presets));
+  renderStoryModule();
+}
+function storyApplyPreset() {
+  const sel = document.getElementById('storyPresetSelect');
+  const p = storyPresets()[sel.value];
+  if (!p) return;
+  storyState.theme = p.theme; storyState.dim = p.dim; storyState.scope = p.scope;
+  storyState.show = { ...storyState.show, ...p.show };
+  renderStoryModule();
+}
+function storyDeletePreset() {
+  const sel = document.getElementById('storyPresetSelect');
+  if (sel.value === '') return;
+  const presets = storyPresets();
+  presets.splice(+sel.value, 1);
+  localStorage.setItem(STORY_PRESETS_KEY, JSON.stringify(presets));
+  renderStoryModule();
+}
+
+// ---- data helpers (scope-consistent) ----
+// Every number and chart on the card reads from this one object, so "This
+// day" vs "Whole trip" can never disagree with itself the way the first
+// version did (a single day's elevation profile next to the whole trip's km).
+function storyMetrics() {
+  const day = _storyDays.find(d => d.id === storyState.dayId);
+  const idx = _storyDays.findIndex(d => d.id === storyState.dayId);
+  if (storyState.scope === 'day') {
+    const km = day ? Number(day.distance_km) || 0 : 0;
+    const done = day ? (_storyProgress[day.id] || 0) : 0;
+    return { day, idx, km, done, ascent: day ? Number(day.ascent_m) || 0 : 0, label: day ? day.title : '' };
+  }
+  const km = _storyDays.reduce((s, d) => s + (Number(d.distance_km) || 0), 0);
+  const done = _storyDays.reduce((s, d) => s + (_storyProgress[d.id] || 0), 0);
+  const ascent = _storyDays.reduce((s, d) => s + (Number(d.ascent_m) || 0), 0);
+  return { day, idx, km, done, ascent, label: activeTrip.name };
+}
+
+// Merge every day's elevation profile end to end so "Whole trip" gets one
+// continuous chart with cumulative distance, matching how Statistics does it.
+async function storyTripProfile() {
+  const gpxDays = _storyDays.filter(d => d.gpx_url);
+  if (!gpxDays.length) return null;
+  const profiles = await Promise.all(gpxDays.map(d => fetchProfile(d.gpx_url)));
+  const good = profiles.map((p, i) => [p, gpxDays[i]]).filter(([p]) => p && p.hasEle);
+  if (!good.length) return null;
+  const merged = { dist: [], ele: [], gain: [] };
+  let kmOff = 0, gainOff = 0;
+  good.forEach(([p]) => {
+    for (let i = 0; i < p.dist.length; i++) {
+      merged.dist.push(kmOff + p.dist[i]); merged.ele.push(p.ele[i]); merged.gain.push(gainOff + p.gain[i]);
+    }
+    kmOff += p.totalKm; gainOff += p.totalGain;
   });
+  merged.hasEle = true;
+  merged.totalKm = kmOff; merged.totalGain = gainOff;
+  merged.minEle = Math.min(...merged.ele); merged.maxEle = Math.max(...merged.ele);
+  return merged;
+}
+
+// ---- route trace (the legacy "watermark map") ----
+// Projects every day's GPX onto one canvas region with an equirectangular
+// projection corrected for latitude, fit to the trip's own bounding box —
+// there is no hard-coded basemap here since the app is not tied to one trip.
+function storyProjector(allPoints, w, h, pad) {
+  let minLat = 90, maxLat = -90, minLon = 180, maxLon = -180;
+  allPoints.forEach(pts => pts.forEach(([lat, lon]) => {
+    if (lat < minLat) minLat = lat; if (lat > maxLat) maxLat = lat;
+    if (lon < minLon) minLon = lon; if (lon > maxLon) maxLon = lon;
+  }));
+  const midLat = (minLat + maxLat) / 2;
+  const latCos = Math.cos(midLat * Math.PI / 180) || 0.5;
+  const spanLon = (maxLon - minLon) * latCos || 0.0001;
+  const spanLat = (maxLat - minLat) || 0.0001;
+  const innerW = w - pad * 2, innerH = h - pad * 2;
+  const scale = Math.min(innerW / spanLon, innerH / spanLat);
+  const drawW = spanLon * scale, drawH = spanLat * scale;
+  const offX = pad + (innerW - drawW) / 2, offY = pad + (innerH - drawH) / 2;
+  return ([lat, lon]) => [
+    offX + (lon - minLon) * latCos * scale,
+    offY + (maxLat - lat) * scale,
+  ];
+}
+
+async function storyRouteDays() {
+  // Trip scope: every day with a track. Day scope: just the selected one —
+  // still drawn through the same projector so a single stage reads as a
+  // clean, well-framed line rather than a tiny squiggle in a trip-sized box.
+  if (storyState.scope === 'trip') return _storyDays.filter(d => d.gpx_url);
+  const day = _storyDays.find(d => d.id === storyState.dayId);
+  return day && day.gpx_url ? [day] : [];
+}
+
+async function drawStoryTrace(ctx, x, y, w, h) {
+  const routeDays = await storyRouteDays();
+  if (!routeDays.length) return 0;
+  const profiles = await Promise.all(routeDays.map(d => fetchProfile(d.gpx_url)));
+  const withPts = routeDays.map((d, i) => [d, profiles[i]]).filter(([, p]) => p && p.latlon && p.latlon.length > 1);
+  if (!withPts.length) return 0;
+
+  const project = storyProjector(withPts.map(([, p]) => p.latlon), w, h, 36);
+  const currentIdx = _storyDays.findIndex(d => d.id === storyState.dayId);
+
+  withPts.forEach(([d, p], i) => {
+    const dIdx = _storyDays.findIndex(x2 => x2.id === d.id);
+    const color = DAY_TRACK_COLORS[i % DAY_TRACK_COLORS.length];
+    const pix = p.latlon.map(project);
+
+    // Dim full line underneath everything — the "watermark".
+    ctx.beginPath();
+    pix.forEach(([px, py], j) => { const X = x + px, Y = y + py; j === 0 ? ctx.moveTo(X, Y) : ctx.lineTo(X, Y); });
+    ctx.strokeStyle = '#FFFFFF'; ctx.globalAlpha = 0.16; ctx.lineWidth = 7; ctx.lineJoin = 'round'; ctx.lineCap = 'round'; ctx.stroke();
+
+    // Lit portion: fully done days solid, the current day lit up to progress,
+    // days ahead left dim. Day scope always lights the whole line since there
+    // is only the one day and the number above already shows how far into it.
+    let litFrac = 0;
+    if (storyState.scope === 'day') litFrac = 1;
+    else if (dIdx < currentIdx) litFrac = 1;
+    else if (dIdx === currentIdx) { const km = Number(d.distance_km) || 0; litFrac = km ? Math.min(1, (_storyProgress[d.id] || 0) / km) : 0; }
+    const litCount = Math.max(0, Math.round(pix.length * litFrac));
+    if (litCount > 1) {
+      ctx.beginPath();
+      pix.slice(0, litCount).forEach(([px, py], j) => { const X = x + px, Y = y + py; j === 0 ? ctx.moveTo(X, Y) : ctx.lineTo(X, Y); });
+      ctx.strokeStyle = color; ctx.globalAlpha = 0.95; ctx.lineWidth = 10; ctx.stroke();
+      // marker at the point reached
+      const [mx, my] = pix[litCount - 1];
+      ctx.beginPath(); ctx.arc(x + mx, y + my, 12, 0, Math.PI * 2);
+      ctx.fillStyle = color; ctx.fill(); ctx.strokeStyle = '#fff'; ctx.lineWidth = 3; ctx.stroke();
+    }
+  });
+  ctx.globalAlpha = 1;
+  return h;
 }
 
 // ---- canvas ----
@@ -166,12 +336,14 @@ function loadImg(src) {
   });
 }
 
+let _storyDrawSeq = 0;
 async function drawStoryCard() {
   const c = document.getElementById('storyCanvas');
   if (!c) return;
+  const seq = ++_storyDrawSeq; // guard against overlapping redraws from rapid toggle clicks
   const ctx = c.getContext('2d');
   const th = STORY_THEMES[storyState.theme] || STORY_THEMES.trail;
-  const day = _storyDays.find(d => d.id === storyState.dayId);
+  const m = storyMetrics();
 
   ctx.clearRect(0, 0, STORY_W, STORY_H);
 
@@ -180,6 +352,7 @@ async function drawStoryCard() {
   if (storyState.photoUrl) {
     try {
       const img = await loadImg(storyState.photoUrl);
+      if (seq !== _storyDrawSeq) return;
       const sc = Math.max(STORY_W / img.width, STORY_H / img.height);
       const w = img.width * sc, h = img.height * sc;
       ctx.drawImage(img, (STORY_W - w) / 2, (STORY_H - h) / 2, w, h);
@@ -196,12 +369,6 @@ async function drawStoryCard() {
     ctx.fillRect(0, 0, STORY_W, STORY_H);
   }
 
-  const km = day ? Number(day.distance_km) || 0 : 0;
-  const done = day ? (_storyProgress[day.id] || 0) : 0;
-  const totalKm = _storyDays.reduce((s, d) => s + (Number(d.distance_km) || 0), 0);
-  const doneTotal = _storyDays.reduce((s, d) => s + (_storyProgress[d.id] || 0), 0);
-  const idx = _storyDays.findIndex(d => d.id === storyState.dayId);
-
   ctx.textAlign = 'center';
   let y = 300;
 
@@ -211,20 +378,24 @@ async function drawStoryCard() {
     wrapText(ctx, activeTrip.name.toUpperCase(), STORY_W / 2, y, 900, 74);
     y += 120;
   }
-  if (storyState.show.day && day) {
+  if (storyState.show.day) {
     ctx.fillStyle = th.dim;
     ctx.font = '600 40px Manrope, -apple-system, Segoe UI, sans-serif';
-    ctx.fillText(`DAY ${idx + 1} OF ${_storyDays.length}`, STORY_W / 2, y);
+    ctx.fillText(storyState.scope === 'trip'
+      ? `${_storyDays.length} DAYS`
+      : `DAY ${m.idx + 1} OF ${_storyDays.length}`, STORY_W / 2, y);
     y += 70;
-    ctx.fillStyle = th.text;
-    ctx.font = '700 46px Manrope, -apple-system, Segoe UI, sans-serif';
-    wrapText(ctx, day.title || '', STORY_W / 2, y, 900, 56);
-    y += 90;
+    if (m.label) {
+      ctx.fillStyle = th.text;
+      ctx.font = '700 46px Manrope, -apple-system, Segoe ui, sans-serif';
+      wrapText(ctx, m.label, STORY_W / 2, y, 900, 56);
+      y += 90;
+    }
   }
 
-  // elevation profile drawn from the day's stored ascent shape
-  if (storyState.show.profile && day && day.gpx_url) {
-    const p = await fetchProfile(day.gpx_url).catch(() => null);
+  if (storyState.show.profile) {
+    const p = storyState.scope === 'trip' ? await storyTripProfile() : (m.day && m.day.gpx_url ? await fetchProfile(m.day.gpx_url) : null);
+    if (seq !== _storyDrawSeq) return;
     if (p && p.hasEle) {
       const px = 110, pw = STORY_W - 220, ph = 220, py = y;
       const minE = p.minEle, spanE = (p.maxEle - p.minEle) || 1;
@@ -238,8 +409,8 @@ async function drawStoryCard() {
       ctx.strokeStyle = th.accent; ctx.lineWidth = 6; ctx.lineJoin = 'round'; ctx.stroke();
       ctx.lineTo(px + pw, py + ph); ctx.lineTo(px, py + ph); ctx.closePath();
       ctx.fillStyle = th.accent + '2E'; ctx.fill();
-      if (done > 0 && km) {
-        const fx = px + Math.min(1, done / km) * pw;
+      if (m.done > 0 && p.totalKm) {
+        const fx = px + Math.min(1, m.done / p.totalKm) * pw;
         ctx.beginPath(); ctx.moveTo(fx, py - 10); ctx.lineTo(fx, py + ph);
         ctx.strokeStyle = th.text; ctx.lineWidth = 4; ctx.setLineDash([12, 10]); ctx.stroke(); ctx.setLineDash([]);
         ctx.beginPath(); ctx.arc(fx, py + ph, 16, 0, Math.PI * 2); ctx.fillStyle = th.text; ctx.fill();
@@ -248,16 +419,23 @@ async function drawStoryCard() {
     }
   }
 
+  if (storyState.show.map) {
+    const boxH = 460;
+    const consumed = await drawStoryTrace(ctx, 60, y, STORY_W - 120, boxH);
+    if (seq !== _storyDrawSeq) return;
+    if (consumed) y += boxH + 50;
+  }
+
   if (storyState.show.distance) {
     ctx.fillStyle = th.accent;
     ctx.font = '800 110px Manrope, -apple-system, Segoe UI, sans-serif';
-    ctx.fillText(totalKm ? `${Math.round(doneTotal)} / ${Math.round(totalKm)} km` : `${Math.round(done)} km`, STORY_W / 2, y);
+    ctx.fillText(m.km ? `${Math.round(m.done)} / ${Math.round(m.km)} km` : `${Math.round(m.done)} km`, STORY_W / 2, y);
     y += 80;
   }
-  if (storyState.show.elevation && day && day.ascent_m) {
+  if (storyState.show.elevation && m.ascent) {
     ctx.fillStyle = th.dim;
     ctx.font = '500 42px Manrope, -apple-system, Segoe UI, sans-serif';
-    ctx.fillText(`+${day.ascent_m} m climbed today`, STORY_W / 2, y);
+    ctx.fillText(`+${Math.round(m.ascent)} m climbed${storyState.scope === 'trip' ? ' in total' : ' today'}`, STORY_W / 2, y);
     y += 66;
   }
   if (storyState.show.stay) {
@@ -305,3 +483,45 @@ async function storyDownload() {
     msg.className = 'saveIndicator';
   }
 }
+
+// ---- gallery: upload, delete, lightbox ----
+async function uploadPhoto() {
+  const file = document.getElementById('photoFile').files[0];
+  if (!file) { alert('Pick a file first.'); return; }
+  const status = document.getElementById('photoStatus');
+  status.textContent = 'Uploading…'; status.className = 'saveIndicator saving';
+  const ext = file.name.split('.').pop().toLowerCase();
+  const path = `trips/${activeTrip.id}/${Date.now()}-${Math.random().toString(36).slice(2, 7)}.${ext}`;
+  const { error: upErr } = await db().storage.from('photos').upload(path, file, { cacheControl: '3600' });
+  if (upErr) { status.textContent = 'Upload failed: ' + upErr.message; status.className = 'saveIndicator'; return; }
+  const { data: { publicUrl } } = db().storage.from('photos').getPublicUrl(path);
+  const dayId = document.getElementById('photoDay').value || null;
+  const caption = document.getElementById('photoCaption').value.trim() || null;
+  const { error: insErr } = await db().from('updates').insert({
+    trip_id: activeTrip.id, day_id: dayId,
+    membership_id: activeMembership?.id || null,
+    caption, photo_url: publicUrl,
+  });
+  if (insErr) { status.textContent = 'DB error: ' + insErr.message; status.className = 'saveIndicator'; return; }
+  status.textContent = '✓ Uploaded'; status.className = 'saveIndicator saved';
+  renderStoryModule();
+}
+async function deletePhoto(id, url) {
+  if (!confirm('Delete this photo? This cannot be undone.')) return;
+  const storagePath = url.split('/photos/').slice(1).join('/photos/');
+  if (storagePath) await db().storage.from('photos').remove([storagePath]);
+  await db().from('updates').delete().eq('id', id);
+  renderStoryModule();
+}
+function adminOpenLightbox(url, caption) {
+  const lb = document.getElementById('admin-lb');
+  document.getElementById('admin-lb-img').src = url;
+  document.getElementById('admin-lb-cap').textContent = caption || '';
+  lb.style.display = 'flex';
+  document.addEventListener('keydown', adminLbKey);
+}
+function adminCloseLightbox() {
+  document.getElementById('admin-lb').style.display = 'none';
+  document.removeEventListener('keydown', adminLbKey);
+}
+function adminLbKey(e) { if (e.key === 'Escape') adminCloseLightbox(); }

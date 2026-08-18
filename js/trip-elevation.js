@@ -54,6 +54,14 @@ function buildProfileFromGpx(text) {
     const diff = smooth[i] - smooth[i-1];
     gain.push(gain[i-1] + (diff > 0 ? diff : 0));
   }
+  // Decimated to ~400 points — plenty for a route trace at any card size, and
+  // keeps a multi-day merge (Story's whole-trip watermark) cheap to redraw on
+  // every slider/toggle change.
+  const latlonStep = Math.max(1, Math.floor(pts.length / 400));
+  const latlon = [];
+  for (let i = 0; i < pts.length; i += latlonStep) latlon.push([pts[i].lat, pts[i].lon]);
+  if (latlon[latlon.length - 1] !== pts[pts.length - 1]) latlon.push([pts[pts.length - 1].lat, pts[pts.length - 1].lon]);
+
   return {
     dist, ele: smooth, gain,
     totalKm: dist[dist.length - 1],
@@ -64,6 +72,9 @@ function buildProfileFromGpx(text) {
     // without re-fetching and re-parsing the track.
     startLatLon: [pts[0].lat, pts[0].lon],
     endLatLon: [pts[pts.length - 1].lat, pts[pts.length - 1].lon],
+    // For drawing the route as a line (Story's watermark trace) without
+    // re-parsing the GPX text a second time.
+    latlon,
   };
 }
 

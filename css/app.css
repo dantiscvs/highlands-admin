@@ -500,6 +500,8 @@ table.simple tr:last-child td { border-bottom: none; }
 .storytoggles { display: grid; grid-template-columns: 1fr 1fr; gap: 4px 12px; }
 .storytoggles label { display: flex; align-items: center; gap: 7px; font-size: var(--text-sm);
   color: var(--text-secondary); cursor: pointer; }
+.storyscope { display: flex; gap: 6px; }
+.storyscope .btn { flex: 1; }
 @media (max-width: 900px) {
   .storygrid { grid-template-columns: 1fr; }
   .storypreview { max-width: 260px; margin: 0 auto; }
