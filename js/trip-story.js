@@ -492,9 +492,9 @@ async function uploadPhoto() {
   status.textContent = 'Uploading…'; status.className = 'saveIndicator saving';
   const ext = file.name.split('.').pop().toLowerCase();
   const path = `trips/${activeTrip.id}/${Date.now()}-${Math.random().toString(36).slice(2, 7)}.${ext}`;
-  const { error: upErr } = await db().storage.from('photos').upload(path, file, { cacheControl: '3600' });
+  const { error: upErr } = await sb.storage.from('photos').upload(path, file, { cacheControl: '3600' });
   if (upErr) { status.textContent = 'Upload failed: ' + upErr.message; status.className = 'saveIndicator'; return; }
-  const { data: { publicUrl } } = db().storage.from('photos').getPublicUrl(path);
+  const { data: { publicUrl } } = sb.storage.from('photos').getPublicUrl(path);
   const dayId = document.getElementById('photoDay').value || null;
   const caption = document.getElementById('photoCaption').value.trim() || null;
   const { error: insErr } = await db().from('updates').insert({
@@ -509,7 +509,7 @@ async function uploadPhoto() {
 async function deletePhoto(id, url) {
   if (!confirm('Delete this photo? This cannot be undone.')) return;
   const storagePath = url.split('/photos/').slice(1).join('/photos/');
-  if (storagePath) await db().storage.from('photos').remove([storagePath]);
+  if (storagePath) await sb.storage.from('photos').remove([storagePath]);
   await db().from('updates').delete().eq('id', id);
   renderStoryModule();
 }

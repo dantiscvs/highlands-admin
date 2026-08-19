@@ -436,9 +436,9 @@ async function doImportRoute() {
       let gpxUrl = null;
       if (s.gpxFile) {
         const path = `${trip.id}/route.gpx`;
-        const { error: upErr } = await db().storage.from('trip-gpx').upload(path, s.gpxFile, { contentType: 'application/gpx+xml', upsert: true });
+        const { error: upErr } = await sb.storage.from('trip-gpx').upload(path, s.gpxFile, { contentType: 'application/gpx+xml', upsert: true });
         if (!upErr) {
-          const { data: ud } = db().storage.from('trip-gpx').getPublicUrl(path);
+          const { data: ud } = sb.storage.from('trip-gpx').getPublicUrl(path);
           gpxUrl = ud ? ud.publicUrl : null;
         }
       }
@@ -465,9 +465,9 @@ async function doImportRoute() {
         await Promise.all(s.perDayFileObjects.map(async (file, i) => {
           const dayNum = i + 1;
           const path = `${trip.id}/day-${dayNum}.gpx`;
-          const { error: upErr } = await db().storage.from('trip-gpx').upload(path, file, { contentType: 'application/gpx+xml', upsert: true });
+          const { error: upErr } = await sb.storage.from('trip-gpx').upload(path, file, { contentType: 'application/gpx+xml', upsert: true });
           if (!upErr && byNumber[dayNum]) {
-            const { data: ud } = db().storage.from('trip-gpx').getPublicUrl(path);
+            const { data: ud } = sb.storage.from('trip-gpx').getPublicUrl(path);
             if (ud && ud.publicUrl) await db().from('trip_days').update({ gpx_url: ud.publicUrl }).eq('id', byNumber[dayNum]);
           }
         }));

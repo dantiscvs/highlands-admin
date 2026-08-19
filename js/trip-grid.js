@@ -447,9 +447,9 @@ async function uploadDayGpx(dayId) {
   const day = gridDays.find(d => d.id === dayId);
   ind.textContent = 'Uploading…'; ind.className = 'saveIndicator saving';
   const path = `${activeTrip.id}/day-${day ? day.day_number : Date.now()}.gpx`;
-  const { error: upErr } = await db().storage.from('trip-gpx').upload(path, file, { contentType: 'application/gpx+xml', upsert: true });
+  const { error: upErr } = await sb.storage.from('trip-gpx').upload(path, file, { contentType: 'application/gpx+xml', upsert: true });
   if (upErr) { ind.textContent = 'Upload failed: ' + upErr.message; ind.className = 'saveIndicator'; return; }
-  const { data: pub } = db().storage.from('trip-gpx').getPublicUrl(path);
+  const { data: pub } = sb.storage.from('trip-gpx').getPublicUrl(path);
   const url = pub ? pub.publicUrl : null;
   if (!url) { ind.textContent = 'Could not resolve public URL'; ind.className = 'saveIndicator'; return; }
   const { error } = await db().from('trip_days').update({ gpx_url: url }).eq('id', dayId);
