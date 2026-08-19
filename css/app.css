@@ -244,7 +244,7 @@ table.daygrid tr.restday td .cell { color: var(--text-tertiary); font-style: ita
 
 .field { margin-bottom: 14px; }
 .field label { display: block; font-size: var(--text-sm); color: var(--text-primary); margin-bottom: 6px; font-weight: 500; }
-.field input, .field textarea, .field select { width: 100%; }
+.field input:not([type="checkbox"]):not([type="radio"]), .field textarea, .field select { width: 100%; }
 .field textarea { min-height: 70px; resize: vertical; font-family: var(--font-ui); }
 
 /* ---- Modal ---- */
@@ -450,6 +450,18 @@ table.simple tr:last-child td { border-bottom: none; }
   .irow .ilbl { width: 74px; }
   .day-map { height: 200px; }
   #tripMap { height: 300px; }
+
+  /* Checklist (tasks/packing): the table has a variable number of per-member
+     columns plus item text, so on narrow screens rows become wrapping cards
+     instead of squeezed table cells. */
+  .checklist-table thead { display: none; }
+  .checklist-table, .checklist-table tbody, .checklist-table td { display: block; }
+  .checklist-table tr { display: flex; flex-wrap: wrap; align-items: center; gap: 8px;
+    border: 1px solid var(--border-hairline); border-radius: var(--radius-md);
+    padding: 10px 12px; margin-bottom: 8px; }
+  .checklist-table td { border-bottom: none; padding: 0; width: auto; }
+  .checklist-table td:first-child { flex: 1 1 100%; order: -1; }
+  .checklist-table td:last-child { margin-left: auto; }
 
   .leg-time { font-size: var(--text-lg); }
   .leg-route { gap: 8px; }

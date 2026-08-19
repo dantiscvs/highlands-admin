@@ -679,7 +679,7 @@ async function renderChecklistModule(kind) {
       </div>
       ${isEditor() ? `<div style="display:flex;gap:6px;align-items:center;"><input id="newItemInput" type="text" placeholder="Add item…" style="width:220px;" onkeydown="if(event.key==='Enter')addChecklistItem('${table}')"><button class="btn btn-primary btn-sm" onclick="addChecklistItem('${table}')">+ Add</button></div>` : ''}
     </div>
-    <div class="gridWrap"><table class="simple">
+    <div class="gridWrap"><table class="simple checklist-table">
       <thead><tr>
         <th>Item</th>
         <th style="min-width:90px;">Assigned to</th>

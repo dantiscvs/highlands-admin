@@ -332,11 +332,14 @@ function parseGpxSegments(text) {
   return segs;
 }
 
+let _tripMapResizeObserver = null;
+
 async function renderTripMap(days) {
   const el = document.getElementById('tripMap');
   const status = document.getElementById('tripMapStatus');
   if (!el || typeof L === 'undefined') return;
   if (_tripMap) { _tripMap.remove(); _tripMap = null; }
+  if (_tripMapResizeObserver) { _tripMapResizeObserver.disconnect(); _tripMapResizeObserver = null; }
 
   _tripMap = L.map(el, { scrollWheelZoom: false });
   L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
@@ -400,6 +403,16 @@ async function renderTripMap(days) {
       .join('');
   }
   setTimeout(() => _tripMap && _tripMap.invalidateSize(), 60);
+
+  // Keep Leaflet's cached pixel origin in sync with the container: mobile
+  // browsers reflow the map's box (address-bar show/hide, orientation change,
+  // sidebar toggle) without firing a page-level resize event, which otherwise
+  // left the tile layer rendered at a stale offset — appearing to drift
+  // outside the card as the page scrolled.
+  if (typeof ResizeObserver !== 'undefined') {
+    _tripMapResizeObserver = new ResizeObserver(() => _tripMap && _tripMap.invalidateSize());
+    _tripMapResizeObserver.observe(el);
+  }
 }
 
 async function renderTripSettings() {
