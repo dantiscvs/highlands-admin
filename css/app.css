@@ -499,9 +499,11 @@ table.simple tr:last-child td { border-bottom: none; }
 
 /* ---- Story ---- */
 .storygrid { display: grid; grid-template-columns: 1fr 300px; gap: 20px; align-items: start; }
-.storypreview { border: 1px solid var(--border-hairline); border-radius: var(--radius-lg);
+.storypreview { position: relative; border: 1px solid var(--border-hairline); border-radius: var(--radius-lg);
   overflow: hidden; background: var(--bg-recessed); box-shadow: var(--shadow-e2); }
 .storypreview canvas { width: 100%; height: auto; display: block; }
+.story-safeguide { position: absolute; left: 0; right: 0; height: 0; border-top: 1px dashed rgba(255,255,255,.55);
+  pointer-events: none; }
 .storythumbs { display: flex; gap: 6px; flex-wrap: wrap; }
 .storythumb { width: 46px; height: 46px; border-radius: var(--radius-sm); overflow: hidden; padding: 0;
   border: 2px solid var(--border-hairline); background: var(--bg-recessed); cursor: pointer; }
@@ -509,13 +511,16 @@ table.simple tr:last-child td { border-bottom: none; }
 .storythumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
 .storythumb .grad { display: block; width: 100%; height: 100%;
   background: linear-gradient(160deg, var(--accent-primary), var(--accent-secondary)); }
-.storytoggles { display: grid; grid-template-columns: 1fr 1fr; gap: 4px 12px; }
-.storytoggles label { display: flex; align-items: center; gap: 7px; font-size: var(--text-sm);
+.storytoggles { display: flex; flex-direction: column; gap: 7px; }
+.storytoggle-row { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+.storytoggle-row label { display: flex; align-items: center; gap: 7px; font-size: var(--text-sm);
   color: var(--text-secondary); cursor: pointer; }
-.storyscope { display: flex; gap: 6px; }
-.storyscope .btn { flex: 1; }
+.scopepill { display: inline-flex; border: 1px solid var(--border-hairline); border-radius: 999px;
+  overflow: hidden; flex: none; }
+.scopepill button { border: none; background: transparent; padding: 3px 10px; font-size: 11px;
+  font-weight: 600; cursor: pointer; color: var(--text-tertiary); }
+.scopepill button.on { background: var(--accent-primary); color: #fff; }
 @media (max-width: 900px) {
   .storygrid { grid-template-columns: 1fr; }
   .storypreview { max-width: 260px; margin: 0 auto; }
-  .storytoggles { grid-template-columns: 1fr; }
 }
