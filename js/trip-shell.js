@@ -423,7 +423,7 @@ async function renderTripSettings() {
   const ALL_MODULES = ['route','gpx','elevation','weather','accommodation','resupply','poi','packing','tasks','expenses','transport','live','photos'];
   document.getElementById('main').innerHTML = `
     <div class="pagehead"><div><h1>Trip settings</h1><div class="subtitle">Trip-level configuration.</div></div></div>
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
+    <div class="settingsgrid">
       <div class="card">
         <h2>Basics</h2>
         <div class="field"><label>Name</label><input id="sName" type="text" value="${esc(t.name)}"></div>

@@ -1,6 +1,12 @@
 // Story & Gallery — a shared photo pool (app.updates + the "photos" bucket)
 // behind two tabs: Story (the card generator) and Gallery (pure upload/browse).
 //
+// The editor follows the shape of Instagram/TikTok/WhatsApp story tools: the
+// preview is the dominant element on screen, the photo itself is directly
+// draggable/zoomable to fit the frame, and every other control lives behind a
+// slim icon tab row (Photo / Elements / Theme / Frames) so only one focused
+// panel is visible at a time instead of one long form.
+//
 // Every burnable element (day counter, distance, climbing, elevation profile,
 // route map, pace) has its OWN day-vs-trip scope, not one global switch. That
 // mirrors the best version of the legacy card: a whole-trip route trace with
@@ -21,19 +27,26 @@ const STORY_THEMES = {
 const STORY_PRESETS_KEY = 'storyPresets'; // global — a look you like is worth reusing on the next trip
 
 // Which "Show on the card" toggles carry their own day/trip scope pill.
-// [key, label, hasScope]
+// [key, label, icon, hasScope]
 const STORY_TOGGLES = [
-  ['title', 'Trip name', false],
-  ['day', 'Day counter', true],
-  ['distance', 'Distance', true],
-  ['elevation', 'Climbing', true],
-  ['profile', 'Elevation profile', true],
-  ['map', 'Route map', true],
-  ['pace', 'Average pace', true],
-  ['weather', "Today's weather", false],
-  ['place', 'Photo location', false],
-  ['stay', "Tonight's stay", false],
-  ['url', 'Follow link', false],
+  ['title', 'Trip name', '🏷️', false],
+  ['day', 'Day counter', '📅', true],
+  ['distance', 'Distance', '📏', true],
+  ['elevation', 'Climbing', '⛰️', true],
+  ['profile', 'Elevation profile', '📈', true],
+  ['map', 'Route map', '🗺️', true],
+  ['pace', 'Average pace', '⚡', true],
+  ['weather', "Today's weather", '🌡️', false],
+  ['place', 'Photo location', '📍', false],
+  ['stay', "Tonight's stay", '🏠', false],
+  ['url', 'Follow link', '🔗', false],
+];
+
+const STORY_TABS = [
+  ['photo', '🖼️', 'Photo'],
+  ['elements', '🎚️', 'Elements'],
+  ['theme', '🎨', 'Theme'],
+  ['frames', '🎞️', 'Frames'],
 ];
 
 let storyState = {
@@ -46,8 +59,14 @@ let storyState = {
   // Defaults recreate the old "whole trace, today's label" combination.
   scopeOf: { day: 'day', distance: 'day', elevation: 'day', profile: 'trip', map: 'trip', pace: 'day' },
   dim: 0.5,
+  // How the background photo sits in the frame — drag to pan, scroll/pinch to
+  // zoom. scale is relative to the auto "cover" fit; x/y are pixel offsets in
+  // the 1080x1920 canvas space, clamped in drawStoryCard() once the image's
+  // real dimensions are known.
+  photoTransform: { scale: 1, x: 0, y: 0 },
   extraPhotoIds: [],       // additional gallery photos rendered as clean follow-on frames
 };
+let _storyUiTab = 'photo';
 let _storyDays = [], _storyPhotos = [], _storyProgress = {};
 
 // ---- shared load (both tabs pull from the same pool) ----
@@ -92,92 +111,32 @@ async function renderStoryModule() {
       <div><h1>Story</h1><div class="subtitle">Shareable story cards built from the trip's photos. Uploads here land in Gallery too.</div></div>
     </div>
 
-    <div class="storygrid">
-      <div>
-        <div class="card" style="margin-bottom:14px;">
-          <h2>Story card</h2>
-          <p class="muted" style="font-size:var(--text-sm);margin-bottom:14px;">
-            1080 × 1920, sized for Instagram and WhatsApp stories, kept clear of both apps' safe zones (dashed
-            lines in the preview). Rendered in your browser — the photo never leaves the page to make one.</p>
-
-          <div class="field"><label>Day <span class="muted" style="font-weight:400;">(for day-scoped elements below, and the progress marker on trip-wide ones)</span></label>
-            <select onchange="storySet('dayId', this.value)">
-              ${_storyDays.map(d => `<option value="${d.id}" ${d.id === storyState.dayId ? 'selected' : ''}>Day ${d.day_number}${d.title ? ' — ' + esc(d.title) : ''}</option>`).join('')}
-            </select>
-          </div>
-
-          <div class="field"><label>Background</label>
-            <div class="storythumbs">
-              <button class="storythumb ${!storyState.photoUrl ? 'on' : ''}" onclick="storySet('photoUrl', null)" title="No photo — gradient">
-                <span class="grad"></span></button>
-              ${_storyPhotos.slice(0, 11).map(p => `
-                <button class="storythumb ${storyState.photoUrl === p.photo_url ? 'on' : ''}"
-                  onclick="storySet('photoUrl','${esc(p.photo_url)}')" title="${esc(p.place_name || '')}">
-                  <img src="${esc(p.photo_url)}" alt="" loading="lazy"></button>`).join('')}
-            </div>
-            ${!_storyPhotos.length ? '<div class="muted" style="font-size:var(--text-xs);margin-top:6px;">No photos yet — upload one below and it becomes available here.</div>' : ''}
-          </div>
-
-          <div class="field"><label>Theme</label>
-            <div style="display:flex;gap:6px;">
-              ${Object.keys(STORY_THEMES).map(k => `<button class="btn btn-sm storytheme ${storyState.theme === k ? 'btn-primary' : ''}" data-theme-btn="${k}" onclick="storySet('theme','${k}')" style="text-transform:capitalize;">${k}</button>`).join('')}
-            </div>
-          </div>
-
-          <div class="field"><label>Photo dimming <span class="muted" style="font-weight:400;">(${Math.round(storyState.dim * 100)}%)</span></label>
-            <input type="range" min="0" max="85" value="${Math.round(storyState.dim * 100)}"
-              oninput="storySet('dim', this.value/100)" style="width:100%;" ${storyState.photoUrl ? '' : 'disabled'}>
-          </div>
-
-          <div class="field"><label>Show on the card</label>
-            <div class="storytoggles">
-              ${STORY_TOGGLES.map(([k, l, hasScope]) => `
-                <div class="storytoggle-row">
-                  <label><input type="checkbox" ${storyState.show[k] ? 'checked' : ''}
-                    onchange="storyToggle('${k}', this.checked)"> ${l}</label>
-                  ${hasScope ? `<div class="scopepill">
-                    <button class="${storyState.scopeOf[k] === 'day' ? 'on' : ''}" onclick="storySetScope('${k}','day')">Day</button>
-                    <button class="${storyState.scopeOf[k] === 'trip' ? 'on' : ''}" onclick="storySetScope('${k}','trip')">Trip</button>
-                  </div>` : ''}
-                </div>`).join('')}
-            </div>
-          </div>
-
-          <div class="field"><label>Additional clean photos <span class="muted" style="font-weight:400;">(appended as simple follow-on frames — just a location pin and time, no stats panel)</span></label>
-            <div class="storythumbs">
-              ${_storyPhotos.map(p => `
-                <button class="storythumb ${storyState.extraPhotoIds.includes(p.id) ? 'on' : ''}" onclick="storyToggleExtra('${p.id}')" title="${esc(p.place_name || '')}">
-                  <img src="${esc(p.photo_url)}" alt="" loading="lazy"></button>`).join('') || '<span class="muted" style="font-size:12px;">Upload photos below to pick from them here.</span>'}
-            </div>
-          </div>
-
-          <div class="field"><label>Presets</label>
-            <div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center;">
-              <select id="storyPresetSelect" style="flex:1;min-width:120px;">
-                <option value="">Choose a preset…</option>
-                ${storyPresets().map((p, i) => `<option value="${i}">${esc(p.name)}</option>`).join('')}
-              </select>
-              <button class="btn btn-sm" onclick="storyApplyPreset()">Apply</button>
-              <button class="btn btn-sm" onclick="storySavePreset()">Save current…</button>
-              <button class="btn btn-sm btn-danger" onclick="storyDeletePreset()">Delete</button>
-            </div>
-          </div>
-
-          <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-top:4px;">
-            <button class="btn btn-primary" onclick="storyDownload()">⬇ Download main card</button>
-            ${storyState.extraPhotoIds.length ? `<button class="btn" onclick="downloadAllFrames()">⬇ Download all (${storyState.extraPhotoIds.length + 1})</button>` : ''}
+    <div class="storyeditor">
+      <div class="storystage">
+        <div class="storypreview">
+          <canvas id="storyCanvas" width="${STORY_W}" height="${STORY_H}"></canvas>
+          <div class="story-safeguide" style="top:${(STORY_SAFE_TOP / STORY_H * 100).toFixed(2)}%;"></div>
+          <div class="story-safeguide" style="bottom:${(STORY_SAFE_BOTTOM / STORY_H * 100).toFixed(2)}%;"></div>
+          ${storyState.photoUrl ? '<div class="story-draghint">Drag to reposition · scroll or pinch to zoom</div>' : ''}
+        </div>
+        <div class="storystage-foot">
+          <select class="storydaypick" onchange="storySet('dayId', this.value)">
+            ${_storyDays.map(d => `<option value="${d.id}" ${d.id === storyState.dayId ? 'selected' : ''}>Day ${d.day_number}${d.title ? ' — ' + esc(d.title) : ''}</option>`).join('')}
+          </select>
+          <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;">
+            <button class="btn btn-primary" onclick="storyDownload()">⬇ Download</button>
+            ${storyState.extraPhotoIds.length ? `<button class="btn" onclick="downloadAllFrames()">⬇ All (${storyState.extraPhotoIds.length + 1})</button>` : ''}
             <span id="storyMsg" class="saveIndicator"></span>
           </div>
         </div>
       </div>
 
-      <div>
-        <div class="storypreview">
-          <canvas id="storyCanvas" width="${STORY_W}" height="${STORY_H}"></canvas>
-          <div class="story-safeguide" style="top:${(STORY_SAFE_TOP / STORY_H * 100).toFixed(2)}%;"></div>
-          <div class="story-safeguide" style="bottom:${(STORY_SAFE_BOTTOM / STORY_H * 100).toFixed(2)}%;"></div>
+      <div class="storytools">
+        <div class="storytabs">
+          ${STORY_TABS.map(([k, icon, label]) => `<button class="storytab ${_storyUiTab === k ? 'on' : ''}" onclick="storySwitchTab('${k}')">
+            <span class="storytab-ico">${icon}</span><span>${label}</span></button>`).join('')}
         </div>
-        <div class="muted" style="font-size:var(--text-xs);text-align:center;margin-top:8px;">Live preview · dashed lines mark the IG/FB safe zone</div>
+        <div class="storypanel" id="storyPanel">${storyPanelHtml()}</div>
       </div>
     </div>
 
@@ -195,6 +154,7 @@ async function renderStoryModule() {
   `;
   drawStoryCard();
   renderExtraCards();
+  wireStoryCanvasGestures();
 }
 
 // ==================== GALLERY TAB ====================
@@ -257,21 +217,184 @@ function lightboxHtml() {
   </div>`;
 }
 
+// ---- tool panels ----
+function storySwitchTab(tab) {
+  _storyUiTab = tab;
+  const tabs = document.querySelector('.storytabs');
+  if (tabs) tabs.innerHTML = STORY_TABS.map(([k, icon, label]) => `<button class="storytab ${_storyUiTab === k ? 'on' : ''}" onclick="storySwitchTab('${k}')">
+    <span class="storytab-ico">${icon}</span><span>${label}</span></button>`).join('');
+  const panel = document.getElementById('storyPanel');
+  if (panel) panel.innerHTML = storyPanelHtml();
+}
+function storyPanelHtml() {
+  if (_storyUiTab === 'photo') return storyPhotoPanelHtml();
+  if (_storyUiTab === 'elements') return storyElementsPanelHtml();
+  if (_storyUiTab === 'theme') return storyThemePanelHtml();
+  if (_storyUiTab === 'frames') return storyFramesPanelHtml();
+  return '';
+}
+function storyPhotoPanelHtml() {
+  return `
+    <div class="storythumbs">
+      <button class="storythumb ${!storyState.photoUrl ? 'on' : ''}" onclick="storySet('photoUrl', null)" title="No photo — gradient">
+        <span class="grad"></span></button>
+      ${_storyPhotos.map(p => `
+        <button class="storythumb ${storyState.photoUrl === p.photo_url ? 'on' : ''}"
+          onclick="storySet('photoUrl','${esc(p.photo_url)}')" title="${esc(p.place_name || '')}">
+          <img src="${esc(p.photo_url)}" alt="" loading="lazy"></button>`).join('')}
+    </div>
+    ${!_storyPhotos.length ? '<div class="muted" style="font-size:var(--text-xs);margin-top:6px;">No photos yet — upload one below.</div>' : ''}
+    <div class="field" style="margin-top:14px;"><label>Dimming <span class="muted" style="font-weight:400;">(${Math.round(storyState.dim * 100)}%)</span></label>
+      <input type="range" min="0" max="85" value="${Math.round(storyState.dim * 100)}"
+        oninput="storySet('dim', this.value/100)" style="width:100%;" ${storyState.photoUrl ? '' : 'disabled'}>
+    </div>
+    <div class="field"><label>Zoom <span class="muted" style="font-weight:400;">(${Math.round(storyState.photoTransform.scale * 100)}%)</span></label>
+      <input type="range" min="100" max="400" value="${Math.round(storyState.photoTransform.scale * 100)}"
+        oninput="storySetZoom(this.value/100)" style="width:100%;" ${storyState.photoUrl ? '' : 'disabled'}>
+    </div>
+    <button class="btn btn-sm" onclick="storyResetPhotoPosition()" ${storyState.photoUrl ? '' : 'disabled'}>↺ Reset position</button>
+  `;
+}
+function storyElementsPanelHtml() {
+  return `<div class="chiplist">
+    ${STORY_TOGGLES.map(([k, l, icon, hasScope]) => `
+      <div class="storychip-wrap">
+        <button class="storychip ${storyState.show[k] ? 'on' : ''}" onclick="storyToggle('${k}', ${!storyState.show[k]})">
+          <span>${icon}</span>${l}
+        </button>
+        ${hasScope && storyState.show[k] ? `<div class="scopepill sm">
+          <button class="${storyState.scopeOf[k] === 'day' ? 'on' : ''}" onclick="storySetScope('${k}','day')">Day</button>
+          <button class="${storyState.scopeOf[k] === 'trip' ? 'on' : ''}" onclick="storySetScope('${k}','trip')">Trip</button>
+        </div>` : ''}
+      </div>`).join('')}
+  </div>`;
+}
+function storyThemePanelHtml() {
+  return `
+    <div class="themeswatches">
+      ${Object.entries(STORY_THEMES).map(([k, t]) => `
+        <button class="themeswatch ${storyState.theme === k ? 'on' : ''}" onclick="storySet('theme','${k}')" style="text-transform:capitalize;">
+          <span class="themeswatch-dot" style="background:linear-gradient(135deg, ${t.bg}, ${t.accent});"></span>${k}
+        </button>`).join('')}
+    </div>
+    <div class="field" style="margin-top:16px;"><label>Presets</label>
+      <div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center;">
+        <select id="storyPresetSelect" style="flex:1;min-width:120px;">
+          <option value="">Choose a preset…</option>
+          ${storyPresets().map((p, i) => `<option value="${i}">${esc(p.name)}</option>`).join('')}
+        </select>
+        <button class="btn btn-sm" onclick="storyApplyPreset()">Apply</button>
+      </div>
+      <div style="display:flex;gap:6px;margin-top:6px;">
+        <button class="btn btn-sm" onclick="storySavePreset()">Save current…</button>
+        <button class="btn btn-sm btn-danger" onclick="storyDeletePreset()">Delete</button>
+      </div>
+    </div>
+  `;
+}
+function storyFramesPanelHtml() {
+  return `
+    <p class="muted" style="font-size:var(--text-sm);margin-bottom:8px;">Pick photos to follow the main card as clean frames — just a place pin and time, no stats panel.</p>
+    <div class="storythumbs">
+      ${_storyPhotos.map(p => `
+        <button class="storythumb ${storyState.extraPhotoIds.includes(p.id) ? 'on' : ''}" onclick="storyToggleExtra('${p.id}')" title="${esc(p.place_name || '')}">
+          <img src="${esc(p.photo_url)}" alt="" loading="lazy"></button>`).join('') || '<span class="muted" style="font-size:12px;">Upload photos below to pick from them here.</span>'}
+    </div>
+  `;
+}
+
 // ---- controls ----
 function storySet(k, v) {
   storyState[k] = v;
+  if (k === 'photoUrl') storyState.photoTransform = { scale: 1, x: 0, y: 0 }; // fresh photo, fresh framing
   if (k === 'dayId' || k === 'photoUrl') renderStoryModule();
-  else { drawStoryCard(); refreshStoryControls(); }
+  else {
+    drawStoryCard();
+    const panel = document.getElementById('storyPanel');
+    if (panel && _storyUiTab === 'photo') panel.innerHTML = storyPhotoPanelHtml();
+  }
 }
 function storySetScope(k, scope) { storyState.scopeOf[k] = scope; renderStoryModule(); }
-function storyToggle(k, on) { storyState.show[k] = on; drawStoryCard(); }
+function storyToggle(k, on) {
+  storyState.show[k] = on;
+  drawStoryCard();
+  const panel = document.getElementById('storyPanel');
+  if (panel && _storyUiTab === 'elements') panel.innerHTML = storyElementsPanelHtml();
+}
 function storyToggleExtra(id) {
   const i = storyState.extraPhotoIds.indexOf(id);
   if (i === -1) storyState.extraPhotoIds.push(id); else storyState.extraPhotoIds.splice(i, 1);
   renderStoryModule();
 }
-function refreshStoryControls() {
-  document.querySelectorAll('.storytheme').forEach(b => b.classList.toggle('btn-primary', b.dataset.themeBtn === storyState.theme));
+function storySetZoom(scale) {
+  storyState.photoTransform = { ...storyState.photoTransform, scale };
+  drawStoryCard();
+}
+function storyResetPhotoPosition() {
+  storyState.photoTransform = { scale: 1, x: 0, y: 0 };
+  drawStoryCard();
+  const panel = document.getElementById('storyPanel');
+  if (panel && _storyUiTab === 'photo') panel.innerHTML = storyPhotoPanelHtml();
+}
+
+// ---- direct manipulation: drag to pan, wheel/pinch to zoom ----
+function wireStoryCanvasGestures() {
+  const canvas = document.getElementById('storyCanvas');
+  if (!canvas) return;
+  const pointers = new Map();
+  let mode = null, start = null;
+
+  const toCanvasScale = () => STORY_W / (canvas.getBoundingClientRect().width || STORY_W);
+
+  canvas.addEventListener('pointerdown', e => {
+    if (!storyState.photoUrl) return;
+    canvas.setPointerCapture(e.pointerId);
+    pointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
+    if (pointers.size === 1) {
+      mode = 'pan';
+      start = { x: e.clientX, y: e.clientY, t: { ...storyState.photoTransform } };
+    } else if (pointers.size === 2) {
+      const pts = [...pointers.values()];
+      mode = 'pinch';
+      start = { dist: Math.hypot(pts[0].x - pts[1].x, pts[0].y - pts[1].y), t: { ...storyState.photoTransform } };
+    }
+  });
+  canvas.addEventListener('pointermove', e => {
+    if (!pointers.has(e.pointerId)) return;
+    pointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
+    if (mode === 'pan' && pointers.size === 1) {
+      const sf = toCanvasScale();
+      const dx = (e.clientX - start.x) * sf, dy = (e.clientY - start.y) * sf;
+      storyQueueTransform({ ...start.t, x: start.t.x + dx, y: start.t.y + dy });
+    } else if (mode === 'pinch' && pointers.size === 2) {
+      const pts = [...pointers.values()];
+      const dist = Math.hypot(pts[0].x - pts[1].x, pts[0].y - pts[1].y);
+      const factor = dist / (start.dist || dist);
+      storyQueueTransform({ ...start.t, scale: start.t.scale * factor });
+    }
+  });
+  const release = e => { pointers.delete(e.pointerId); if (pointers.size < 2) mode = pointers.size === 1 ? 'pan' : null; };
+  canvas.addEventListener('pointerup', release);
+  canvas.addEventListener('pointercancel', release);
+  canvas.addEventListener('wheel', e => {
+    if (!storyState.photoUrl) return;
+    e.preventDefault();
+    const factor = e.deltaY < 0 ? 1.08 : 0.93;
+    storyQueueTransform({ ...storyState.photoTransform, scale: storyState.photoTransform.scale * factor });
+  }, { passive: false });
+}
+let _storyTransformRaf = null;
+function storyQueueTransform(t) {
+  storyState.photoTransform = t; // clamped for real once the image's actual size is known, inside drawStoryCard
+  if (_storyTransformRaf) return;
+  _storyTransformRaf = requestAnimationFrame(() => { _storyTransformRaf = null; drawStoryCard(); });
+}
+function clampPhotoTransform(t, imgW, imgH) {
+  const baseScale = Math.max(STORY_W / imgW, STORY_H / imgH);
+  const scale = Math.max(1, Math.min(4, t.scale));
+  const w = imgW * baseScale * scale, h = imgH * baseScale * scale;
+  const maxX = Math.max(0, (w - STORY_W) / 2), maxY = Math.max(0, (h - STORY_H) / 2);
+  return { scale, x: Math.max(-maxX, Math.min(maxX, t.x)), y: Math.max(-maxY, Math.min(maxY, t.y)) };
 }
 
 // ---- presets ----
@@ -284,7 +407,7 @@ function storySavePreset() {
   const presets = storyPresets();
   presets.push({ name, theme: storyState.theme, dim: storyState.dim, show: { ...storyState.show }, scopeOf: { ...storyState.scopeOf } });
   localStorage.setItem(STORY_PRESETS_KEY, JSON.stringify(presets));
-  renderStoryModule();
+  storySwitchTab('theme');
 }
 function storyApplyPreset() {
   const sel = document.getElementById('storyPresetSelect');
@@ -301,7 +424,7 @@ function storyDeletePreset() {
   const presets = storyPresets();
   presets.splice(+sel.value, 1);
   localStorage.setItem(STORY_PRESETS_KEY, JSON.stringify(presets));
-  renderStoryModule();
+  storySwitchTab('theme');
 }
 
 // ---- data helpers (per-scope, not per-card) ----
@@ -477,15 +600,19 @@ async function drawStoryCard() {
 
   ctx.clearRect(0, 0, STORY_W, STORY_H);
 
-  // background: photo (cover + dim) or a vertical gradient
+  // background: photo (cover + dim, user-draggable/zoomable) or a vertical gradient
   let drew = false;
   if (storyState.photoUrl) {
     try {
       const img = await loadImg(storyState.photoUrl);
       if (seq !== _storyDrawSeq) return;
-      const sc = Math.max(STORY_W / img.width, STORY_H / img.height);
-      const w = img.width * sc, h = img.height * sc;
-      ctx.drawImage(img, (STORY_W - w) / 2, (STORY_H - h) / 2, w, h);
+      storyState.photoTransform = clampPhotoTransform(storyState.photoTransform, img.width, img.height);
+      const baseScale = Math.max(STORY_W / img.width, STORY_H / img.height);
+      const scale = baseScale * storyState.photoTransform.scale;
+      const w = img.width * scale, h = img.height * scale;
+      const x = (STORY_W - w) / 2 + storyState.photoTransform.x;
+      const y = (STORY_H - h) / 2 + storyState.photoTransform.y;
+      ctx.drawImage(img, x, y, w, h);
       ctx.fillStyle = `rgba(20,21,15,${storyState.dim})`;
       ctx.fillRect(0, 0, STORY_W, STORY_H);
       drew = true;
@@ -784,6 +911,7 @@ async function deletePhoto(id, url) {
 }
 function storySetPhoto(url) {
   storyState.photoUrl = url;
+  storyState.photoTransform = { scale: 1, x: 0, y: 0 };
   const route = parseRoute();
   if (route.view === 'trip' && route.section === 'gallery') goTrip(activeTrip.id, 'photos');
   else renderStoryModule();
