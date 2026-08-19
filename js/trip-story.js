@@ -39,7 +39,6 @@ const STORY_TOGGLES = [
   ['weather', "Today's weather", '🌡️', false],
   ['place', 'Photo location', '📍', false],
   ['stay', "Tonight's stay", '🏠', false],
-  ['url', 'Follow link', '🔗', false],
 ];
 
 const STORY_TABS = [
@@ -54,7 +53,7 @@ let storyState = {
   dayId: null,             // drives every day-scoped element, and the progress marker on trip-scoped ones
   theme: 'trail',
   show: { title: true, day: true, distance: true, elevation: true, profile: true, map: false,
-          pace: false, weather: false, place: false, stay: false, url: true },
+          pace: false, weather: false, place: false, stay: false },
   // Per-element scope. Only keys with hasScope in STORY_TOGGLES are read.
   // Defaults recreate the old "whole trace, today's label" combination.
   scopeOf: { day: 'day', distance: 'day', elevation: 'day', profile: 'trip', map: 'trip', pace: 'day' },
@@ -123,11 +122,7 @@ async function renderStoryModule() {
           <select class="storydaypick" onchange="storySet('dayId', this.value)">
             ${_storyDays.map(d => `<option value="${d.id}" ${d.id === storyState.dayId ? 'selected' : ''}>Day ${d.day_number}${d.title ? ' — ' + esc(d.title) : ''}</option>`).join('')}
           </select>
-          <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;">
-            <button class="btn btn-primary" onclick="storyDownload()">⬇ Download</button>
-            ${storyState.extraPhotoIds.length ? `<button class="btn" onclick="downloadAllFrames()">⬇ All (${storyState.extraPhotoIds.length + 1})</button>` : ''}
-            <span id="storyMsg" class="saveIndicator"></span>
-          </div>
+          <div id="storyActions" style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;">${storyActionsHtml()}</div>
         </div>
       </div>
 
@@ -140,20 +135,12 @@ async function renderStoryModule() {
       </div>
     </div>
 
-    <div id="storyExtraWrap" style="${storyState.extraPhotoIds.length ? '' : 'display:none;'}margin-top:20px;">
-      <h2>Additional frames</h2>
-      <p class="muted" style="font-size:var(--text-sm);margin-bottom:10px;">Post the main card first, then these — a clean sequence of photos with just a place pin and time.</p>
-      <div id="storyExtraStrip" style="display:flex;gap:14px;overflow-x:auto;padding-bottom:6px;"></div>
-    </div>
-
-    ${photoUploadFormHtml()}
-
     <h2 style="margin-top:26px;">Gallery <span class="muted" style="font-weight:400;font-size:var(--text-sm);">(${_storyPhotos.length})</span></h2>
     ${photoGalleryGridHtml()}
     ${lightboxHtml()}
   `;
   drawStoryCard();
-  renderExtraCards();
+  if (_storyUiTab === 'frames') renderExtraCards();
   wireStoryCanvasGestures();
 }
 
@@ -176,21 +163,26 @@ async function renderGalleryModule() {
 }
 
 // ---- shared markup: upload form, gallery grid, lightbox ----
-function photoUploadFormHtml() {
-  if (!canPostPhotos()) return '';
-  return `<div class="card" style="margin-top:20px;">
-    <h2>Add a photo</h2>
-    <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px;align-items:center;">
-      <input id="photoFile" type="file" accept="image/*" style="flex:1;min-width:180px;">
-      <select id="photoDay" style="width:150px;">
+function photoUploadFieldsHtml() {
+  return `
+    <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:8px;align-items:center;">
+      <input id="photoFile" type="file" accept="image/*" style="flex:1;min-width:140px;">
+      <select id="photoDay" style="width:130px;">
         <option value="">No day tag</option>
         ${_storyDays.map(d => `<option value="${d.id}">Day ${d.day_number}</option>`).join('')}
       </select>
     </div>
-    <input id="photoCaption" type="text" placeholder="Caption (optional)" style="width:100%;margin-bottom:10px;">
-    <button class="btn btn-primary" onclick="uploadPhoto()">Upload</button>
-    <span id="photoStatus" class="saveIndicator" style="margin-left:10px;"></span>
-    <div class="muted" style="font-size:11px;margin-top:8px;">If the photo has GPS data we'll tag it with a place name automatically.</div>
+    <input id="photoCaption" type="text" placeholder="Caption (optional)" style="width:100%;margin-bottom:8px;">
+    <button class="btn btn-primary btn-sm" onclick="uploadPhoto()">Upload</button>
+    <span id="photoStatus" class="saveIndicator" style="margin-left:8px;"></span>
+    <div class="muted" style="font-size:11px;margin-top:6px;">If the photo has GPS data we'll tag it with a place name automatically.</div>
+  `;
+}
+function photoUploadFormHtml() {
+  if (!canPostPhotos()) return '';
+  return `<div class="card" style="margin-top:20px;">
+    <h2>Add a photo</h2>
+    ${photoUploadFieldsHtml()}
   </div>`;
 }
 function photoGalleryGridHtml() {
@@ -225,6 +217,7 @@ function storySwitchTab(tab) {
     <span class="storytab-ico">${icon}</span><span>${label}</span></button>`).join('');
   const panel = document.getElementById('storyPanel');
   if (panel) panel.innerHTML = storyPanelHtml();
+  if (tab === 'frames') renderExtraCards();
 }
 function storyPanelHtml() {
   if (_storyUiTab === 'photo') return storyPhotoPanelHtml();
@@ -243,30 +236,42 @@ function storyPhotoPanelHtml() {
           onclick="storySet('photoUrl','${esc(p.photo_url)}')" title="${esc(p.place_name || '')}">
           <img src="${esc(p.photo_url)}" alt="" loading="lazy"></button>`).join('')}
     </div>
-    ${!_storyPhotos.length ? '<div class="muted" style="font-size:var(--text-xs);margin-top:6px;">No photos yet — upload one below.</div>' : ''}
-    <div class="field" style="margin-top:14px;"><label>Dimming <span class="muted" style="font-weight:400;">(${Math.round(storyState.dim * 100)}%)</span></label>
+    <div class="storyminirow">
+      <label>Dim <span class="muted">${Math.round(storyState.dim * 100)}%</span></label>
       <input type="range" min="0" max="85" value="${Math.round(storyState.dim * 100)}"
-        oninput="storySet('dim', this.value/100)" style="width:100%;" ${storyState.photoUrl ? '' : 'disabled'}>
+        oninput="storySet('dim', this.value/100)" ${storyState.photoUrl ? '' : 'disabled'}>
     </div>
-    <div class="field"><label>Zoom <span class="muted" style="font-weight:400;">(${Math.round(storyState.photoTransform.scale * 100)}%)</span></label>
+    <div class="storyminirow">
+      <label>Zoom <span class="muted">${Math.round(storyState.photoTransform.scale * 100)}%</span></label>
       <input type="range" min="100" max="400" value="${Math.round(storyState.photoTransform.scale * 100)}"
-        oninput="storySetZoom(this.value/100)" style="width:100%;" ${storyState.photoUrl ? '' : 'disabled'}>
+        oninput="storySetZoom(this.value/100)" ${storyState.photoUrl ? '' : 'disabled'}>
     </div>
     <button class="btn btn-sm" onclick="storyResetPhotoPosition()" ${storyState.photoUrl ? '' : 'disabled'}>↺ Reset position</button>
+    <div style="border-top:1px solid var(--border-hairline);margin-top:14px;padding-top:14px;">
+      ${canPostPhotos() ? photoUploadFieldsHtml() : '<p class="muted" style="font-size:12px;">You don\'t have permission to add photos on this trip.</p>'}
+    </div>
   `;
 }
 function storyElementsPanelHtml() {
-  return `<div class="chiplist">
+  return `<div class="elementlist">
     ${STORY_TOGGLES.map(([k, l, icon, hasScope]) => `
-      <div class="storychip-wrap">
-        <button class="storychip ${storyState.show[k] ? 'on' : ''}" onclick="storyToggle('${k}', ${!storyState.show[k]})">
-          <span>${icon}</span>${l}
+      <div class="element-row ${storyState.show[k] ? 'on' : ''}">
+        <button class="element-row-main" onclick="storyToggle('${k}', ${!storyState.show[k]})">
+          <span class="element-ico">${icon}</span><span class="element-label">${l}</span>
+          <span class="element-check">${storyState.show[k] ? '✓' : ''}</span>
         </button>
         ${hasScope && storyState.show[k] ? `<div class="scopepill sm">
           <button class="${storyState.scopeOf[k] === 'day' ? 'on' : ''}" onclick="storySetScope('${k}','day')">Day</button>
           <button class="${storyState.scopeOf[k] === 'trip' ? 'on' : ''}" onclick="storySetScope('${k}','trip')">Trip</button>
         </div>` : ''}
       </div>`).join('')}
+    <div class="element-row on locked" title="Included on the free plan — removable on paid plans (coming soon)">
+      <span class="element-row-main" style="cursor:default;">
+        <span class="element-ico">🏷️</span><span class="element-label">Trip Tracker mark</span>
+        <span class="element-check">✓</span>
+      </span>
+      <span class="badge badge-gray">Free plan</span>
+    </div>
   </div>`;
 }
 function storyThemePanelHtml() {
@@ -298,8 +303,9 @@ function storyFramesPanelHtml() {
     <div class="storythumbs">
       ${_storyPhotos.map(p => `
         <button class="storythumb ${storyState.extraPhotoIds.includes(p.id) ? 'on' : ''}" onclick="storyToggleExtra('${p.id}')" title="${esc(p.place_name || '')}">
-          <img src="${esc(p.photo_url)}" alt="" loading="lazy"></button>`).join('') || '<span class="muted" style="font-size:12px;">Upload photos below to pick from them here.</span>'}
+          <img src="${esc(p.photo_url)}" alt="" loading="lazy"></button>`).join('') || '<span class="muted" style="font-size:12px;">Upload photos in the Photo tab to pick from them here.</span>'}
     </div>
+    ${storyState.extraPhotoIds.length ? `<div id="storyExtraStrip" class="storyextrastrip"></div>` : ''}
   `;
 }
 
@@ -324,7 +330,16 @@ function storyToggle(k, on) {
 function storyToggleExtra(id) {
   const i = storyState.extraPhotoIds.indexOf(id);
   if (i === -1) storyState.extraPhotoIds.push(id); else storyState.extraPhotoIds.splice(i, 1);
-  renderStoryModule();
+  const actions = document.getElementById('storyActions');
+  if (actions) actions.innerHTML = storyActionsHtml();
+  const panel = document.getElementById('storyPanel');
+  if (panel) panel.innerHTML = storyFramesPanelHtml();
+  renderExtraCards();
+}
+function storyActionsHtml() {
+  return `<button class="btn btn-primary" onclick="storyDownload()">⬇ Download</button>
+    ${storyState.extraPhotoIds.length ? `<button class="btn" onclick="downloadAllFrames()">⬇ All (${storyState.extraPhotoIds.length + 1})</button>` : ''}
+    <span id="storyMsg" class="saveIndicator"></span>`;
 }
 function storySetZoom(scale) {
   storyState.photoTransform = { ...storyState.photoTransform, scale };
@@ -348,7 +363,7 @@ function wireStoryCanvasGestures() {
 
   canvas.addEventListener('pointerdown', e => {
     if (!storyState.photoUrl) return;
-    canvas.setPointerCapture(e.pointerId);
+    try { canvas.setPointerCapture(e.pointerId); } catch (err) { /* some browsers reject this mid multi-touch — harmless, keep tracking the pointer anyway */ }
     pointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
     if (pointers.size === 1) {
       mode = 'pan';
@@ -356,7 +371,10 @@ function wireStoryCanvasGestures() {
     } else if (pointers.size === 2) {
       const pts = [...pointers.values()];
       mode = 'pinch';
-      start = { dist: Math.hypot(pts[0].x - pts[1].x, pts[0].y - pts[1].y), t: { ...storyState.photoTransform } };
+      // Floor the start distance — two fingers can land within a pixel of each
+      // other on the very first frame, and dividing by ~0 sent scale to
+      // Infinity/NaN, which is what was making the photo vanish.
+      start = { dist: Math.max(8, Math.hypot(pts[0].x - pts[1].x, pts[0].y - pts[1].y)), t: { ...storyState.photoTransform } };
     }
   });
   canvas.addEventListener('pointermove', e => {
@@ -368,12 +386,24 @@ function wireStoryCanvasGestures() {
       storyQueueTransform({ ...start.t, x: start.t.x + dx, y: start.t.y + dy });
     } else if (mode === 'pinch' && pointers.size === 2) {
       const pts = [...pointers.values()];
-      const dist = Math.hypot(pts[0].x - pts[1].x, pts[0].y - pts[1].y);
-      const factor = dist / (start.dist || dist);
+      const dist = Math.max(8, Math.hypot(pts[0].x - pts[1].x, pts[0].y - pts[1].y));
+      const factor = dist / start.dist;
       storyQueueTransform({ ...start.t, scale: start.t.scale * factor });
     }
   });
-  const release = e => { pointers.delete(e.pointerId); if (pointers.size < 2) mode = pointers.size === 1 ? 'pan' : null; };
+  const release = e => {
+    pointers.delete(e.pointerId);
+    if (pointers.size === 1) {
+      // Dropped from pinch to a single finger — re-seed the pan baseline from
+      // here, otherwise the next move used the pinch's original start point
+      // and the photo jumped.
+      const [[, p]] = pointers;
+      mode = 'pan';
+      start = { x: p.x, y: p.y, t: { ...storyState.photoTransform } };
+    } else if (pointers.size === 0) {
+      mode = null; start = null;
+    }
+  };
   canvas.addEventListener('pointerup', release);
   canvas.addEventListener('pointercancel', release);
   canvas.addEventListener('wheel', e => {
@@ -391,10 +421,13 @@ function storyQueueTransform(t) {
 }
 function clampPhotoTransform(t, imgW, imgH) {
   const baseScale = Math.max(STORY_W / imgW, STORY_H / imgH);
-  const scale = Math.max(1, Math.min(4, t.scale));
+  let scale = Number.isFinite(t.scale) ? t.scale : 1;
+  scale = Math.max(1, Math.min(4, scale));
   const w = imgW * baseScale * scale, h = imgH * baseScale * scale;
   const maxX = Math.max(0, (w - STORY_W) / 2), maxY = Math.max(0, (h - STORY_H) / 2);
-  return { scale, x: Math.max(-maxX, Math.min(maxX, t.x)), y: Math.max(-maxY, Math.min(maxY, t.y)) };
+  const x = Number.isFinite(t.x) ? t.x : 0;
+  const y = Number.isFinite(t.y) ? t.y : 0;
+  return { scale, x: Math.max(-maxX, Math.min(maxX, x)), y: Math.max(-maxY, Math.min(maxY, y)) };
 }
 
 // ---- presets ----
@@ -587,6 +620,21 @@ function loadImg(src) {
     i.src = src;
   });
 }
+// Cache of loaded background Images by URL. Dragging/zooming redraws every
+// frame; re-awaiting loadImg() on each of those frames meant several
+// drawStoryCard() calls could be in flight at once, each racing the others'
+// clearRect against a stale one's drawImage — that's what was making the
+// photo flicker out during a pinch. With the image already resolved, the hot
+// gesture-redraw path below never awaits anything.
+const _bgImgCache = new Map();
+function loadImgCached(src) {
+  if (!_bgImgCache.has(src)) {
+    const p = loadImg(src);
+    p.catch(() => _bgImgCache.delete(src));
+    _bgImgCache.set(src, p);
+  }
+  return _bgImgCache.get(src);
+}
 
 let _storyDrawSeq = 0;
 async function drawStoryCard() {
@@ -598,14 +646,13 @@ async function drawStoryCard() {
   const mDay = metricsFor('day'), mTrip = metricsFor('trip');
   const mFor = k => storyState.scopeOf[k] === 'trip' ? mTrip : mDay;
 
-  ctx.clearRect(0, 0, STORY_W, STORY_H);
-
   // background: photo (cover + dim, user-draggable/zoomable) or a vertical gradient
   let drew = false;
   if (storyState.photoUrl) {
     try {
-      const img = await loadImg(storyState.photoUrl);
+      const img = await loadImgCached(storyState.photoUrl);
       if (seq !== _storyDrawSeq) return;
+      ctx.clearRect(0, 0, STORY_W, STORY_H);
       storyState.photoTransform = clampPhotoTransform(storyState.photoTransform, img.width, img.height);
       const baseScale = Math.max(STORY_W / img.width, STORY_H / img.height);
       const scale = baseScale * storyState.photoTransform.scale;
@@ -619,6 +666,7 @@ async function drawStoryCard() {
     } catch (e) { /* fall through to the gradient */ }
   }
   if (!drew) {
+    ctx.clearRect(0, 0, STORY_W, STORY_H);
     const g = ctx.createLinearGradient(0, 0, 0, STORY_H);
     g.addColorStop(0, th.bg);
     g.addColorStop(1, th.accent + '33');
@@ -739,11 +787,32 @@ async function drawStoryCard() {
     ctx.fillText('🏠 tonight', STORY_W / 2, y);
     y += 60;
   }
-  if (storyState.show.url) {
-    ctx.fillStyle = th.dim;
-    ctx.font = '600 34px Manrope, -apple-system, Segoe UI, sans-serif';
-    ctx.fillText('triptracker.cc', STORY_W / 2, bottomLimit - 40);
-  }
+  drawStoryWatermark(ctx, th, bottomLimit);
+}
+
+// Always on (not one of STORY_TOGGLES) — a small drawn wordmark, not a bare
+// URL. No paid-plan system exists yet to actually let it be removed; the
+// Elements panel shows it locked/greyed with a "Free plan" badge as a
+// placeholder for that, per the product intent, not a built gate.
+function drawStoryWatermark(ctx, th, bottomLimit) {
+  const label = 'Trip Tracker';
+  ctx.font = '700 30px Manrope, -apple-system, Segoe UI, sans-serif';
+  const textW = ctx.measureText(label).width;
+  const iconW = 26, gap = 10;
+  const startX = STORY_W / 2 - (iconW + gap + textW) / 2;
+  const wy = bottomLimit - 40;
+  const mx = startX + iconW / 2, my = wy - 10;
+
+  ctx.save();
+  ctx.globalAlpha = 0.88;
+  ctx.strokeStyle = th.text; ctx.fillStyle = th.text; ctx.lineWidth = 3; ctx.lineCap = 'round';
+  ctx.beginPath(); ctx.moveTo(mx - 9, my + 6); ctx.quadraticCurveTo(mx, my - 9, mx + 9, my + 6); ctx.stroke();
+  ctx.beginPath(); ctx.arc(mx - 9, my + 6, 2.8, 0, Math.PI * 2); ctx.fill();
+  ctx.beginPath(); ctx.arc(mx + 9, my + 6, 2.8, 0, Math.PI * 2); ctx.fill();
+  ctx.textAlign = 'left';
+  ctx.fillText(label, startX + iconW + gap, wy);
+  ctx.restore();
+  ctx.textAlign = 'center';
 }
 
 // Clean follow-on frame: full-bleed photo, no dim, just a pin+time strip
