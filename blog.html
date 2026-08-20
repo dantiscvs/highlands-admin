@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Blog — Trip Tracker</title>
+<meta name="description" content="Notes on trips, the app, and why it works the way it does.">
+<meta name="theme-color" content="#F7F5F0">
+<script>
+(function () {
+  var h = location.hash || '', q = location.search || '';
+  if (h.indexOf('access_token=') > -1 || q.indexOf('code=') > -1) location.replace('/app.html' + q + h);
+  var t = localStorage.getItem('theme');
+  if (t === 'dark' || t === 'light') document.documentElement.setAttribute('data-theme', t);
+})();
+</script>
+<link rel="stylesheet" href="css/site.css">
+<link rel="stylesheet" href="css/scenes.css">
+<style>
+  .postcard { display:grid; grid-template-columns:220px 1fr; gap:26px; align-items:center;
+    padding:22px; border:1px solid var(--border-hairline); border-radius:var(--radius-lg);
+    background:var(--bg-card); transition:border-color .15s ease, box-shadow .15s ease; }
+  .postcard:hover { border-color:var(--border-strong); box-shadow:0 4px 12px rgba(35,38,31,.08); }
+  .postcard .thumb { aspect-ratio:3/2; border-radius:var(--radius-md); background:linear-gradient(155deg,var(--accent),var(--accent-2));
+    display:flex; align-items:center; justify-content:center; color:#fff; font-size:28px; }
+  .postcard .pdate { font-size:12.5px; color:var(--text-tertiary); font-family:var(--font-mono); }
+  .postcard h3 { font-size:20px; margin:6px 0 8px; color:var(--text-primary); }
+  .postcard p { color:var(--text-secondary); font-size:14.5px; line-height:1.55; margin:0; }
+  @media (max-width:640px) { .postcard { grid-template-columns:1fr; } }
+</style>
+</head>
+<body>
+
+<header class="site">
+  <div class="wrap bar">
+    <a class="brand" href="/">
+      <svg class="mark" viewBox="0 0 28 28" aria-hidden="true">
+        <circle cx="14" cy="14" r="12.5" fill="none" stroke="currentColor" stroke-width="1.8"/>
+        <circle cx="8" cy="20" r="2.2" fill="currentColor"/><circle cx="20" cy="8" r="2.2" fill="currentColor"/>
+        <path d="M8 20C16 20 12 8 20 8" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+      </svg>
+      Trip Tracker
+    </a>
+    <nav class="mainnav" id="mainnav">
+      <div class="navdrop" id="navdrop">
+        <button type="button" aria-expanded="false" onclick="toggleFeatureMenu(event)">Features
+          <svg class="caret" width="10" height="10" viewBox="0 0 10 10" aria-hidden="true"><path d="M2 4l3 3 3-3" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </button>
+        <div class="navdrop-menu">
+          <a href="features/route.html"><i>🗺️</i><b>Route &amp; Days<span>Stages, elevation, maps</span></b></a><a href="features/today.html"><i>🎯</i><b>Today<span>The on-the-road screen</span></b></a><a href="features/statistics.html"><i>📊</i><b>Statistics<span>Effort and pace charts</span></b></a><a href="features/weather.html"><i>🌤️</i><b>Weather<span>Hourly, per stage</span></b></a><a href="features/logistics.html"><i>✈️</i><b>Logistics<span>Flights, trains, ferries</span></b></a><a href="features/accommodation.html"><i>🏠</i><b>Accommodation<span>Rooms, costs, breakfast</span></b></a><a href="features/sights.html"><i>🏰</i><b>Sights &amp; Resupply<span>Food, shops, water</span></b></a><a href="features/packing.html"><i>🎒</i><b>Packing &amp; Tasks<span>Assigned per person</span></b></a><a href="features/expenses.html"><i>💸</i><b>Expenses<span>Split and settle</span></b></a><a href="features/story.html"><i>📸</i><b>Story &amp; Photos<span>Gallery and story cards</span></b></a><a href="features/live.html"><i>🔴</i><b>Live Sharing<span>One public link</span></b></a><a href="features/imports.html"><i>📥</i><b>Imports<span>Email, PDF, GPX</span></b></a>
+          <a class="all" href="features.html">All features →</a>
+        </div>
+      </div>
+      <a href="how-it-works.html">How it works</a>
+      <a class="on" href="blog.html">Blog</a>
+      <a href="live.html?t=c26dcdbd931c46f8804196172c1179b9">Live demo</a>
+      <a href="faq.html">FAQ</a>
+    </nav>
+    <div class="headcta">
+      <a class="btn btn-ghost btn-sm" href="app.html">Sign in</a>
+      <a class="btn btn-primary btn-sm" href="app.html">Get started</a>
+      <button id="navToggle" aria-label="Menu" aria-expanded="false">
+        <svg viewBox="0 0 22 22" width="22" height="22"><path d="M3 6h16M3 11h16M3 16h16" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" fill="none"/></svg>
+      </button>
+    </div>
+  </div>
+</header>
+
+<section class="tight">
+  <div class="wrap">
+    <div class="sec-head" style="margin-bottom:36px;">
+      <div class="eyebrow">Blog</div>
+      <h1 style="font-size:clamp(30px,4.4vw,46px);">Notes from the road</h1>
+      <p class="lede">Trips, and why this app works the way it does.</p>
+    </div>
+
+    <a class="postcard" href="blog/highlands-2026-traverse.html" style="text-decoration:none;">
+      <div class="thumb">🚴</div>
+      <div>
+        <div class="pdate">August 2026 · Behind the app</div>
+        <h3>The trip that became Trip Tracker</h3>
+        <p>513 km, roughly 6,700 m of climbing, three of us, and one messy planning
+          document that refused to stay a spreadsheet — the real Highlands trip this app
+          was built out of.</p>
+      </div>
+    </a>
+
+  </div>
+</section>
+
+<footer class="site">
+  <div class="wrap">
+    <div class="foot-grid">
+      <div>
+        <a class="brand" href="/" style="margin-bottom:12px;">
+          <svg class="mark" viewBox="0 0 28 28" aria-hidden="true">
+            <circle cx="14" cy="14" r="12.5" fill="none" stroke="currentColor" stroke-width="1.8"/>
+            <circle cx="8" cy="20" r="2.2" fill="currentColor"/><circle cx="20" cy="8" r="2.2" fill="currentColor"/>
+            <path d="M8 20C16 20 12 8 20 8" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+          </svg>
+          Trip Tracker
+        </a>
+        <p class="muted" style="max-width:300px;font-size:14px;">Planning and live sharing for multi-day group trips.</p>
+      </div>
+      <div><h4>Product</h4><ul>
+        <li><a href="features.html">All features</a></li>
+        <li><a href="how-it-works.html">How it works</a></li>
+        <li><a href="blog.html">Blog</a></li>
+        <li><a href="faq.html">FAQ</a></li></ul></div>
+      <div><h4>Try it</h4><ul>
+        <li><a href="app.html">Sign in</a></li>
+        <li><a href="app.html">Create a trip</a></li>
+        <li><a href="live.html?t=c26dcdbd931c46f8804196172c1179b9">Live demo</a></li></ul></div>
+      <div><h4>Deep dives</h4><ul>
+        <li><a href="features/route.html">Route &amp; Days</a></li>
+        <li><a href="features/today.html">Today</a></li>
+        <li><a href="features/live.html">Live sharing</a></li>
+        <li><a href="features/imports.html">Imports</a></li></ul></div>
+    </div>
+    <div class="foot-bottom">
+      <span>© 2026 Trip Tracker</span>
+      <span>Early access — <a href="app.html">free to use</a></span>
+    </div>
+  </div>
+</footer>
+
+<script>
+function toggleFeatureMenu(e) {
+  e.preventDefault();
+  var d = document.getElementById('navdrop');
+  var open = d.classList.toggle('open');
+  d.querySelector('button').setAttribute('aria-expanded', open ? 'true' : 'false');
+}
+document.addEventListener('click', function (e) {
+  var d = document.getElementById('navdrop');
+  if (d && !d.contains(e.target)) d.classList.remove('open');
+});
+document.getElementById('navToggle').addEventListener('click', function () {
+  var n = document.getElementById('mainnav');
+  var open = n.classList.toggle('open');
+  this.setAttribute('aria-expanded', open ? 'true' : 'false');
+});
+</script>
+</body>
+</html>

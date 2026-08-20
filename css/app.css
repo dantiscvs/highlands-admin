@@ -200,7 +200,12 @@ select:disabled { opacity: .55; cursor: not-allowed; }
 #sidebar .navitem .navicon { width: 18px; height: 18px; flex: none; color: inherit; display: inline-flex; }
 #sidebar .navitem.on .navicon { color: var(--accent-primary); }
 #sidebar .backlink { padding: 0 8px 12px; }
-#sidebar .sidebar-foot { margin-top: auto; padding-top: 8px; }
+/* Sticky rather than just margin-top:auto — a fully-featured trip has enough
+   nav rows to overflow the drawer's height, and without this the footer
+   (including the link back to triptracker.cc) required scrolling past every
+   nav item to reach, with no visual cue that it existed. */
+#sidebar .sidebar-foot { margin-top: auto; padding-top: 8px; position: sticky; bottom: 0;
+  background: var(--bg-sidebar); border-top: 1px solid var(--border-hairline); padding-bottom: 4px; }
 .theme-toggle { display: flex; align-items: center; gap: 8px; padding: 8px; font-size: var(--text-xs); color: var(--text-tertiary); }
 .theme-toggle button { border: 1px solid var(--border-hairline); background: var(--bg-card); color: var(--text-secondary);
   border-radius: var(--radius-sm); padding: 4px 9px; font-size: var(--text-xs); cursor: pointer; font-weight: 500; }

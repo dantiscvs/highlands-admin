@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>The Highlands trip that became Trip Tracker — Blog</title>
+<meta name="description" content="513 km, ~6,700 m of climbing, three of us and one spreadsheet that refused to stay a spreadsheet. How a August 2026 cycling trip through the Scottish Highlands turned into Trip Tracker.">
+<meta name="theme-color" content="#F7F5F0">
+<meta property="og:title" content="The Highlands trip that became Trip Tracker">
+<meta property="og:description" content="513 km, ~6,700 m of climbing, three of us and one spreadsheet that refused to stay a spreadsheet.">
+<meta property="og:type" content="article">
+<meta property="og:url" content="https://triptracker.cc/blog/highlands-2026-traverse.html">
+<script>
+(function () {
+  var h = location.hash || '', q = location.search || '';
+  if (h.indexOf('access_token=') > -1 || q.indexOf('code=') > -1) location.replace('/app.html' + q + h);
+  var t = localStorage.getItem('theme');
+  if (t === 'dark' || t === 'light') document.documentElement.setAttribute('data-theme', t);
+})();
+</script>
+<link rel="stylesheet" href="../css/site.css">
+<link rel="stylesheet" href="../css/scenes.css">
+<style>
+  .post-meta { display:flex; gap:14px; align-items:center; flex-wrap:wrap; font-size:13.5px; color:var(--text-tertiary); margin-top:14px; }
+  .post-meta .dot { width:3px; height:3px; border-radius:50%; background:var(--text-tertiary); }
+  article.post { font-size:17px; line-height:1.75; color:var(--text-secondary); }
+  article.post h2 { font-size:24px; color:var(--text-primary); margin:48px 0 14px; letter-spacing:-.01em; }
+  article.post h2:first-child { margin-top:0; }
+  article.post p { margin-bottom:18px; }
+  article.post strong { color:var(--text-primary); }
+  article.post .cap { font-size:14px; color:var(--text-tertiary); }
+
+  .daylist { list-style:none; margin:22px 0 30px; padding:0; border-top:1px solid var(--border-hairline); }
+  .daylist li { display:flex; gap:16px; padding:14px 0; border-bottom:1px solid var(--border-hairline); align-items:baseline; }
+  .daylist .dn { font-family:var(--font-mono); font-weight:700; color:var(--accent); flex:none; width:26px; }
+  .daylist .dd { flex:1; min-width:0; }
+  .daylist .dd b { color:var(--text-primary); font-weight:600; }
+  .daylist .dstat { flex:none; font-family:var(--font-mono); font-size:13.5px; color:var(--text-tertiary); text-align:right; white-space:nowrap; }
+
+  /* Placeholder frames for photos to be dropped in later — swap the <div class="photo-slot">
+     for a plain <img src="..." alt="..."> when the real photo is ready. Always visible by
+     default (no scroll-gated opacity) — these mark where real content goes, so they must
+     never depend on a JS animation firing to be seen. */
+  .photo-slot { aspect-ratio: 3/2; border-radius: var(--radius-lg); border: 1.5px dashed var(--border-strong);
+    background: var(--bg-recessed, var(--accent-subtle)); display:flex; align-items:center; justify-content:center;
+    margin: 28px 0; }
+  .photo-slot-inner { display:flex; flex-direction:column; align-items:center; gap:8px; color:var(--text-tertiary); padding:20px; text-align:center; }
+  .photo-slot-inner svg { opacity:.6; }
+  .photo-slot-inner span { font-size:13.5px; max-width:280px; }
+  .photo-slot.wide { aspect-ratio: 16/9; }
+
+  .pull { font-size:22px; font-weight:600; color:var(--text-primary); line-height:1.4; margin:36px 0;
+    padding-left:20px; border-left:3px solid var(--accent); }
+</style>
+</head>
+<body>
+
+<header class="site">
+  <div class="wrap bar">
+    <a class="brand" href="../">
+      <svg class="mark" viewBox="0 0 28 28" aria-hidden="true">
+        <circle cx="14" cy="14" r="12.5" fill="none" stroke="currentColor" stroke-width="1.8"/>
+        <circle cx="8" cy="20" r="2.2" fill="currentColor"/><circle cx="20" cy="8" r="2.2" fill="currentColor"/>
+        <path d="M8 20C16 20 12 8 20 8" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+      </svg>
+      Trip Tracker
+    </a>
+    <nav class="mainnav" id="mainnav">
+      <div class="navdrop" id="navdrop">
+        <button type="button" aria-expanded="false" onclick="toggleFeatureMenu(event)">Features
+          <svg class="caret" width="10" height="10" viewBox="0 0 10 10" aria-hidden="true"><path d="M2 4l3 3 3-3" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </button>
+        <div class="navdrop-menu">
+          <a href="../features/route.html"><i>🗺️</i><b>Route &amp; Days<span>Stages, elevation, maps</span></b></a><a href="../features/today.html"><i>🎯</i><b>Today<span>The on-the-road screen</span></b></a><a href="../features/statistics.html"><i>📊</i><b>Statistics<span>Effort and pace charts</span></b></a><a href="../features/weather.html"><i>🌤️</i><b>Weather<span>Hourly, per stage</span></b></a><a href="../features/logistics.html"><i>✈️</i><b>Logistics<span>Flights, trains, ferries</span></b></a><a href="../features/accommodation.html"><i>🏠</i><b>Accommodation<span>Rooms, costs, breakfast</span></b></a><a href="../features/sights.html"><i>🏰</i><b>Sights &amp; Resupply<span>Food, shops, water</span></b></a><a href="../features/packing.html"><i>🎒</i><b>Packing &amp; Tasks<span>Assigned per person</span></b></a><a href="../features/expenses.html"><i>💸</i><b>Expenses<span>Split and settle</span></b></a><a href="../features/story.html"><i>📸</i><b>Story &amp; Photos<span>Gallery and story cards</span></b></a><a href="../features/live.html"><i>🔴</i><b>Live Sharing<span>One public link</span></b></a><a href="../features/imports.html"><i>📥</i><b>Imports<span>Email, PDF, GPX</span></b></a>
+          <a class="all" href="../features.html">All features →</a>
+        </div>
+      </div>
+      <a href="../how-it-works.html">How it works</a>
+      <a class="on" href="../blog.html">Blog</a>
+      <a href="../live.html?t=c26dcdbd931c46f8804196172c1179b9">Live demo</a>
+      <a href="../faq.html">FAQ</a>
+    </nav>
+    <div class="headcta">
+      <a class="btn btn-ghost btn-sm" href="../app.html">Sign in</a>
+      <a class="btn btn-primary btn-sm" href="../app.html">Get started</a>
+      <button id="navToggle" aria-label="Menu" aria-expanded="false">
+        <svg viewBox="0 0 22 22" width="22" height="22"><path d="M3 6h16M3 11h16M3 16h16" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" fill="none"/></svg>
+      </button>
+    </div>
+  </div>
+</header>
+
+<section class="tight" style="padding-bottom:0;">
+  <div class="wrap narrow">
+    <div class="crumb" style="margin-bottom:18px;"><a href="../">Home</a> → <a href="../blog.html">Blog</a> → Highlands 2026</div>
+    <div class="eyebrow">Behind the app</div>
+    <h1 style="font-size:clamp(28px,4.4vw,44px);">The trip that became Trip Tracker</h1>
+    <p class="lede">513 km, roughly 6,700 m of climbing, three of us, and one messy planning
+      document that refused to stay a spreadsheet.</p>
+    <div class="post-meta">
+      <span>Michał</span><span class="dot"></span><span>August 2026</span><span class="dot"></span><span>Scottish Highlands</span><span class="dot"></span><span>8-day cycling trip</span>
+    </div>
+  </div>
+</section>
+
+<section class="tight">
+  <div class="wrap narrow">
+    <article class="post">
+
+      <p>In August 2026 I cycled a loop out of Edinburgh through the Highlands with two
+        friends, Kuba and Maciek: north through the Great Glen, along Glen Shiel, round the
+        top through Torridon and Wester Ross, and back down through Inverness. Six riding
+        days, roughly 513 km, around 6,700 m of climbing, and two extra days in Edinburgh on
+        either end to fly in, build bikes, and fly back out.</p>
+
+      <div class="photo-slot wide" data-caption="The three of us with loaded bikes, Edinburgh, before setting off">
+        <div class="photo-slot-inner">
+          <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3" y="6" width="18" height="14" rx="2"/><circle cx="8.5" cy="11" r="1.5"/><path d="M21 16l-5-5-9 9"/></svg>
+          <span>Photo coming soon — the three of us with loaded bikes, Edinburgh</span>
+        </div>
+      </div>
+
+      <p>This wasn't a trip that needed a product. It needed three phones to agree on the
+        same plan. Where we were sleeping, how far tomorrow was, whether the next town had a
+        shop, who still owed who for the taxi from the airport. The kind of thing that
+        normally lives across a group chat, a shared spreadsheet nobody opens on their phone,
+        and someone's memory.</p>
+
+      <h2>The route</h2>
+      <p>Loosely a there-and-back loop, weighted toward the west coast for the scenery and
+        timed to come back through Inverness for the train home. The numbers below are the
+        real ones from the trip — the same day-by-day data that ended up seeding this app's
+        first test trip.</p>
+
+      <ul class="daylist">
+        <li><span class="dn">1</span><div class="dd"><b>Arrival — Edinburgh</b><div class="cap">Bikes off the flight, a van and two taxis to get three sets of bike boxes and three riders to the same guest house.</div></div><span class="dstat">rest day</span></li>
+        <li><span class="dn">2</span><div class="dd"><b>Edinburgh → Fort Augustus</b><div class="cap">Up early to rebuild bikes and raid the Lidl in Musselburgh before the road actually started.</div></div><span class="dstat">56.9 km · +585 m</span></li>
+        <li><span class="dn">3</span><div class="dd"><b>Fort Augustus → Ratagan</b><div class="cap">The Great Glen, then Glen Shiel — the run most people picture when they picture the Highlands.</div></div><span class="dstat">85.9 km · +1,161 m</span></li>
+        <li><span class="dn">4</span><div class="dd"><b>Ratagan → Achnasheen</b><div class="cap">Kyle of Lochalsh, then Torridon. Also the day we discovered a sleeping bag had been left at home — <span class="mono">£10</span> well spent at the hostel shop.</div></div><span class="dstat">88 km · +1,160 m</span></li>
+        <li><span class="dn">5</span><div class="dd"><b>Achnasheen → Dundonnell</b><div class="cap">The big one. Poolewe and Loch Maree, and the most climbing of any single day on the trip.</div></div><span class="dstat">93 km · +1,183 m</span></li>
+        <li><span class="dn">6</span><div class="dd"><b>Dundonnell → Bonar Bridge</b><div class="cap">Corrieshalloch Gorge, then Ullapool for the best coffee of the week.</div></div><span class="dstat">90 km · +996 m</span></li>
+        <li><span class="dn">7</span><div class="dd"><b>Bonar Bridge → Inverness → Edinburgh</b><div class="cap">The last stage, then a well-earned train back to Edinburgh with the bikes in the guard's van.</div></div><span class="dstat">99.6 km · +607 m</span></li>
+        <li><span class="dn">8</span><div class="dd"><b>Edinburgh — sightseeing</b><div class="cap">A day to walk instead of pedal, before the evening flight home.</div></div><span class="dstat">rest day</span></li>
+      </ul>
+
+      <div class="photo-slot">
+        <div class="photo-slot-inner">
+          <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3" y="6" width="18" height="14" rx="2"/><circle cx="8.5" cy="11" r="1.5"/><path d="M21 16l-5-5-9 9"/></svg>
+          <span>Photo coming soon — Glen Shiel, somewhere before Ratagan</span>
+        </div>
+      </div>
+
+      <p class="pull">A route this long, with three people and no phone signal for most of
+        it, turns out to be exactly the kind of thing a spreadsheet is bad at.</p>
+
+      <h2>Why the spreadsheet stopped being a spreadsheet</h2>
+      <p>Before we left, I'd built the planning document the way most people do: a
+        spreadsheet for the itinerary, a shared note for accommodation links, a group chat
+        for logistics, and a packing list that existed in three slightly different versions
+        across three phones. It worked, in the way that things work right up until the point
+        they don't — usually somewhere with no signal, at the end of a long day, when nobody
+        can remember whether tonight's place includes breakfast.</p>
+      <p>So a few weeks before the trip I built a single web page instead: one file, no
+        backend, just the itinerary, the packing list, a weather chart, and a running budget,
+        all baked into the page and shared as a link. Everyone could open it on their phone
+        without installing anything. It was rough, but during the actual week of riding it
+        did the one thing the spreadsheet never managed — everyone looked at the same version
+        of the plan, on the same page, without anyone needing to ask "wait, is this the
+        latest one?"</p>
+
+      <div class="photo-slot wide">
+        <div class="photo-slot-inner">
+          <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3" y="6" width="18" height="14" rx="2"/><circle cx="8.5" cy="11" r="1.5"/><path d="M21 16l-5-5-9 9"/></svg>
+          <span>Photo coming soon — Torridon or Dundonnell, day 4/5</span>
+        </div>
+      </div>
+
+      <h2>From one trip to a real app</h2>
+      <p>That single-page planner did its job and should probably have stayed a private
+        thing. But a few people who saw it during the trip asked if they could use something
+        like it for their own trips — a different route, a different group, a different
+        activity entirely. That's the actual origin of Trip Tracker: not a plan to build a
+        product, but a page that worked well enough on one real trip that it was worth
+        rebuilding properly — multi-trip, multi-activity, real accounts, a live page for
+        people following along at home, and everything else that a one-off page for one trip
+        never needed to have.</p>
+      <p>The Scottish Highlands Traverse trip you can see in the <a href="../live.html?t=c26dcdbd931c46f8804196172c1179b9">live demo</a>
+        is seeded from this exact route — the same eight days, the same distances and climbing,
+        the same stops. It's the closest thing this app has to a founding trip.</p>
+
+      <div class="photo-slot">
+        <div class="photo-slot-inner">
+          <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3" y="6" width="18" height="14" rx="2"/><circle cx="8.5" cy="11" r="1.5"/><path d="M21 16l-5-5-9 9"/></svg>
+          <span>Photo coming soon — the finish, back in Edinburgh</span>
+        </div>
+      </div>
+
+      <p>If you're planning something similar — a multi-day trip with more than one person
+        and more moving parts than a single note can hold — that's exactly what this app is
+        for now. It just happens to have started as three cyclists trying not to lose each
+        other in the Highlands.</p>
+
+    </article>
+  </div>
+</section>
+
+<section class="tight">
+  <div class="wrap">
+    <div class="cta-band">
+      <h2>Plan your own trip</h2>
+      <p>Free while in early access. Import a GPX and the plan starts filling itself in.</p>
+      <div class="cta-actions">
+        <a class="btn btn-lg" href="../app.html">Get started</a>
+        <a class="btn btn-lg btn-outline" href="../live.html?t=c26dcdbd931c46f8804196172c1179b9">View the demo trip</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<footer class="site">
+  <div class="wrap">
+    <div class="foot-grid">
+      <div>
+        <a class="brand" href="../" style="margin-bottom:12px;">
+          <svg class="mark" viewBox="0 0 28 28" aria-hidden="true">
+            <circle cx="14" cy="14" r="12.5" fill="none" stroke="currentColor" stroke-width="1.8"/>
+            <circle cx="8" cy="20" r="2.2" fill="currentColor"/><circle cx="20" cy="8" r="2.2" fill="currentColor"/>
+            <path d="M8 20C16 20 12 8 20 8" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+          </svg>
+          Trip Tracker
+        </a>
+        <p class="muted" style="max-width:300px;font-size:14px;">Planning and live sharing for multi-day group trips.</p>
+      </div>
+      <div><h4>Product</h4><ul>
+        <li><a href="../features.html">All features</a></li>
+        <li><a href="../how-it-works.html">How it works</a></li>
+        <li><a href="../blog.html">Blog</a></li>
+        <li><a href="../faq.html">FAQ</a></li></ul></div>
+      <div><h4>Try it</h4><ul>
+        <li><a href="../app.html">Sign in</a></li>
+        <li><a href="../app.html">Create a trip</a></li>
+        <li><a href="../live.html?t=c26dcdbd931c46f8804196172c1179b9">Live demo</a></li></ul></div>
+      <div><h4>Deep dives</h4><ul>
+        <li><a href="../features/route.html">Route &amp; Days</a></li>
+        <li><a href="../features/today.html">Today</a></li>
+        <li><a href="../features/live.html">Live sharing</a></li>
+        <li><a href="../features/imports.html">Imports</a></li></ul></div>
+    </div>
+    <div class="foot-bottom">
+      <span>© 2026 Trip Tracker</span>
+      <span>Early access — <a href="../app.html">free to use</a></span>
+    </div>
+  </div>
+</footer>
+
+<script>
+function toggleFeatureMenu(e) {
+  e.preventDefault();
+  var d = document.getElementById('navdrop');
+  var open = d.classList.toggle('open');
+  d.querySelector('button').setAttribute('aria-expanded', open ? 'true' : 'false');
+}
+document.addEventListener('click', function (e) {
+  var d = document.getElementById('navdrop');
+  if (d && !d.contains(e.target)) d.classList.remove('open');
+});
+document.getElementById('navToggle').addEventListener('click', function () {
+  var n = document.getElementById('mainnav');
+  var open = n.classList.toggle('open');
+  this.setAttribute('aria-expanded', open ? 'true' : 'false');
+});
+</script>
+</body>
+</html>
